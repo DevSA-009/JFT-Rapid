@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "None",
+    "noLib": true,
+    "types": [
+      "./src/adobe-types/Illustrator/2022/index.d.ts",
+      "./src/types/custom.d.ts",
+    ],
+    "outDir": "./HOST",
+    "strict": true
+  },
+  "include": [
+    "src"
+  ]
+}
