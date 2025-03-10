@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.jftrapid.cep"
+    ExtensionBundleVersion="1.0" ExtensionBundleName="JFT Rapid">
+    <ExtensionList>
+        <Extension Id="com.jftrapid.cep.panel"/>
+    </ExtensionList>
+    <ExecutionEnvironment>
+        <HostList>
+            <Host Name="ILST" Version="[24.0,99.9]" />
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="11"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+    <DispatchInfoList>
+        <Extension Id="com.jftrapid.cep.panel">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./CLIENT/index.html</MainPath>
+                    <ScriptPath>./HOST/index.js</ScriptPath>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>JFT Rapid</Menu>
+                    <Geometry>
+                        <!-- Default Size -->
+                        <Size>
+                            <Height>80</Height>
+                            <Width>200</Width>
+                        </Size>
+                        <!-- Minimum Size -->
+                        <MinSize>
+                            <Height>50</Height>
+                            <Width>150</Width>
+                        </MinSize>
+                        <!-- Maximum Size -->
+                        <MaxSize>
+                            <Height>800</Height>
+                            <Width>600</Width>
+                        </MaxSize>
+                    </Geometry>
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>

@@ -1,0 +1,41 @@
+/* Define base CSS variables for button customization */
+:root {
+    --btn-bg-color: #262626;
+    --btn-color: #e1e1e1;
+    --btn-hover-bg-color: #333333;
+    --btn-active-bg-color: #323232;
+    --btn-active-color: #fbfbfb;
+    --btn-border-color: #212121;
+    --btn-width: 30px;
+    --btn-height: 20px;
+    --btn-margin: 2px;
+}
+
+/* Base button styles */
+.adb-ilst-btn {
+    background-color: var(--btn-bg-color);
+    color: var(--btn-color);
+    outline: none;
+    border: none;
+    padding: 2%;
+    margin: var(--btn-margin);
+    transition: all 0.3s ease;
+    border: 1px solid var(--btn-border-color);
+    cursor: pointer;
+}
+
+.adb-ilst-parent-btn{
+    padding: 2%;
+}
+
+/* Active state modifier */
+.adb-ilst-btn--active {
+    background-color: var(--btn-active-bg-color);
+    color: var(--btn-active-color);
+    border-bottom: 1px solid var(--btn-active-color);
+}
+
+/* Hover effect for interaction */
+.adb-ilst-btn:hover {
+    background-color: var(--btn-hover-bg-color);
+}
