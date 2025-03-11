@@ -3,6 +3,7 @@
     "target": "ES5",
     "module": "None",
     "noLib": true,
+    "removeComments": true,
     "types": [
       "./src/adobe-types/Illustrator/2022/index.d.ts",
       "./src/types/custom.d.ts",
