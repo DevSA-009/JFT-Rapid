@@ -547,26 +547,13 @@ const organizeInit = (doc: Document): void => {
     let lastItem:GroupItem | PageItem;
     const actLyrItms1 = doc.activeLayer.pageItems;
     changeSize(bodyPath, JFT_SIZE.MENS.M.width, JFT_SIZE.MENS.M.height);
-    // const {recommendedIn90,rowIn0,rowIn90} = getTotalHeight(groupItem, playerdata.length);
-    // if(recommendedIn90) {
-    //     organizeBodyXY({ baseItem: groupItem, bodyPath, bodyDim, colInfo: rowIn90, playerLength: playerdata.length, is90: true });
-    //     const actLyrItms2 = doc.activeLayer.pageItems;
-    //     const lastRowFirstItemIndex = actLyrItms2.length - rowIn90.fitIn - 1;
-    // } else {
-    //     organizeBodyXY({ baseItem: groupItem, bodyPath, bodyDim, colInfo: rowIn0, playerLength: rowIn0.remainingItems, is90: false });
+    const {recommendedIn90,rowIn0,rowIn90} = getRowInfo(groupItem, playerdata.length);
 
-    //     const actLyrItms = doc.activeLayer.pageItems;
-    //     const lastRowFirstItemIndex = actLyrItms.length - rowIn0.fitIn - 1;
-    //     lastItem = actLyrItms[lastRowFirstItemIndex];
-    //     if(rowIn0.remainingItems) {
-    //         const remaingTotalH = getTotalHeight(groupItem,rowIn0.remainingItems);
-    //         const actLyrItms = doc.activeLayer.pageItems;
-    //         const lastRowFirstItemIndex = actLyrItms.length - rowIn90.fitIn - 1;
-    //         if(remaingTotalH.recommendedIn90) {
-    //             const lastRowFirstItem = actLyrItms[lastRowFirstItemIndex];
-    //         }
-    //     }
-    // }
+    const {fitIn,height,remaing} = rowIn0;
+
+    if(recommendedIn90) {
+
+    }
 
     groupItem.remove();
 
