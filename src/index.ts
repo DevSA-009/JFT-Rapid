@@ -7,8 +7,6 @@ const NO_MAX_SIZE = {
     BACK: 11
 };
 
-// let rootSelection:GroupItem | null;
-
 const ITEMS_GAP_SIZE = 0.10;
 
 const JFT_SIZE = {
@@ -307,102 +305,96 @@ const getBodyGeoMetrics = (groupItem: GroupItem): [] | number[] => {
 
 /**
  * Calculates the total height required to fit items in both 0-degree and 90-degree orientations.
- * It determines the number of items that can fit in a row, calculates the number of rows needed,
- * and considers any remaining items that do not fit within complete rows.
+ * It determines how many items fit in each row, calculates the total height for the given quantity of items, 
+ * and checks whether the layout should be recommended in 90-degree orientation based on total height.
+ * The function also accounts for any remaining items that do not completely fit into the rows.
  * 
  * @function
- * @param {GroupItem} groupItem - The item group for which the height is calculated.
- * @param {number} quantity - quantity.
- * @returns {TotalHeightReturn} An object containing row details for both orientations and a recommendation flag.
+ * @param {GroupItem} groupItem - The item group for which the layout is calculated, including its geometric properties.
+ * @param {number} quantity - The total number of items that need to be fitted into the layout.
+ * @returns {RowInfoReturn} An object containing the following:
+ *  - `rowIn0`: Details of the rows in 0-degree orientation, including:
+ *    - `fitIn`: Number of items that fit in a single row.
+ *    - `height`: Total height needed to fit all items.
+ *    - `remaining`: Number of remaining items that don't fit in complete rows.
+ *  - `rowIn90`: Details of the rows in 90-degree orientation, including:
+ *  - `recommendedIn90`: A boolean indicating if the 90-degree orientation should be used based on a comparison of total heights.
  */
-const getTotalHeight = (groupItem: GroupItem, quantity: number): TotalHeightReturn => {
+
+
+const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
     const bounds = getBodyGeoMetrics(groupItem);
     const bodyW = (bounds[2] - bounds[0]) / 72;
     const bodyH = (bounds[1] - bounds[3]) / 72;
     const fitCount0 = parseInt((PAPER_MAX_SIZE / (bodyW + ITEMS_GAP_SIZE)).toString()); // Number of items that fit in 0 degrees
     const fitCount90 = parseInt((PAPER_MAX_SIZE / (bodyH + ITEMS_GAP_SIZE)).toString()); // Number of items that fit in 90 degrees
 
+    const returnObj = {
+        rowIn0:{
+            fitIn:fitCount0,
+            height:0,
+            remaing:0
+        },
+        rowIn90:{
+            fitIn:fitCount90,
+            height:0,
+            remaing:0
+        },
+        recommendedIn90:false
+    };
+
     const rowsIn0 = parseInt((quantity / fitCount0).toString()) || 1; // Rows of items in 0 degrees
     const rowsIn90 = parseInt((quantity / fitCount90).toString()) || 1; // Rows of items in 90 degrees
 
-    if (quantity <= 2) {
-        if (fitCount90 < 2 && fitCount0 < 2) {
-            return {
-                rowIn0: {
-                    totalHeight: bodyH * quantity,
-                    remainingItems: quantity - 1,
-                    fitIn: fitCount0
-                },
-                rowIn90: {
-                    totalHeight: bodyW * quantity,
-                    remainingItems: quantity - 1,
-                    fitIn: fitCount90
-                },
-                recommendedIn90: bodyW < bodyH
-            };
-        } else if (fitCount90 < 2) {
-            return {
-                rowIn0: {
-                    totalHeight: bodyH,
-                    remainingItems: 0,
-                    fitIn: fitCount0
-                },
-                rowIn90: {
-                    totalHeight: bodyW * quantity,
-                    remainingItems: quantity - 1,
-                    fitIn: fitCount90
-                },
-                recommendedIn90: false
-            };
+    if(quantity <= fitCount0 || quantity <= fitCount90) {
+
+        const totalH0 = bodyH*quantity;
+        const totalH90 = bodyW*quantity;
+        // now check recommendedIn90
+        if(totalH90 <= totalH0) {
+            returnObj.recommendedIn90 = true;
+            returnObj.rowIn90 = {...returnObj.rowIn90,height:totalH90};
         } else {
-            return {
-                rowIn0: {
-                    totalHeight: bodyH,
-                    remainingItems: 0,
-                    fitIn: fitCount0
-                },
-                rowIn90: {
-                    totalHeight: bodyW,
-                    remainingItems: 0,
-                    fitIn: fitCount90
-                },
-                recommendedIn90: true
-            };
+            returnObj.rowIn0 = { ...returnObj.rowIn0, height: totalH0 };
         }
+    } else {
+        // when quantity greater than fitCount0 or fitCount90
+        let remaining0 = parseInt((quantity % fitCount0).toString()); // Remaining items for 0 degrees
+        let remaining90 = parseInt((quantity % fitCount90).toString()); // Remaining items for 90 degrees
+
+        // check reasign if fitItem 1;
+        {
+            if(fitCount0 === 1) {
+                remaining0 = quantity - 1;
+            }
+            if(fitCount90 === 1) {
+                remaining90 = quantity - 1;
+            }
+        }
+
+        const heightWithoutRemaining0 = rowsIn0 * bodyH; // Total height without remaining items in 0 degrees
+        const heightWithoutRemaining90 = rowsIn90 * bodyW; // Total height without remaining items in 90 degrees
+
+        let totalHeight0 = heightWithoutRemaining0;
+        let totalHeight90 = heightWithoutRemaining90;
+
+        if (remaining0 > 0) {
+            const extraHeight0 = Math.ceil(remaining0 / fitCount90) * bodyW; // Extra height for remaining items in 0 degrees
+            totalHeight0 += extraHeight0;
+        }
+
+        if (remaining90 > 0) {
+            const extraHeight90 = Math.ceil(remaining90 / fitCount90) * currentData.nx_size.w; // Extra height for remaining items in 90 degrees
+            totalHeight90 += extraHeight90;
+        }
+
+        returnObj.rowIn0 = {...returnObj.rowIn0,height:totalHeight0,remaing:remaining0};
+        returnObj.rowIn90 = {...returnObj.rowIn90,height:totalHeight90,remaing:remaining90};
+        returnObj.recommendedIn90 = totalHeight90 <= totalHeight0;
     }
 
-    const remainingItems0 = parseInt((quantity % fitCount0).toString()); // Remaining items for 0 degrees
-    const remainingItems90 = parseInt((quantity % fitCount90).toString()); // Remaining items for 90 degrees
 
-    const heightWithoutRemaining0 = rowsIn0 * bodyH; // Total height without remaining items in 0 degrees
-    const heightWithoutRemaining90 = rowsIn90 * bodyW; // Total height without remaining items in 90 degrees
-
-    let totalHeight0 = heightWithoutRemaining0;
-    let totalHeight90 = heightWithoutRemaining90;
-
-    if (remainingItems0 > 0) {
-        const extraHeight0 = Math.ceil(remainingItems0 / fitCount90) * bodyW; // Extra height for remaining items in 0 degrees
-        totalHeight0 += extraHeight0;
-    }
-
-    if (remainingItems90 > 0) {
-        const extraHeight90 = Math.ceil(remainingItems90 / fitCount90) * currentData.nx_size.w; // Extra height for remaining items in 90 degrees
-        totalHeight90 += extraHeight90;
-    }
-
-    return {
-        rowIn0: {
-            totalHeight: totalHeight0,
-            remainingItems: remainingItems0,
-            fitIn: fitCount0
-        },
-        rowIn90: {
-            totalHeight: totalHeight90,
-            remainingItems: remainingItems90,
-            fitIn: fitCount90
-        },
-        recommendedIn90: totalHeight90 <= totalHeight0
-    };
+    return returnObj;
 }
 
 /**
@@ -507,7 +499,7 @@ const organizeBodyXY = (arg: OrgBodyItemDir): void => {
     const { baseItem, playerLength, colInfo, bodyDim, bodyPath, is90 } = arg;
     const als = baseItem.name;
     const playerdata = endSlice(currentData.playerdata,playerLength);
-    const {fitIn,remainingItems,totalHeight} = colInfo;
+    const {fitIn,remaing,height} = colInfo;
     baseItem.name = als + 1;
     const { w, h } = bodyDim;
     let row = 0;
@@ -555,26 +547,26 @@ const organizeInit = (doc: Document): void => {
     let lastItem:GroupItem | PageItem;
     const actLyrItms1 = doc.activeLayer.pageItems;
     changeSize(bodyPath, JFT_SIZE.MENS.M.width, JFT_SIZE.MENS.M.height);
-    const {recommendedIn90,rowIn0,rowIn90} = getTotalHeight(groupItem, playerdata.length);
-    if(recommendedIn90) {
-        organizeBodyXY({ baseItem: groupItem, bodyPath, bodyDim, colInfo: rowIn90, playerLength: playerdata.length, is90: true });
-        const actLyrItms2 = doc.activeLayer.pageItems;
-        const lastRowFirstItemIndex = actLyrItms2.length - rowIn90.fitIn - 1;
-    } else {
-        organizeBodyXY({ baseItem: groupItem, bodyPath, bodyDim, colInfo: rowIn0, playerLength: rowIn0.remainingItems, is90: false });
+    // const {recommendedIn90,rowIn0,rowIn90} = getTotalHeight(groupItem, playerdata.length);
+    // if(recommendedIn90) {
+    //     organizeBodyXY({ baseItem: groupItem, bodyPath, bodyDim, colInfo: rowIn90, playerLength: playerdata.length, is90: true });
+    //     const actLyrItms2 = doc.activeLayer.pageItems;
+    //     const lastRowFirstItemIndex = actLyrItms2.length - rowIn90.fitIn - 1;
+    // } else {
+    //     organizeBodyXY({ baseItem: groupItem, bodyPath, bodyDim, colInfo: rowIn0, playerLength: rowIn0.remainingItems, is90: false });
 
-        const actLyrItms = doc.activeLayer.pageItems;
-        const lastRowFirstItemIndex = actLyrItms.length - rowIn0.fitIn - 1;
-        lastItem = actLyrItms[lastRowFirstItemIndex];
-        if(rowIn0.remainingItems) {
-            const remaingTotalH = getTotalHeight(groupItem,rowIn0.remainingItems);
-            const actLyrItms = doc.activeLayer.pageItems;
-            const lastRowFirstItemIndex = actLyrItms.length - rowIn90.fitIn - 1;
-            if(remaingTotalH.recommendedIn90) {
-                const lastRowFirstItem = actLyrItms[lastRowFirstItemIndex];
-            }
-        }
-    }
+    //     const actLyrItms = doc.activeLayer.pageItems;
+    //     const lastRowFirstItemIndex = actLyrItms.length - rowIn0.fitIn - 1;
+    //     lastItem = actLyrItms[lastRowFirstItemIndex];
+    //     if(rowIn0.remainingItems) {
+    //         const remaingTotalH = getTotalHeight(groupItem,rowIn0.remainingItems);
+    //         const actLyrItms = doc.activeLayer.pageItems;
+    //         const lastRowFirstItemIndex = actLyrItms.length - rowIn90.fitIn - 1;
+    //         if(remaingTotalH.recommendedIn90) {
+    //             const lastRowFirstItem = actLyrItms[lastRowFirstItemIndex];
+    //         }
+    //     }
+    // }
 
     groupItem.remove();
 
@@ -589,12 +581,11 @@ const organizeInit = (doc: Document): void => {
 const run = (): void => {
     try {
         const doc = app.activeDocument;
-        alert(`Hello ${doc.name}`);
         const selection1 = doc.selection[0] as GroupItem;
-        const selection2 = doc.selection[1] as GroupItem;
         const selSts = validateSelection(selection1);
         if (selSts && validateBodyItem(selection1)) {
-            organizeInit(doc);
+            // organizeInit(doc);
+            getRowInfo(selection1, 2);
         }
     } catch (error) {
         alert("initiate error");

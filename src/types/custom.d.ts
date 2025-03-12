@@ -1,11 +1,11 @@
 type findElementCb = (element: any, index?: number) => null | any;
 interface RowInfo {
-    totalHeight: number;
-    remainingItems: number;
+    height: number;
+    remaing: number;
     fitIn: number;
 }
 
-interface TotalHeightReturn {
+interface RowInfoReturn {
     rowIn0:RowInfo;
     rowIn90:RowInfo;
     recommendedIn90:boolean;
