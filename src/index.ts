@@ -96,7 +96,7 @@ const currentData = {
     //     { "name": "J", "no": 10 }
     // ]
     playerdata:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]
-}
+};
 
 
 /**
@@ -461,8 +461,12 @@ const rotateItem = (groupItem: GroupItem | PageItem, deg: 90 | -90 | 180 | 0 | -
  * @param {number} height 
  */
 const changeSize = (groupItem: GroupItem | PathItem, width: number, height: number) => {
-    groupItem.width = width * 72;
-    groupItem.height = height * 72;
+    const [left,top,right,bottom] = getBodyGeoMetrics(groupItem as GroupItem);
+    const bsWidth = (right - left)/72;
+    const bsHeight = (top - bottom)/72;
+    const nxtWidthScaleFactor = (width/bsWidth)*100;
+    const nxtHeightScaleFactor = (height/bsHeight)*100;
+    groupItem.resize(nxtWidthScaleFactor,nxtHeightScaleFactor);
 }
 
 const fixOrganizeRotateAlign = (baseItem:GroupItem,movingItem:GroupItem):void => {
@@ -540,7 +544,6 @@ const organizeInit = (doc: Document): void => {
     const groupItem = doc.selection[0] as GroupItem;
     const playerdata = currentData.playerdata;
     const bodyPath = getBody(groupItem);
-    const bounds = getBodyGeoMetrics(groupItem);
     const bodyW = (currentData.nx_size.w + ITEMS_GAP_SIZE) * 72;
     const bodyH = (currentData.nx_size.h + ITEMS_GAP_SIZE) * 72;
     const bodyDim = {w:bodyW,h:bodyH};
@@ -549,10 +552,22 @@ const organizeInit = (doc: Document): void => {
     changeSize(bodyPath, JFT_SIZE.MENS.M.width, JFT_SIZE.MENS.M.height);
     const {recommendedIn90,rowIn0,rowIn90} = getRowInfo(groupItem, playerdata.length);
 
-    const {fitIn,height,remaing} = rowIn0;
+    const organizeBodyXYPrm:OrgBodyItemDir = {
+        baseItem:groupItem,
+        bodyDim,
+        bodyPath,
+        colInfo:rowIn90,
+        is90:true,
+        playerLength:rowIn90.remaing
+    };
 
     if(recommendedIn90) {
-
+        organizeBodyXY(organizeBodyXYPrm);
+    } else {
+        organizeBodyXYPrm.colInfo = rowIn0;
+        organizeBodyXYPrm.is90 = false;
+        organizeBodyXYPrm.playerLength = rowIn0.remaing;
+        organizeBodyXY(organizeBodyXYPrm);
     }
 
     groupItem.remove();
@@ -572,7 +587,7 @@ const run = (): void => {
         const selSts = validateSelection(selection1);
         if (selSts && validateBodyItem(selection1)) {
             // organizeInit(doc);
-            getRowInfo(selection1, 2);
+            // getRowInfo(selection1, 2);
         }
     } catch (error) {
         alert("initiate error");
