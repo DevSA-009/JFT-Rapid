@@ -13,7 +13,7 @@ const selectElementById = (id) => {
 
 const babyBtn = selectElementById("babyButton");
 const mensBtn = selectElementById("mensButton");
-const testExtd = selectElementById("testExtd");
+const orgColRow = selectElementById("orgColRow");
 
 /**
  * 
@@ -47,7 +47,7 @@ mensBtn.onclick = function () {
     showMensChildButtons();
 };
 
-testExtd.onclick = testExtendScript;
+orgColRow.onclick = testExtendScript;
 
 // Function to show Baby child buttons
 function showBabyChildButtons() {
@@ -81,5 +81,5 @@ function showMensChildButtons() {
 
 /* 3) Write a helper function to pass instructions to the ExtendScript side. */
 function testExtendScript() {
-    csInterface.evalScript("run()");
+    csInterface.evalScript("run(orgDialogRoot)");
 }
