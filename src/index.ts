@@ -1,3 +1,6 @@
+//@include './scriptUI/orgInfoDialog.js';
+//@include './polyfill/json2.js';
+
 const FRONT = "FRONT";
 const BACK = "BACK";
 const PAPER_MAX_SIZE = 63.25;
@@ -72,30 +75,6 @@ const ALIASES = {
     SZ_TK: 0,
     NO: 1,
     NAME: 2
-};
-
-const currentData = {
-    cr_size: {
-        w: 20.5,
-        h: 30
-    },
-    nx_size: {
-        w: 19.5,
-        h: 29
-    },
-    // playerdata: [
-    //     { "name": "A", "no": 1 },
-    //     { "name": "B", "no": 2 },
-    //     { "name": "C", "no": 3 },
-    //     { "name": "D", "no": 4 },
-    //     { "name": "E", "no": 5 },
-    //     { "name": "F", "no": 6 },
-    //     { "name": "G", "no": 7 },
-    //     { "name": "H", "no": 8 },
-    //     { "name": "I", "no": 9 },
-    //     { "name": "J", "no": 10 }
-    // ]
-    playerdata:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]
 };
 
 
@@ -311,7 +290,7 @@ const getBodyGeoMetrics = (groupItem: GroupItem): [] | number[] => {
  * @param {GroupItem} groupItem - The group item whose body dimensions are to be calculated.
  * @returns {{bodyW: number, bodyH: number}} - An object containing the width (`bodyW`) and height (`bodyH`) of the body in inches.
  */
-const getBodyWHDimension = (groupItem: GroupItem) => {
+const getBodyWHDimension = (groupItem: GroupItem): { bodyW: number; bodyH: number; } => {
     const bounds = getBodyGeoMetrics(groupItem);
     const bodyW = (bounds[2] - bounds[0]) / 72;
     const bodyH = (bounds[1] - bounds[3]) / 72;
@@ -395,7 +374,7 @@ const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
         }
 
         if (remaining90 > 0) {
-            const extraHeight90 = Math.ceil(remaining90 / fitCount90) * currentData.nx_size.w; // Extra height for remaining items in 90 degrees
+            const extraHeight90 = Math.ceil(remaining90 / fitCount90) * bodyW; // Extra height for remaining items in 90 degrees
             totalHeight90 += extraHeight90;
         }
 
@@ -511,9 +490,8 @@ const organizeBody = (arg:OrgBodyItem):GroupItem | PageItem => {
  * @returns {void} - Array of created items
  */
 const organizeBodyXY = (arg: OrgBodyItemDir): void => {
-    const { baseItem, playerLength, colInfo, bodyDim, bodyPath, is90 } = arg;
+    const { baseItem, quantity, colInfo, bodyDim,  is90 } = arg;
     const als = baseItem.name;
-    const playerdata = endSlice(currentData.playerdata,playerLength);
     const {fitIn,remaing,height} = colInfo;
     baseItem.name = als + 1;
     const { w, h } = bodyDim;
@@ -524,7 +502,7 @@ const organizeBodyXY = (arg: OrgBodyItemDir): void => {
         rotateItem(baseItem, -90);
     }
 
-    for (let index = 1; index <= playerdata.length; index++) {
+    for (let index = 1; index <= quantity; index++) {
 
         const x = (col) * (is90 ? h : w);
         const y = -(row) * (is90 ? w : h);
@@ -551,17 +529,14 @@ const organizeBodyXY = (arg: OrgBodyItemDir): void => {
  * @throws {Error} - May throw an error if item manipulation fails.
  */
 
-const organizeInit = (doc: Document): void => {
+const organizeInit = (doc: Document,quantity:number): void => {
     const groupItem = doc.selection[0] as GroupItem;
-    const playerdata = currentData.playerdata;
     const bodyPath = getBody(groupItem);
-    const bodyW = (currentData.nx_size.w + ITEMS_GAP_SIZE) * 72;
-    const bodyH = (currentData.nx_size.h + ITEMS_GAP_SIZE) * 72;
+    const {bodyW,bodyH} = getBodyWHDimension(groupItem)
     const bodyDim = {w:bodyW,h:bodyH};
     let lastItem:GroupItem | PageItem;
-    const actLyrItms1 = doc.activeLayer.pageItems;
     changeSize(bodyPath, JFT_SIZE.MENS.M.width, JFT_SIZE.MENS.M.height);
-    const {recommendedIn90,rowIn0,rowIn90} = getRowInfo(groupItem, playerdata.length);
+    const {recommendedIn90,rowIn0,rowIn90} = getRowInfo(groupItem,quantity);
 
     const organizeBodyXYPrm:OrgBodyItemDir = {
         baseItem:groupItem,
@@ -569,7 +544,7 @@ const organizeInit = (doc: Document): void => {
         bodyPath,
         colInfo:rowIn90,
         is90:true,
-        playerLength:rowIn90.remaing
+        quantity
     };
 
     if(recommendedIn90) {
@@ -577,7 +552,7 @@ const organizeInit = (doc: Document): void => {
     } else {
         organizeBodyXYPrm.colInfo = rowIn0;
         organizeBodyXYPrm.is90 = false;
-        organizeBodyXYPrm.playerLength = rowIn0.remaing;
+        organizeBodyXYPrm.quantity = rowIn0.remaing;
         organizeBodyXY(organizeBodyXYPrm);
     }
 
@@ -591,19 +566,16 @@ const organizeInit = (doc: Document): void => {
  * @returns {void} - This function does not return a value.
  * @throws {Error} - Throws an error if the initial document or selection is invalid.
  */
-const run = (): void => {
+const run = (cb:Function): void => {
     try {
         const doc = app.activeDocument;
         const selection1 = doc.selection[0] as GroupItem;
         const selSts = validateSelection(selection1);
         if (selSts && validateBodyItem(selection1)) {
-            // organizeInit(doc);
-            changeSize(selection1, JFT_SIZE.MENS.M.width, JFT_SIZE.MENS.M.height);
-            getRowInfo(selection1, 2);
+            cb(doc);
+            // getRowInfo(selection1, 2);
         }
     } catch (error) {
         alert("initiate error");
     }
 }
-
-run();

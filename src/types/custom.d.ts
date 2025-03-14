@@ -20,7 +20,7 @@ interface OrgBodyItem {
 interface OrgBodyItemDir {
     baseItem:GroupItem;
     bodyPath:PageItem;
-    playerLength:number;
+    quantity:number;
     colInfo:RowInfo;
     bodyDim:{
         w:number;
