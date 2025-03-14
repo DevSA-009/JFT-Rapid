@@ -304,6 +304,21 @@ const getBodyGeoMetrics = (groupItem: GroupItem): [] | number[] => {
 }
 
 /**
+ * Calculates the width and height of a body in inches based on its geometric bounds.
+ * The function retrieves the bounding box of a `GroupItem`, then converts the width and height 
+ * from points to inches (1 inch = 72 points).
+ *
+ * @param {GroupItem} groupItem - The group item whose body dimensions are to be calculated.
+ * @returns {{bodyW: number, bodyH: number}} - An object containing the width (`bodyW`) and height (`bodyH`) of the body in inches.
+ */
+const getBodyWHDimension = (groupItem: GroupItem) => {
+    const bounds = getBodyGeoMetrics(groupItem);
+    const bodyW = (bounds[2] - bounds[0]) / 72;
+    const bodyH = (bounds[1] - bounds[3]) / 72;
+    return { bodyW, bodyH };
+}
+
+/**
  * Calculates the total height required to fit items in both 0-degree and 90-degree orientations.
  * It determines how many items fit in each row, calculates the total height for the given quantity of items, 
  * and checks whether the layout should be recommended in 90-degree orientation based on total height.
@@ -320,12 +335,8 @@ const getBodyGeoMetrics = (groupItem: GroupItem): [] | number[] => {
  *  - `rowIn90`: Details of the rows in 90-degree orientation, including:
  *  - `recommendedIn90`: A boolean indicating if the 90-degree orientation should be used based on a comparison of total heights.
  */
-
-
 const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
-    const bounds = getBodyGeoMetrics(groupItem);
-    const bodyW = (bounds[2] - bounds[0]) / 72;
-    const bodyH = (bounds[1] - bounds[3]) / 72;
+    const {bodyW,bodyH} = getBodyWHDimension(groupItem);
     const fitCount0 = parseInt((PAPER_MAX_SIZE / (bodyW + ITEMS_GAP_SIZE)).toString()); // Number of items that fit in 0 degrees
     const fitCount90 = parseInt((PAPER_MAX_SIZE / (bodyH + ITEMS_GAP_SIZE)).toString()); // Number of items that fit in 90 degrees
 
@@ -587,7 +598,8 @@ const run = (): void => {
         const selSts = validateSelection(selection1);
         if (selSts && validateBodyItem(selection1)) {
             // organizeInit(doc);
-            // getRowInfo(selection1, 2);
+            changeSize(selection1, JFT_SIZE.MENS.M.width, JFT_SIZE.MENS.M.height);
+            getRowInfo(selection1, 2);
         }
     } catch (error) {
         alert("initiate error");
