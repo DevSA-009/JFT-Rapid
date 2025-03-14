@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES5",
-    "module": "None",
     "noLib": true,
     "removeComments": true,
-    "types": [
-      "./src/adobe-types/Illustrator/2022/index.d.ts",
-      "./src/types/custom.d.ts",
+    "typeRoots": [
+      "./src/adobe-types/Illustrator/2022/",
+      "./src/adobe-types/Shared/",
+      "./src/types"
     ],
     "outDir": "./HOST",
-    "strict": true
+    "strict": true,
+    "allowJs": true
   },
   "include": [
-    "src"
-  ]
+    "src/**/*.ts",
+    "src/scriptUI/orgInfoDialog.js" 
+]
 }
