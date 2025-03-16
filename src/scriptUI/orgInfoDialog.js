@@ -78,7 +78,7 @@ const orgDialogRoot = function () {
     orgEnter.onClick = function () {
         const targetSize = orgTargetSize.selection.text;
         const quantity = parseInt(edittext1.text, 10) || 0;
-        alert(`Size: ${targetSize}\nQuantity: ${quantity}`);
+        alertDialogSA(`Size: ${targetSize}\nQuantity: ${quantity}`);
         orgDialogRoot.close();
     };
 

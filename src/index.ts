@@ -1,4 +1,5 @@
 //@include './scriptUI/orgInfoDialog.js';
+//@include './scriptUI/alertUI.js';
 //@include './polyfill/json2.js';
 
 const FRONT = "FRONT";
@@ -213,18 +214,18 @@ const validateSelection = (selection: GroupItem): boolean => {
     let status = false;
     try {
         if (!selection) {
-            alert("select object");
+            alertDialogSA("select object");
         } else if (selection.typename !== "GroupItem") {
-            alert("selected object is not grouped");
+            alertDialogSA("selected object is not grouped");
         } else if (!findElement(selection.pageItems, function (element) {
             return element.name === "BODY";
         })) {
-            alert("body not exist");
+            alertDialogSA("body not exist");
         } else {
             status = true;
         }
     } catch (error) {
-        alert("items sequence wrong");
+        alertDialogSA("items sequence wrong");
     }
     return status;
 }
@@ -247,10 +248,10 @@ const validateBodyItem = (groupItem: GroupItem): boolean => {
         })) {
             status = true;
         } else {
-            alert("invalid body clip path");
+            alertDialogSA("invalid body clip path");
         }
     } catch (error) {
-        alert("validate body item error");
+        alertDialogSA("validate body item error");
     }
     return status;
 }
@@ -576,8 +577,8 @@ const run = (cb:Function): void => {
             // getRowInfo(selection1, 2);
         }
     } catch (error) {
-        alert("initiate error");
+        alertDialogSA("initiate error");
     }
 }
 
-orgDialogRoot()
+orgDialogRoot();
