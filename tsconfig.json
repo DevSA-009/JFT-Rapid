@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES5",
     "noLib": true,
-    "removeComments": true,
+    // "removeComments": true,
     "typeRoots": [
       "./src/adobe-types/Illustrator/2022/",
       "./src/adobe-types/Shared/",

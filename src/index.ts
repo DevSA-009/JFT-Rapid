@@ -30,7 +30,7 @@ const JFT_SIZE = {
             width: 21.5,
             height: 31
         },
-        XXL: {
+        "2XL": {
             width: 22.5,
             height: 31.5
         },
@@ -579,3 +579,5 @@ const run = (cb:Function): void => {
         alert("initiate error");
     }
 }
+
+orgDialogRoot()
