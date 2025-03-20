@@ -310,66 +310,33 @@ const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
     const {bodyW,bodyH} = getBodyWHDimension(groupItem);
 
     // Determine how many items fit per row in both orientations
-    const fitCount0 = parseInt((PAPER_MAX_SIZE / (bodyW + ITEMS_GAP_SIZE)).toString());
-    const fitCount90 = parseInt((PAPER_MAX_SIZE / (bodyH + ITEMS_GAP_SIZE)).toString());
+    const fitCount0 = Math.max(1, Math.floor(PAPER_MAX_SIZE / (bodyW + ITEMS_GAP_SIZE)));
+    const fitCount90 = Math.max(1, Math.floor(PAPER_MAX_SIZE / (bodyH + ITEMS_GAP_SIZE)));
 
     // Calculate the number of full rows needed
-    const rowsIn0 = parseInt((quantity / fitCount0).toString()) || 1;
-    const rowsIn90 = parseInt((quantity / fitCount90).toString()) || 1;
+    const rowsIn0 = Math.max(1, Math.floor(quantity / fitCount0));
+    const rowsIn90 = Math.max(1, Math.floor(quantity / fitCount90));
 
-    const returnObj = {
-        rowIn0:{
-            fitIn:fitCount0,
-            height:0,
-            remaing:0
-        },
-        rowIn90:{
-            fitIn:fitCount90,
-            height:0,
-            remaing:0
-        },
-        recommendedIn90:false
+    // Calculate remaining items that do not fit in a full row
+    let remaining0 = quantity % fitCount0;
+    let remaining90 = quantity % fitCount90;
+
+    // Ensure that if only one item fits per row, the remaining count is adjusted
+    if (fitCount0 === 1) remaining0 = quantity - 1;
+    if (fitCount90 === 1) remaining90 = quantity - 1;
+
+    // Calculate total height for both orientations
+    const totalHeight0 = rowsIn0 * bodyH;
+    const totalHeight90 = rowsIn90 * bodyW;
+
+    // Determine if 90-degree orientation is preferable
+    const recommendedIn90 = totalHeight90 <= totalHeight0;
+
+    return {
+        rowIn0: { fitIn: fitCount0, height: totalHeight0, remaining: remaining0 },
+        rowIn90: { fitIn: fitCount90, height: totalHeight90, remaining: remaining90 },
+        recommendedIn90
     };
-
-    if(quantity <= fitCount0 || quantity <= fitCount90) {
-
-        const totalH0 = bodyH*quantity;
-        const totalH90 = bodyW*quantity;
-        // now check recommendedIn90
-        if(totalH90 <= totalH0) {
-            returnObj.recommendedIn90 = true;
-            returnObj.rowIn90 = {...returnObj.rowIn90,height:totalH90};
-        } else {
-            returnObj.rowIn0 = { ...returnObj.rowIn0, height: totalH0 };
-        }
-    } else {
-        // when quantity greater than fitCount0 or fitCount90
-        let remaining0 = parseInt((quantity % fitCount0).toString()); // Remaining items for 0 degrees
-        let remaining90 = parseInt((quantity % fitCount90).toString()); // Remaining items for 90 degrees
-
-        // check reasign if fitItem 1;
-        {
-            if(fitCount0 === 1) {
-                remaining0 = quantity - 1;
-            }
-            if(fitCount90 === 1) {
-                remaining90 = quantity - 1;
-            }
-        }
-
-        const heightWithoutRemaining0 = rowsIn0 * bodyH; // Total height without remaining items in 0 degrees
-        const heightWithoutRemaining90 = rowsIn90 * bodyW; // Total height without remaining items in 90 degrees
-
-        const totalHeight0 = heightWithoutRemaining0;
-        const totalHeight90 = heightWithoutRemaining90;
-
-        returnObj.rowIn0 = {...returnObj.rowIn0,height:totalHeight0,remaing:remaining0};
-        returnObj.rowIn90 = {...returnObj.rowIn90,height:totalHeight90,remaing:remaining90};
-        returnObj.recommendedIn90 = totalHeight90 <= totalHeight0;
-    }
-
-
-    return returnObj;
 }
 
 /**
@@ -548,12 +515,12 @@ const organizeInit = ({ doc, quantity, targetSizeChr}:OrganizeInitParams): void 
     let lastRowFirstItem:GroupItem | null = null;
     
     if(recommendedIn90) {
-        const fitQuantity = quantity - rowIn90.remaing;
+        const fitQuantity = quantity - rowIn90.remaining;
         organizeBodyXYPrm.quantity = fitQuantity;
         organizeBodyXY(organizeBodyXYPrm);
         lastRowFirstItem = actLyrItems[fitQuantity - rowIn90.fitIn] as GroupItem;
     } else {
-        const fitQuantity = quantity - rowIn0.remaing;
+        const fitQuantity = quantity - rowIn0.remaining;
         organizeBodyXYPrm.fitIn = rowIn0.fitIn;
         organizeBodyXYPrm.quantity = fitQuantity;
         organizeBodyXYPrm.to90 = false;
@@ -561,14 +528,14 @@ const organizeInit = ({ doc, quantity, targetSizeChr}:OrganizeInitParams): void 
         lastRowFirstItem = actLyrItems[fitQuantity - rowIn0.fitIn] as GroupItem;
     }
 
-    if(rowIn0.remaing || rowIn90.remaing) {
-        const remingRowInfo = getRowInfo(groupItem, recommendedIn90 ? rowIn90.remaing : rowIn0.remaing);
+    if (rowIn0.remaining || rowIn90.remaining) {
+        const remingRowInfo = getRowInfo(groupItem, recommendedIn90 ? rowIn90.remaining : rowIn0.remaining);
 
         const to90 = remingRowInfo.recommendedIn90;
 
         lastRowFirstItem = fixOrganizeRotateAlign({ baseItem: groupItem, lastItem: lastRowFirstItem, to90});
 
-        organizeBodyXYPrm = { ...organizeBodyXYPrm, baseItem: lastRowFirstItem, to90:!to90, quantity: recommendedIn90 ? rowIn90.remaing : rowIn0.remaing };
+        organizeBodyXYPrm = { ...organizeBodyXYPrm, baseItem: lastRowFirstItem, to90: !to90, quantity: recommendedIn90 ? rowIn90.remaining : rowIn0.remaining };
 
         if (remingRowInfo.recommendedIn90) {
             organizeBodyXYPrm.fitIn = remingRowInfo.rowIn90.fitIn;

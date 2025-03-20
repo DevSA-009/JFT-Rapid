@@ -1,7 +1,7 @@
 type findElementCb = (element: any, index?: number) => null | any;
 interface RowInfo {
     height: number;
-    remaing: number;
+    remaining: number;
     fitIn: number;
 }
 
