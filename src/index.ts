@@ -299,26 +299,23 @@ const getBodyWHDimension = (groupItem: GroupItem): { bodyW: number; bodyH: numbe
 }
 
 /**
- * Calculates the total height required to fit items in both 0-degree and 90-degree orientations.
- * It determines how many items fit in each row, calculates the total height for the given quantity of items, 
- * and checks whether the layout should be recommended in 90-degree orientation based on total height.
- * The function also accounts for any remaining items that do not completely fit into the rows.
- * 
- * @function
- * @param {GroupItem} groupItem - The item group for which the layout is calculated, including its geometric properties.
- * @param {number} quantity - The total number of items that need to be fitted into the layout.
- * @returns {RowInfoReturn} An object containing the following:
- *  - `rowIn0`: Details of the rows in 0-degree orientation, including:
- *    - `fitIn`: Number of items that fit in a single row.
- *    - `height`: Total height needed to fit all items.
- *    - `remaining`: Number of remaining items that don't fit in complete rows.
- *  - `rowIn90`: Details of the rows in 90-degree orientation, including:
- *  - `recommendedIn90`: A boolean indicating if the 90-degree orientation should be used based on a comparison of total heights.
+ * Computes the total height required to fit a given quantity of items in both 0-degree and 90-degree orientations.
+ * It determines how many items fit per row, calculates the total height, and decides whether a 90-degree layout is preferable.
+ *
+ * @param {GroupItem} groupItem - The item group used for layout calculations, including width and height.
+ * @param {number} quantity - The total number of items to be arranged.
+ * @returns {RowInfoReturn} - An object containing layout details for both orientations and a recommended orientation.
  */
 const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
     const {bodyW,bodyH} = getBodyWHDimension(groupItem);
-    const fitCount0 = parseInt((PAPER_MAX_SIZE / (bodyW + ITEMS_GAP_SIZE)).toString()); // Number of items that fit in 0 degrees
-    const fitCount90 = parseInt((PAPER_MAX_SIZE / (bodyH + ITEMS_GAP_SIZE)).toString()); // Number of items that fit in 90 degrees
+
+    // Determine how many items fit per row in both orientations
+    const fitCount0 = parseInt((PAPER_MAX_SIZE / (bodyW + ITEMS_GAP_SIZE)).toString());
+    const fitCount90 = parseInt((PAPER_MAX_SIZE / (bodyH + ITEMS_GAP_SIZE)).toString());
+
+    // Calculate the number of full rows needed
+    const rowsIn0 = parseInt((quantity / fitCount0).toString()) || 1;
+    const rowsIn90 = parseInt((quantity / fitCount90).toString()) || 1;
 
     const returnObj = {
         rowIn0:{
@@ -333,9 +330,6 @@ const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
         },
         recommendedIn90:false
     };
-
-    const rowsIn0 = parseInt((quantity / fitCount0).toString()) || 1; // Rows of items in 0 degrees
-    const rowsIn90 = parseInt((quantity / fitCount90).toString()) || 1; // Rows of items in 90 degrees
 
     if(quantity <= fitCount0 || quantity <= fitCount90) {
 
@@ -436,20 +430,34 @@ const rotateItem = (groupItem: GroupItem | PageItem, deg: RotateDegrees) => {
 };
 
 /**
+ * Resizes a given GroupItem or PathItem to the specified width and height.
  * 
- * @param {GroupItem | PathItem} groupItem 
- * @param {number} width 
- * @param {number} height 
+ * @param {GroupItem | PathItem} groupItem - The Illustrator item to resize.
+ * @param {number} width - The target width in inches.
+ * @param {number} height - The target height in inches.
+ * @returns {void}
  */
-const changeSize = (groupItem: GroupItem | PathItem, width: number, height: number) => {
-    const [left,top,right,bottom] = getBodyGeoMetrics(groupItem as GroupItem);
-    const bsWidth = (right - left)/72;
-    const bsHeight = (top - bottom)/72;
-    const nxtWidthScaleFactor = (width/bsWidth)*100;
-    const nxtHeightScaleFactor = (height/bsHeight)*100;
-    groupItem.resize(nxtWidthScaleFactor,nxtHeightScaleFactor);
-}
+const changeSize = (groupItem: GroupItem | PathItem, width: number, height: number): void => {
+    // Get the bounding box of the item
+    const [left, top, right, bottom]: number[] = getBodyGeoMetrics(groupItem as GroupItem);
 
+    // Convert the bounding box width and height from points to inches
+    const bsWidth: number = (right - left) / 72;
+    const bsHeight: number = (top - bottom) / 72;
+
+    // Calculate scaling factors as percentages
+    const nxtWidthScaleFactor: number = (width / bsWidth) * 100;
+    const nxtHeightScaleFactor: number = (height / bsHeight) * 100;
+
+    // Apply resizing
+    groupItem.resize(nxtWidthScaleFactor, nxtHeightScaleFactor);
+};
+
+/**
+ * Fixes, rotates, and aligns an item.
+ * @param arg - The parameters.
+ * @returns The modified item.
+ */
 const fixOrganizeRotateAlign = (arg: FixOrganizeRotateAlignParams):GroupItem => {
     const {baseItem,lastItem,to90} = arg;
     const dupGroupItem = baseItem.duplicate() as GroupItem;
@@ -466,8 +474,6 @@ const fixOrganizeRotateAlign = (arg: FixOrganizeRotateAlignParams):GroupItem => 
 
 /**
  * Duplicates an item and moves it to the specified position.
- * 
- * @function
  * @param {OrgBodyItem} arg - The item and positioning information 
  * @returns {GroupItem | PageItem} - The duplicated item
  */
@@ -479,10 +485,8 @@ const organizeBody = (arg:OrgBodyItem):GroupItem | PageItem => {
 }
 
 /**
- * Organizes items in a horizontal grid layout based on the provided parameters.
- * 
- * @function
- * @param {OrgBodyItemDir} arg - The parameters for organizing items horizontally
+ * Organizes items in a grid layout.
+ * @param {OrganizeInitParams} arg - The parameters for organizing items.
  * @returns {void} - Array of created items
  */
 const organizeBodyXY = (arg: OrgBodyItemDir): void => {
@@ -519,14 +523,8 @@ const organizeBodyXY = (arg: OrgBodyItemDir): void => {
 }
 
 /**
- * Initializes and organizes the duplication and positioning of template items in a grid pattern.
- * Takes the selected group item, rotates it, and creates duplicates positioned in a grid layout
- * according to the calculated parameters.
- * 
- * @function
- * @param {Document} doc - The active Adobe Illustrator document.
- * @returns {void} - This function does not return a value.
- * @throws {Error} - May throw an error if item manipulation fails.
+ * Initializes the organization of template items in a grid.
+ * @param {OrganizeInitParams} param - The parameters for initialization.
  */
 
 const organizeInit = ({ doc, quantity, targetSizeChr}:OrganizeInitParams): void => {
@@ -603,17 +601,11 @@ const run = (cb:RunFunctionParams): void => {
             if(typeof cb === "function") {
                 cb(doc);
             }
-            organizeInit({
-                doc,
-                quantity:17,
-                targetSizeChr:"S"
-            })
-            // getRowInfo(selection1, 2);
         }
     } catch (error) {
         alertDialogSA("initiate error");
     }
 }
 
-// orgDialogRoot();
-run(null);
+orgDialogRoot();
+// run(null);
