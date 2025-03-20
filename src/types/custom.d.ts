@@ -17,16 +17,30 @@ interface OrgBodyItem {
     y:number;
 }
 
-interface OrgBodyItemDir {
-    baseItem:GroupItem;
-    bodyPath:PageItem;
+type MensSize = keyof typeof JFT_SIZE.MENS;
+type BabySize = keyof typeof JFT_SIZE.BABY;
+
+interface OrganizeInitParams {
+    doc: Application["activeDocument"];
     quantity:number;
-    colInfo:RowInfo;
-    bodyDim:{
-        w:number;
-        h:number
-    };
-    is90:boolean;
+    targetSizeChr:MensSize | BabySize;
 }
 
-type AlignPosition = "L" | "R" | "T" | "B" | "LC" | "RC" | "TC" | "BC" | "C"
+interface OrgBodyItemDir {
+    baseItem:GroupItem;
+    quantity:number;
+    fitIn:number;
+    to90:boolean;
+}
+
+type RotateDegrees = 90 | -90 | 180 | 0 | -180;
+
+type RunFunctionParams = ((doc: Application["activeDocument"]) => {}) | (() => {}) | null;
+
+type AlignPosition = "L" | "R" | "T" | "B" | "LC" | "RC" | "TC" | "BC" | "C";
+
+interface FixOrganizeRotateAlignParams {
+    to90:boolean;
+    lastItem: GroupItem;
+    baseItem:GroupItem;
+}

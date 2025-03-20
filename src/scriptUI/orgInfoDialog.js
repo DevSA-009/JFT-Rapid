@@ -37,7 +37,7 @@ const orgDialogRoot = function () {
     cGroup2.spacing = 10;
     cGroup2.margins = [0, 0, 0, 5];
     cGroup2.add("statictext", undefined, "Quantity", { name: "statictext2" });
-    const edittext1 = cGroup2.add("edittext", undefined, "0");
+    const edittext1 = cGroup2.add("edittext", undefined, "2");
     edittext1.justify = "center";
     edittext1.preferredSize.width = 82;
 
@@ -45,7 +45,7 @@ const orgDialogRoot = function () {
         if (event.keyName === 'Enter') {
             orgEnter.notify();
         }
-    })
+    });
 
     // Allow only numeric input in the quantity field
     edittext1.addEventListener("keydown", (event) => {
@@ -77,17 +77,16 @@ const orgDialogRoot = function () {
     orgEnter.alignment = ["center", "center"];
     orgEnter.onClick = function () {
         const targetSize = orgTargetSize.selection.text;
-        const quantity = parseInt(edittext1.text, 10) || 0;
-        alertDialogSA(`Size: ${targetSize}\nQuantity: ${quantity}`);
+        const quantity = edittext1.text;
+        run((doc) => {
+            organizeInit({
+                doc,
+                quantity:parseInt(quantity),
+                targetSizeChr:targetSize
+            });
+        })
         orgDialogRoot.close();
     };
-
-    // Add keydown event handler to the dialog
-    orgDialogRoot.addEventListener("keydown", function (event) {
-        if (event.keyName === "Escape") {
-            orgDialogRoot.close();
-        }
-    });
 
     orgDialogRoot.show();
 };

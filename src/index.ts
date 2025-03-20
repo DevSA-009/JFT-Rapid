@@ -37,35 +37,35 @@ const JFT_SIZE = {
         },
     },
     BABY: {
-        2: {
+        "2": {
             width: 12.5,
             height: 16
         },
-        4: {
+        "4": {
             width: 13,
             height: 17.5
         },
-        6: {
+        "6": {
             width: 13.5,
             height: 19
         },
-        8: {
+        "8": {
             width: 14.5,
             height: 20.5
         },
-        10: {
+        "10": {
             width: 15.5,
             height: 22
         },
-        12: {
+        "12": {
             width: 16.5,
             height: 23.5
         },
-        14: {
+        "14": {
             width: 17.5,
             height: 25
         },
-        16: {
+        "16": {
             width: 18.5,
             height: 26.5
         },
@@ -366,18 +366,8 @@ const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
         const heightWithoutRemaining0 = rowsIn0 * bodyH; // Total height without remaining items in 0 degrees
         const heightWithoutRemaining90 = rowsIn90 * bodyW; // Total height without remaining items in 90 degrees
 
-        let totalHeight0 = heightWithoutRemaining0;
-        let totalHeight90 = heightWithoutRemaining90;
-
-        if (remaining0 > 0) {
-            const extraHeight0 = Math.ceil(remaining0 / fitCount90) * bodyW; // Extra height for remaining items in 0 degrees
-            totalHeight0 += extraHeight0;
-        }
-
-        if (remaining90 > 0) {
-            const extraHeight90 = Math.ceil(remaining90 / fitCount90) * bodyW; // Extra height for remaining items in 90 degrees
-            totalHeight90 += extraHeight90;
-        }
+        const totalHeight0 = heightWithoutRemaining0;
+        const totalHeight90 = heightWithoutRemaining90;
 
         returnObj.rowIn0 = {...returnObj.rowIn0,height:totalHeight0,remaing:remaining0};
         returnObj.rowIn90 = {...returnObj.rowIn90,height:totalHeight90,remaing:remaining90};
@@ -421,7 +411,7 @@ const endSlice = (
  * @param {GroupItem | PageItem} groupItem
  * @param {90 | -90 | 180 | 0 | -180} deg
  */
-const rotateItem = (groupItem: GroupItem | PageItem, deg: 90 | -90 | 180 | 0 | -180) => {
+const rotateItem = (groupItem: GroupItem | PageItem, deg: RotateDegrees) => {
     const body = getBody(groupItem as GroupItem); // Get the actual object body
 
     // Get original bounds
@@ -460,13 +450,18 @@ const changeSize = (groupItem: GroupItem | PathItem, width: number, height: numb
     groupItem.resize(nxtWidthScaleFactor,nxtHeightScaleFactor);
 }
 
-const fixOrganizeRotateAlign = (baseItem:GroupItem,movingItem:GroupItem):void => {
-    rotateItem(movingItem,-90);
-    alignItems(baseItem,movingItem,"L");
-    const body1 = getBodyGeoMetrics(baseItem);
-    const body2 = getBodyGeoMetrics(movingItem);
-    const deltaY = (body1[3]-body2[1])-(ITEMS_GAP_SIZE*72);
-    moveItem(movingItem,0,deltaY)
+const fixOrganizeRotateAlign = (arg: FixOrganizeRotateAlignParams):GroupItem => {
+    const {baseItem,lastItem,to90} = arg;
+    const dupGroupItem = baseItem.duplicate() as GroupItem;
+    if(to90) {
+        rotateItem(dupGroupItem,-90);
+    }
+    alignItems(lastItem,dupGroupItem,"B");
+    alignItems(lastItem,dupGroupItem,"L");
+    const {bodyH} = getBodyWHDimension(dupGroupItem);
+    const deltaY = (bodyH)+(ITEMS_GAP_SIZE);
+    moveItem(dupGroupItem,0,-deltaY*72);
+    return dupGroupItem
 }
 
 /**
@@ -491,23 +486,25 @@ const organizeBody = (arg:OrgBodyItem):GroupItem | PageItem => {
  * @returns {void} - Array of created items
  */
 const organizeBodyXY = (arg: OrgBodyItemDir): void => {
-    const { baseItem, quantity, colInfo, bodyDim,  is90 } = arg;
-    const als = baseItem.name;
-    const {fitIn,remaing,height} = colInfo;
+    const { baseItem, quantity, fitIn, to90 } = arg;
+    const tempBase = baseItem.duplicate() as GroupItem;
+    const als = tempBase.name;
     baseItem.name = als + 1;
-    const { w, h } = bodyDim;
+    const { bodyW: w, bodyH: h } = getBodyWHDimension(tempBase);
     let row = 0;
     let col = 0;
 
-    if (is90) {
-        rotateItem(baseItem, -90);
+    if (to90) {
+        rotateItem(tempBase, -90);
     }
 
     for (let index = 1; index <= quantity; index++) {
 
-        const x = (col) * (is90 ? h : w);
-        const y = -(row) * (is90 ? w : h);
-        const duplicated = organizeBody({ item: baseItem, x: x, y: y }) as GroupItem;
+        const x = (col) * (to90 ? h : w);
+        const y = -(row) * (to90 ? w : h);
+        const xWithGap = x ? x + (ITEMS_GAP_SIZE*col) : x;
+        const yWithGap = y ? y - (ITEMS_GAP_SIZE*row) : y;
+        const duplicated = organizeBody({ item: tempBase, x: xWithGap*72, y: yWithGap*72 }) as GroupItem;
         duplicated.name = als + index;
 
         if (col >= fitIn - 1) {
@@ -517,6 +514,8 @@ const organizeBodyXY = (arg: OrgBodyItemDir): void => {
             col += 1;
         }
     }
+
+    tempBase.remove();
 }
 
 /**
@@ -530,33 +529,61 @@ const organizeBodyXY = (arg: OrgBodyItemDir): void => {
  * @throws {Error} - May throw an error if item manipulation fails.
  */
 
-const organizeInit = (doc: Document,quantity:number): void => {
+const organizeInit = ({ doc, quantity, targetSizeChr}:OrganizeInitParams): void => {
+    if(quantity < 2) {
+        alertDialogSA("minimum length 2 required");
+        return;
+    }
     const groupItem = doc.selection[0] as GroupItem;
-    const bodyPath = getBody(groupItem);
-    const {bodyW,bodyH} = getBodyWHDimension(groupItem)
-    const bodyDim = {w:bodyW,h:bodyH};
-    let lastItem:GroupItem | PageItem;
-    changeSize(bodyPath, JFT_SIZE.MENS.M.width, JFT_SIZE.MENS.M.height);
+    const gender: keyof typeof JFT_SIZE = JFT_SIZE.MENS[targetSizeChr as MensSize] ? "MENS" : "BABY";
+    const targetSizeWH = JFT_SIZE[gender][targetSizeChr as keyof typeof JFT_SIZE[typeof gender]] as typeof JFT_SIZE.MENS.S;
+    changeSize(groupItem, targetSizeWH.width, targetSizeWH.height);
     const {recommendedIn90,rowIn0,rowIn90} = getRowInfo(groupItem,quantity);
-
-    const organizeBodyXYPrm:OrgBodyItemDir = {
+    let organizeBodyXYPrm:OrgBodyItemDir = {
         baseItem:groupItem,
-        bodyDim,
-        bodyPath,
-        colInfo:rowIn90,
-        is90:true,
+        fitIn:rowIn90.fitIn,
+        to90:true,
         quantity
     };
 
+    const actLyrItems = doc.activeLayer.pageItems;
+    let lastRowFirstItem:GroupItem | null = null;
+    
     if(recommendedIn90) {
+        const fitQuantity = quantity - rowIn90.remaing;
+        organizeBodyXYPrm.quantity = fitQuantity;
         organizeBodyXY(organizeBodyXYPrm);
+        lastRowFirstItem = actLyrItems[fitQuantity - rowIn90.fitIn] as GroupItem;
     } else {
-        organizeBodyXYPrm.colInfo = rowIn0;
-        organizeBodyXYPrm.is90 = false;
-        organizeBodyXYPrm.quantity = rowIn0.remaing;
+        const fitQuantity = quantity - rowIn0.remaing;
+        organizeBodyXYPrm.fitIn = rowIn0.fitIn;
+        organizeBodyXYPrm.quantity = fitQuantity;
+        organizeBodyXYPrm.to90 = false;
         organizeBodyXY(organizeBodyXYPrm);
+        lastRowFirstItem = actLyrItems[fitQuantity - rowIn0.fitIn] as GroupItem;
     }
 
+    if(rowIn0.remaing || rowIn90.remaing) {
+        const remingRowInfo = getRowInfo(groupItem, recommendedIn90 ? rowIn90.remaing : rowIn0.remaing);
+
+        const to90 = remingRowInfo.recommendedIn90;
+
+        lastRowFirstItem = fixOrganizeRotateAlign({ baseItem: groupItem, lastItem: lastRowFirstItem, to90});
+
+        organizeBodyXYPrm = { ...organizeBodyXYPrm, baseItem: lastRowFirstItem, to90:!to90, quantity: recommendedIn90 ? rowIn90.remaing : rowIn0.remaing };
+
+        if (remingRowInfo.recommendedIn90) {
+            organizeBodyXYPrm.fitIn = remingRowInfo.rowIn90.fitIn;
+        } else {
+            organizeBodyXYPrm.to90 = to90;
+            organizeBodyXYPrm.fitIn = remingRowInfo.rowIn0.fitIn;
+        }
+        organizeBodyXY(organizeBodyXYPrm);
+
+        if(lastRowFirstItem) {
+            lastRowFirstItem.remove();
+        }
+    }
     groupItem.remove();
 
 }
@@ -567,13 +594,20 @@ const organizeInit = (doc: Document,quantity:number): void => {
  * @returns {void} - This function does not return a value.
  * @throws {Error} - Throws an error if the initial document or selection is invalid.
  */
-const run = (cb:Function): void => {
+const run = (cb:RunFunctionParams): void => {
     try {
         const doc = app.activeDocument;
         const selection1 = doc.selection[0] as GroupItem;
         const selSts = validateSelection(selection1);
         if (selSts && validateBodyItem(selection1)) {
-            cb(doc);
+            if(typeof cb === "function") {
+                cb(doc);
+            }
+            organizeInit({
+                doc,
+                quantity:17,
+                targetSizeChr:"S"
+            })
             // getRowInfo(selection1, 2);
         }
     } catch (error) {
@@ -581,4 +615,5 @@ const run = (cb:Function): void => {
     }
 }
 
-orgDialogRoot();
+// orgDialogRoot();
+run(null);
