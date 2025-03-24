@@ -134,6 +134,118 @@ const formatNumber = (value: number, precision: number = 4): number => {
     return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
 }
 
+/**
+ * Calculates the visible bounding box of selected items in Adobe Illustrator.
+ * 
+ * @param selection - Array of selected items in Illustrator.
+ * @returns An object containing the `left`, `top`, `right`, and `bottom` bounds of the selection.
+ */
+const getSelectionBounds = (selection: any[]): { left: number; top: number; right: number; bottom: number } | null => {
+    if (!selection || selection.length === 0) return null;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    /**
+     * Processes an Illustrator item and updates bounding box values.
+     * @param item - The Illustrator item (PathItem, GroupItem, TextFrame, etc.).
+     */
+    const processItem = (item: any): void => {
+        if (item.typename === "GroupItem") {
+            if (item.clipped) {
+                // Find the clipping path within the clipped group
+                for (let i = 0; i < item.pageItems.length; i++) {
+                    const child = item.pageItems[i];
+                    if (child.clipping) {
+                        updateBounds(child.geometricBounds);
+                        break; // Stop iterating within this GroupItem
+                    }
+                }
+            } else {
+                // Recursively process child items for un-clipped groups
+                for (let i = 0; i < item.pageItems.length; i++) {
+                    processItem(item.pageItems[i]);
+                }
+            }
+        } else {
+            // Process individual objects (TextFrame, PathItem, etc.)
+            updateBounds(item.geometricBounds);
+        }
+    };
+
+    /**
+     * Updates the min and max bounds based on the item's geometric bounds.
+     * @param bounds - The geometric bounds of the item ([left, top, right, bottom]).
+     */
+    const updateBounds = (bounds: number[]): void => {
+        const [left, top, right, bottom] = bounds;
+        minX = Math.min(minX, left);
+        minY = Math.min(minY, bottom);
+        maxX = Math.max(maxX, right);
+        maxY = Math.max(maxY, top);
+    };
+
+    // Process each selected item using a for loop
+    for (let i = 0; i < selection.length; i++) {
+        processItem(selection[i]);
+    }
+
+    return { left: minX, top: maxY, right: maxX, bottom: minY };
+};
+
+/**
+ * Finds the final (topmost) clipping path in a given group.
+ * 
+ * @param {GroupItem} groupItem - The Illustrator group item.
+ * @returns {PathItem | null} - The final clipping path, or null if not found.
+ */
+const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
+    if (!groupItem || groupItem.pageItems.length === 0) return null;
+
+    let clipPaths: PathItem[] = [];
+
+    const findClippingPaths = (item: PageItem): void => {
+        if (item.typename === "GroupItem") {
+            let group = item as GroupItem;
+            for (let i = 0; i < group.pageItems.length; i++) {
+                findClippingPaths(group.pageItems[i]);
+            }
+        } else if (item.typename === "PathItem" && (item as PathItem).clipping) {
+            clipPaths.push(item as PathItem);
+        }
+    }
+
+    findClippingPaths(groupItem);
+
+    return clipPaths.length > 0 ? clipPaths[clipPaths.length - 1] : null;
+}
+
+/**
+ * Gets the true visible bounds of a masked group by ignoring hidden areas.
+ * 
+ * @param {GroupItem} groupItem - The Illustrator group item.
+ * @returns {number[] | null} - The visible bounds [left, top, right, bottom], or null if no mask found.
+ */
+const getMaskedBounds = (groupItem: GroupItem): number[] | null => {
+    let finalClipPath = getFinalClippingPath(groupItem);
+    if (!finalClipPath) return null;
+
+    let bounds = finalClipPath.geometricBounds.slice(); // Start with clipping path bounds
+
+    for (let i = 0; i < groupItem.pageItems.length; i++) {
+        let item = groupItem.pageItems[i];
+        if (item !== finalClipPath) { // Ignore the mask itself
+            let itemBounds = item.geometricBounds;
+
+            // Adjust the bounds based on visible objects inside the mask
+            bounds[0] = Math.min(bounds[0], itemBounds[0]); // Left
+            bounds[1] = Math.max(bounds[1], itemBounds[1]); // Top
+            bounds[2] = Math.max(bounds[2], itemBounds[2]); // Right
+            bounds[3] = Math.min(bounds[3], itemBounds[3]); // Bottom
+        }
+    }
+
+    return bounds;
+}
 
 /**
  * Aligns a moving group item relative to a base group item with optional rotation handling.
