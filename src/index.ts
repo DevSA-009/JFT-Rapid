@@ -124,6 +124,18 @@ const logMessage = (message: string) => {
 };
 
 /**
+ * Formats a number to a specified number of decimal places.
+ * 
+ * @param {number} value - The number to format.
+ * @param {number} [precision=4] - The number of decimal places to round to (default is 4).
+ * @returns {number} The formatted number rounded to the given precision.
+ */
+const formatNumber = (value: number, precision: number = 4): number => {
+    return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
+}
+
+
+/**
  * Aligns a moving group item relative to a base group item with optional rotation handling.
  * 
  * @function
