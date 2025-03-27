@@ -44,3 +44,6 @@ interface FixOrganizeRotateAlignParams {
     lastItem: GroupItem;
     baseItem:GroupItem;
 }
+
+type BoundsObject = { left: number; top: number; right: number; bottom: number}
+type DimensionObject = { width: number; height: number; }

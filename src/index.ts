@@ -135,6 +135,45 @@ const formatNumber = (value: number, precision: number = 4): number => {
 }
 
 /**
+ * Returns the top-most visible item from a GroupItem, checking for clipping or nested GroupItems.
+ * 
+ * If the PageItem is clipped, it will return the first clipped PageItem.
+ * If the PageItem is not clipped, it will recursively check for child GroupItems and return the top-most visible child.
+ * 
+ * @param {GroupItem} groupItem - The GroupItem to check for the top-most visible objects.
+ * @returns {GroupItem | PageItem} - The top-most visible GroupItem or PageItem.
+ */
+const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
+    if (groupItem.typename === "GroupItem") {
+        if (groupItem.clipped) {
+            // Find and return the first clipping path if it's available, then stop processing further
+            for (let i = 0; i < groupItem.pageItems.length; i++) {
+                if (groupItem.pageItems[i].clipping) {
+                    return groupItem.pageItems[i]; // Return the clipped PageItem
+                }
+            }
+            return groupItem; // Return the GroupItem if no clipping path is found
+        } else {
+            // Recursively check each child GroupItem if the parent is not clipped
+            for (let i = 0; i < groupItem.pageItems.length; i++) {
+                const child = groupItem.pageItems[i];
+                if (child.typename === "GroupItem") {
+                    // Recursively process child GroupItems
+                    const topMostChild = getTopMostVisibleItem(child);
+                    if (topMostChild) {
+                        return topMostChild; // Return the top-most visible child GroupItem or PageItem
+                    }
+                }
+            }
+            return groupItem; // Return the parent GroupItem if no child GroupItem was found
+        }
+    } else {
+        // If the item is not a GroupItem, return it directly (e.g., TextFrames, PathItems, etc.)
+        return groupItem;
+    }
+};
+
+/**
  * Calculates the visible bounding box of selected items in Adobe Illustrator.
  * 
  * @param selection - Array of selected items in Illustrator.
@@ -189,7 +228,104 @@ const getSelectionBounds = (selection: any[]): { left: number; top: number; righ
         processItem(selection[i]);
     }
 
-    return { left: minX, top: maxY, right: maxX, bottom: minY };
+    const bounds = { left: minX, top: maxY, right: maxX, bottom: minY };
+
+    for (const key in bounds) {
+        if (bounds.hasOwnProperty(key)) { // Check if the property belongs to bounds
+            const value = bounds[key as keyof typeof bounds];
+            if (value === Infinity) {
+                throw Error("Wrong Bounds");
+            }
+        }
+    }
+
+    return bounds;
+};
+
+/**
+ * Resizes the selected objects to a target width and height (in points) while maintaining their proportions.
+ * 
+ * @param selection - Array of selected items in Illustrator.
+ * @param targetWidth - The desired total width for the selection in points.
+ * @param targetHeight - The desired total height for the selection in points.
+ */
+const resizeSelectionToTargetSize = (selection: any[], targetWidth: number, targetHeight: number): void => {
+    if (!selection || selection.length === 0) {
+        alert("No selection found!");
+        return;
+    }
+
+    // Get the current bounds of the selection to calculate the total width and height
+    let currentTotalWidth = 0;
+    let currentTotalHeight = 0;
+
+    if(selection.length > 1 ) {
+        /**
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * here into add logic
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         */
+    }
+
+    // Calculate the total width and height of all selected items
+    for (let i = 0; i < selection.length; i++) {
+        const itemBounds = selection[i].geometricBounds;
+        const itemWidth = itemBounds[2] - itemBounds[0]; // right - left = width
+        const itemHeight = itemBounds[1] - itemBounds[3]; // top - bottom = height
+        currentTotalWidth += itemWidth;
+        currentTotalHeight += itemHeight;
+    }
+
+    // Calculate scaling factors for both width and height
+    const scaleX = targetWidth / currentTotalWidth;
+    const scaleY = targetHeight / currentTotalHeight;
+
+    /**
+     * Resizes an Illustrator item.
+     * @param item - The Illustrator item (PathItem, GroupItem, TextFrame, etc.).
+     */
+    const scaleItem = (item: any): void => {
+        if (item.typename === "GroupItem") {
+            if (item.clipped) {
+                // Find and resize only the clipping path, then stop processing further
+                for (let i = 0; i < item.pageItems.length; i++) {
+                    if (item.pageItems[i].clipping) {
+                        item.pageItems[i].resize(scaleX * 100, scaleY * 100); // Resize both width and height
+                        break;
+                    }
+                }
+            } else {
+                // Resize the whole group
+                item.resize(scaleX * 100, scaleY * 100); // Resize both width and height
+            }
+        } else {
+            // Resize individual items like TextFrames, PathItems, etc.
+            item.resize(scaleX * 100, scaleY * 100); // Resize both width and height
+        }
+    };
+
+    // Apply resizing to each selected item
+    for (let i = 0; i < selection.length; i++) {
+        scaleItem(selection[i]);
+    }
 };
 
 /**
@@ -324,7 +460,7 @@ const alignItems = (baseGroupItem: GroupItem | PageItem, movingGroupItem: GroupI
     }
 
     // Move the group item
-    moveItem(movingGroupItem, deltaX, deltaY);
+    translateXY(movingGroupItem, deltaX, deltaY);
 }
 
 /**
@@ -408,6 +544,21 @@ const getBodyGeoMetrics = (groupItem: GroupItem): [] | number[] => {
 }
 
 /**
+ * Calculates the width and height of a bounding box in inches based on its geometric bounds.
+ * The function receives the bounds of an object and converts the width and height 
+ * from points to inches (1 inch = 72 points).
+ *
+ * @param {BoundsObject} bounds - The bounding box dimensions containing `left`, `top`, `right`, and `bottom` properties.
+ * @returns {DimensionObject} - An object containing the width (`width`) and height (`height`) of the bounding box in inches.
+ */
+const getWHDimension = (bounds: BoundsObject): DimensionObject => {
+    const { left, top, right, bottom } = bounds;
+    const width = (right - left) / 72;
+    const height = (top - bottom) / 72;
+    return { width, height };
+};
+
+/**
  * Calculates the width and height of a body in inches based on its geometric bounds.
  * The function retrieves the bounding box of a `GroupItem`, then converts the width and height 
  * from points to inches (1 inch = 72 points).
@@ -469,7 +620,7 @@ const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
  * @param {number} x 
  * @param {number} y 
  */
-const moveItem = (groupItem: GroupItem, x: number, y: number) => {
+const translateXY = (groupItem: GroupItem, x: number, y: number) => {
     groupItem.translate(x, y)
 }
 
@@ -559,7 +710,7 @@ const fixOrganizeRotateAlign = (arg: FixOrganizeRotateAlignParams):GroupItem => 
     alignItems(lastItem,dupGroupItem,"L");
     const {bodyH} = getBodyWHDimension(dupGroupItem);
     const deltaY = (bodyH)+(ITEMS_GAP_SIZE);
-    moveItem(dupGroupItem,0,-deltaY*72);
+    translateXY(dupGroupItem,0,-deltaY*72);
     return dupGroupItem
 }
 
@@ -571,7 +722,7 @@ const fixOrganizeRotateAlign = (arg: FixOrganizeRotateAlignParams):GroupItem => 
 const organizeBody = (arg:OrgBodyItem):GroupItem | PageItem => {
     const {item,x,y} = arg;
     const duplicated = item.duplicate() as GroupItem;
-    moveItem(duplicated,x,y);
+    translateXY(duplicated,x,y);
     return duplicated;
 }
 
@@ -698,5 +849,9 @@ const run = (cb:RunFunctionParams): void => {
     }
 }
 
-orgDialogRoot();
+// orgDialogRoot();
 // run(null);
+
+const selection = app.activeDocument.selection;
+
+// doc.resize(doc)
