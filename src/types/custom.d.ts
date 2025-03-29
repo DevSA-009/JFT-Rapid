@@ -1,3 +1,12 @@
+declare const ElementPlacement: {
+    INSIDE: any;
+    PLACEAFTER: any;
+    PLACEATBEGINNING: any;
+    PLACEATEND: any;
+    PLACEBEFORE: any;
+};
+
+
 type findElementCb = (element: any, index?: number) => null | any;
 interface RowInfo {
     height: number;
@@ -16,6 +25,14 @@ interface OrgBodyItem {
     x:number;
     y:number;
 }
+
+type Selection = PageItem[];
+
+type PrevNextItems = {
+    prev: PageItem | null;
+    current: PageItem;
+    next: PageItem | null;
+};
 
 type MensSize = keyof typeof JFT_SIZE.MENS;
 type BabySize = keyof typeof JFT_SIZE.BABY;
@@ -44,3 +61,6 @@ interface FixOrganizeRotateAlignParams {
     lastItem: GroupItem;
     baseItem:GroupItem;
 }
+
+type BoundsObject = { left: number; top: number; right: number; bottom: number}
+type DimensionObject = { width: number; height: number; }

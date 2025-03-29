@@ -1,6 +1,7 @@
+//@include './polyfill/es6-method.js';
+//@include './polyfill/json2.js';
 //@include './scriptUI/orgInfoDialog.js';
 //@include './scriptUI/alertUI.js';
-//@include './polyfill/json2.js';
 
 const FRONT = "FRONT";
 const BACK = "BACK";
@@ -82,12 +83,12 @@ const ALIASES = {
 /**
  * Finds an element in an array based on a callback function.
  * 
- * @param {any[]} array - The array to search through.
+ * @param {Selection} array - The array to search through.
  * @param {findElementCb} cb - The callback function used to test each element.
  * The callback should return a truthy value to indicate that the element matches.
  * @returns {any | null} - The first element that satisfies the callback function or null if none found.
  */
-const findElement = (array: any[], cb: findElementCb): any | null => {
+const findElement = (array: Selection, cb: findElementCb): any | null => {
     for (let index = 0; index < array.length; index++) {
         let element = array[index];
         if (cb(element, index)) {
@@ -96,6 +97,24 @@ const findElement = (array: any[], cb: findElementCb): any | null => {
     }
     return null;
 }
+
+/**
+ * Get the previous and next items relative to the selected page item.
+ *
+ * @param {Selection} selection - The selected page items.
+ * @returns {PrevNextItems} The previous, current, and next page items.
+ */
+const getAdjacentPageItems = (selection: Selection): PrevNextItems => {
+    const parent: PageItems = ((selection[0] as PageItem).parent as PageItem | Layer).pageItems;
+
+    const currentIdx = indexOf(parent, selection[0]);
+
+    // Safely get the previous and next items based on the current index
+    const prev = currentIdx > 0 ? parent[currentIdx - 1] : null;  // Check if prev exists
+    const next = currentIdx < parent.length - 1 ? parent[currentIdx + 1] : null;  // Check if next exists
+
+    return { prev, current:parent[currentIdx], next}
+};
 
 /**
  * Displays an alert dialog with a given message using ScriptUI.
@@ -135,12 +154,51 @@ const formatNumber = (value: number, precision: number = 4): number => {
 }
 
 /**
+ * Returns the top-most visible item from a GroupItem, checking for clipping or nested GroupItems.
+ * 
+ * If the PageItem is clipped, it will return the first clipped PageItem.
+ * If the PageItem is not clipped, it will recursively check for child GroupItems and return the top-most visible child.
+ * 
+ * @param {GroupItem} groupItem - The GroupItem to check for the top-most visible objects.
+ * @returns {GroupItem | PageItem} - The top-most visible GroupItem or PageItem.
+ */
+const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
+    if (groupItem.typename === "GroupItem") {
+        if (groupItem.clipped) {
+            // Find and return the first clipping path if it's available, then stop processing further
+            for (let i = 0; i < groupItem.pageItems.length; i++) {
+                if (groupItem.pageItems[i].clipping) {
+                    return groupItem.pageItems[i]; // Return the clipped PageItem
+                }
+            }
+            return groupItem; // Return the GroupItem if no clipping path is found
+        } else {
+            // Recursively check each child GroupItem if the parent is not clipped
+            for (let i = 0; i < groupItem.pageItems.length; i++) {
+                const child = groupItem.pageItems[i];
+                if (child.typename === "GroupItem") {
+                    // Recursively process child GroupItems
+                    const topMostChild = getTopMostVisibleItem(child);
+                    if (topMostChild) {
+                        return topMostChild; // Return the top-most visible child GroupItem or PageItem
+                    }
+                }
+            }
+            return groupItem; // Return the parent GroupItem if no child GroupItem was found
+        }
+    } else {
+        // If the item is not a GroupItem, return it directly (e.g., TextFrames, PathItems, etc.)
+        return groupItem;
+    }
+};
+
+/**
  * Calculates the visible bounding box of selected items in Adobe Illustrator.
  * 
  * @param selection - Array of selected items in Illustrator.
  * @returns An object containing the `left`, `top`, `right`, and `bottom` bounds of the selection.
  */
-const getSelectionBounds = (selection: any[]): { left: number; top: number; right: number; bottom: number } | null => {
+const getSelectionBounds = (selection: Selection): BoundsObject | null => {
     if (!selection || selection.length === 0) return null;
 
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -189,7 +247,77 @@ const getSelectionBounds = (selection: any[]): { left: number; top: number; righ
         processItem(selection[i]);
     }
 
-    return { left: minX, top: maxY, right: maxX, bottom: minY };
+    const bounds = { left: minX, top: maxY, right: maxX, bottom: minY };
+
+    for (const key in bounds) {
+        if (bounds.hasOwnProperty(key)) { // Check if the property belongs to bounds
+            const value = bounds[key as keyof typeof bounds];
+            if (value === Infinity) {
+                throw Error("Wrong Bounds");
+            }
+        }
+    }
+
+    return bounds;
+};
+
+/**
+ * Resizes the selected objects to a target width and height (in points) while maintaining their proportions.
+ * 
+ * @param selection - Array of selected items in Illustrator.
+ * @param targetWidth - The desired total width for the selection in points.
+ * @param targetHeight - The desired total height for the selection in points.
+ */
+const resizeSelection = (selection: Selection, targetWidth: number, targetHeight: number): void => {
+    if (!selection || selection.length === 0) {
+        alert("No selection found!");
+        return;
+    }
+
+    if(selection.length > 1 ) {
+        const bounds = getSelectionBounds(selection) as BoundsObject;
+        const {width,height} = getWHDimension(bounds);
+        const {prev} = getAdjacentPageItems(selection);
+        const groupItems = selection[0].layer.groupItems;
+        let tempGroup:GroupItem;
+        if(prev) {
+            tempGroup = groupItems.add();
+            tempGroup.move(prev,ElementPlacement.PLACEAFTER);
+        } else {
+            tempGroup = groupItems.add();         
+        }
+
+        // grouping
+        for (let i = selection.length; i > 0; i--) {
+            const item = selection[i-1];
+            item.move(tempGroup, ElementPlacement.INSIDE)
+        }
+
+        // Calculate scaling factors for both width and height
+        const scaleX = (targetWidth / width) * 100;
+        const scaleY = (targetHeight / height) * 100;
+
+        tempGroup.resize(scaleX,scaleY);
+
+        // ungrouping
+        for (let i = tempGroup.pageItems.length; i > 0; i--) {
+            const element = tempGroup.pageItems[i-1];
+            if(prev) {
+                element.move(prev, ElementPlacement.PLACEAFTER);
+            } else {
+                element.move(tempGroup.parent, ElementPlacement.INSIDE);
+            }
+            
+        }
+    } else {
+        const topMostItem = getTopMostVisibleItem(selection[0]);
+        const [left,top,right,bottom] = topMostItem.geometricBounds;
+        const {width,height} = getWHDimension({left,right,top,bottom});
+        // Calculate scaling factors for both width and height
+        const scaleX = (targetWidth / width) * 100;
+        const scaleY = (targetHeight / height) * 100;
+        topMostItem.resize(scaleX,scaleY)
+    }
 };
 
 /**
@@ -324,7 +452,7 @@ const alignItems = (baseGroupItem: GroupItem | PageItem, movingGroupItem: GroupI
     }
 
     // Move the group item
-    moveItem(movingGroupItem, deltaX, deltaY);
+    translateXY(movingGroupItem, deltaX, deltaY);
 }
 
 /**
@@ -408,6 +536,21 @@ const getBodyGeoMetrics = (groupItem: GroupItem): [] | number[] => {
 }
 
 /**
+ * Calculates the width and height of a bounding box in inches based on its geometric bounds.
+ * The function receives the bounds of an object and converts the width and height 
+ * from points to inches (1 inch = 72 points).
+ *
+ * @param {BoundsObject} bounds - The bounding box dimensions containing `left`, `top`, `right`, and `bottom` properties.
+ * @returns {DimensionObject} - An object containing the width (`width`) and height (`height`) of the bounding box in inches.
+ */
+const getWHDimension = (bounds: BoundsObject): DimensionObject => {
+    const { left, top, right, bottom } = bounds;
+    const width = (right - left) / 72;
+    const height = (top - bottom) / 72;
+    return { width, height };
+};
+
+/**
  * Calculates the width and height of a body in inches based on its geometric bounds.
  * The function retrieves the bounding box of a `GroupItem`, then converts the width and height 
  * from points to inches (1 inch = 72 points).
@@ -469,7 +612,7 @@ const getRowInfo = (groupItem: GroupItem, quantity: number): RowInfoReturn => {
  * @param {number} x 
  * @param {number} y 
  */
-const moveItem = (groupItem: GroupItem, x: number, y: number) => {
+const translateXY = (groupItem: GroupItem, x: number, y: number) => {
     groupItem.translate(x, y)
 }
 
@@ -559,7 +702,7 @@ const fixOrganizeRotateAlign = (arg: FixOrganizeRotateAlignParams):GroupItem => 
     alignItems(lastItem,dupGroupItem,"L");
     const {bodyH} = getBodyWHDimension(dupGroupItem);
     const deltaY = (bodyH)+(ITEMS_GAP_SIZE);
-    moveItem(dupGroupItem,0,-deltaY*72);
+    translateXY(dupGroupItem,0,-deltaY*72);
     return dupGroupItem
 }
 
@@ -571,7 +714,7 @@ const fixOrganizeRotateAlign = (arg: FixOrganizeRotateAlignParams):GroupItem => 
 const organizeBody = (arg:OrgBodyItem):GroupItem | PageItem => {
     const {item,x,y} = arg;
     const duplicated = item.duplicate() as GroupItem;
-    moveItem(duplicated,x,y);
+    translateXY(duplicated,x,y);
     return duplicated;
 }
 
@@ -698,5 +841,5 @@ const run = (cb:RunFunctionParams): void => {
     }
 }
 
-orgDialogRoot();
+// orgDialogRoot();
 // run(null);
