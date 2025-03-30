@@ -248,6 +248,56 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
 }
 
 /**
+ * Moves a `PageItem` relative to a `Selection` based on the specified position.
+ * 
+ * @param {MoveItemAfterParams} arg - The parameters for the movement.
+ * @param {Selection} arg.selection - The reference selection to move the item relative to.
+ * @param {PageItem} arg.moving - The item that needs to be moved.
+ * @param {"T" | "B" | "L" | "R"} arg.position - The position where the item should be placed.
+ */
+const moveItemAfter = (arg: MoveItemAfterParams) => {
+    const { selection, moving, position } = arg;
+
+    // Get bounding boxes of the selection and moving item
+    const baseBounds = getSelectionBounds(selection); // [left, top, right, bottom]
+    const movingBounds = getTopMostVisibleItem(moving).geometricBounds; // [left, top, right, bottom]
+
+    if(!baseBounds) {
+        throw new Error("Base Bounds Empty")
+    }
+
+    // Calculate width and height dimensions
+    const movingDim = getWHDimension({
+        left: movingBounds[0],
+        top: movingBounds[1],
+        right: movingBounds[2],
+        bottom: movingBounds[3]
+    });
+
+    let dx = 0, dy = 0;
+
+    // Calculate movement based on position
+    switch (position) {
+        case "T": // Move above
+            dy = baseBounds.top - movingBounds[3];
+            break;
+        case "B": // Move below
+            dy = baseBounds.bottom - movingBounds[1];
+            break;
+        case "L": // Move left
+            dx = baseBounds.left - movingBounds[2];
+            break;
+        case "R": // Move right
+            dx = baseBounds.right - movingBounds[0];
+            break;
+    }
+
+    // Apply translation to the moving item
+    translateXY(moving,dx,dy);
+};
+
+
+/**
  * Gets the true visible bounds of a masked group by ignoring hidden areas.
  * 
  * @param {GroupItem} groupItem - The Illustrator group item.

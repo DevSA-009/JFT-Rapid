@@ -62,7 +62,7 @@ type RunFunctionParams = ((doc: Application["activeDocument"]) => {}) | (() => {
 type AlignPosition = "L" | "R" | "T" | "B" | "LC" | "RC" | "TC" | "BC" | "C";
 
 interface MoveItemAfterParams {
-    base:PageItem;
+    selection:Selection;
     moving:PageItem;
     position:"T" | "B" | "L" | "R"
 }
