@@ -7,7 +7,7 @@ declare const ElementPlacement: {
 };
 
 
-type findElementCb = (element: any, index?: number) => null | any;
+type findElementCb<T> = (element: T, index?: number) => boolean;
 interface RowInfo {
     height: number;
     remaining: number;
@@ -50,16 +50,31 @@ interface OrgBodyItemDir {
     to90:boolean;
 }
 
+interface ListData {
+    readonly number:number;
+    readonly name:string;
+}
+
 type RotateDegrees = 90 | -90 | 180 | 0 | -180;
 
 type RunFunctionParams = ((doc: Application["activeDocument"]) => {}) | (() => {}) | null;
 
 type AlignPosition = "L" | "R" | "T" | "B" | "LC" | "RC" | "TC" | "BC" | "C";
 
+interface MoveItemAfterParams {
+    base:PageItem;
+    moving:PageItem;
+    position:"T" | "B" | "L" | "R"
+}
+
 interface FixOrganizeRotateAlignParams {
     to90:boolean;
     lastItem: GroupItem;
     baseItem:GroupItem;
+}
+
+interface OrgFBModeParams {
+
 }
 
 type BoundsObject = { left: number; top: number; right: number; bottom: number}
