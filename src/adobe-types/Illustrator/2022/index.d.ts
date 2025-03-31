@@ -3778,7 +3778,7 @@ declare class Documents extends Array<Document> {
    * @param presetSettings Custom settings to apply to the preset.
    * @param showOptionsDialog If false, do not show Options dialog.
    */
-  static addDocument(
+  addDocument(
     startupPreset: string,
     presetSettings?: DocumentPreset,
     showOptionsDialog?: boolean,
@@ -3789,7 +3789,13 @@ declare class Documents extends Array<Document> {
    * @param startupPreset The name of startup document preset.
    * @param showOptionsDialog Argument controls if options Dialog is shown or not.
    */
-  static addDocumentWithDialogOption(startupPreset: string, showOptionsDialog?: boolean): Document
+  addDocumentWithDialogOption(startupPreset: string, showOptionsDialog?: boolean): Document
+
+  /**
+   * Creates a document without showing in UI.
+   * @param startupPreset 
+   */
+  addDocumentNoUI(startupPreset: string):Document
 
   /**
    * Arranges the documents in the specified style.
