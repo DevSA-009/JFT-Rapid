@@ -803,6 +803,11 @@ declare enum Compatibility {
   /**
    *
    */
+  ILLUSTRATOR24 = 24,
+
+  /**
+   *
+   */
   ILLUSTRATOR3 = 3,
 
   /**
