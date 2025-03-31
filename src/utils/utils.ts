@@ -116,8 +116,7 @@ const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
  * @param selection - Array of selected items in Illustrator.
  * @returns An object containing the `left`, `top`, `right`, and `bottom` bounds of the selection.
  */
-const getSelectionBounds = (selection: Selection): BoundsObject | null => {
-    if (!selection || selection.length === 0) return null;
+const getSelectionBounds = (selection: Selection | PageItem): BoundsObject => {
 
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
@@ -125,7 +124,7 @@ const getSelectionBounds = (selection: Selection): BoundsObject | null => {
      * Processes an Illustrator item and updates bounding box values.
      * @param item - The Illustrator item (PathItem, GroupItem, TextFrame, etc.).
      */
-    const processItem = (item: any): void => {
+    const processItem = (item: PageItem): void => {
         if (item.typename === "GroupItem") {
             if (item.clipped) {
                 // Find the clipping path within the clipped group
@@ -160,9 +159,13 @@ const getSelectionBounds = (selection: Selection): BoundsObject | null => {
         maxY = Math.max(maxY, top);
     };
 
-    // Process each selected item using a for loop
-    for (let i = 0; i < selection.length; i++) {
-        processItem(selection[i]);
+    if(isArray(selection)) {
+        // Process each selected item using a for loop
+        for (let i = 0; i < selection.length; i++) {
+            processItem((selection as Selection)[i]);
+        }
+    } else {
+        processItem(selection as PageItem);
     }
 
     const bounds = { left: minX, top: maxY, right: maxX, bottom: minY };
@@ -248,6 +251,44 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
 }
 
 /**
+ * Rotate a item by degrees
+ * @param {PageItem} item
+ * @param {90 | -90 | 180 | 0 | -180} deg
+ */
+const rotateItem = (item:PageItem | PageItem, deg: RotateDegrees) => {
+
+    // Get original bounds
+    const {left,top,right,bottom} = getSelectionBounds(item);
+    const originalCenterX = (left + right) / 2;
+    const originalCenterY = (top + bottom) / 2;
+
+    // Rotate the object
+    item.rotate(deg);
+
+    // Get new bounds after rotation
+    const newBounds = getSelectionBounds(item);
+    const newCenterX = (newBounds.left + newBounds.right) / 2;
+    const newCenterY = (newBounds.top + newBounds.bottom) / 2;
+
+    // Calculate the translation needed to keep it centered
+    const deltaX = originalCenterX - newCenterX;
+    const deltaY = originalCenterY - newCenterY;
+
+    // Move object back to original center position
+    item.translate(deltaX, deltaY);
+};
+
+/**
+ * Checks if the provided value is an array.
+ * 
+ * @param value - The value to check.
+ * @returns {boolean} - Returns `true` if the value is an array, otherwise `false`.
+ */
+const isArray = (value: any): boolean => {
+    return Object.prototype.toString.call(value) === '[object Array]';
+};
+
+/**
  * Moves a `PageItem` relative to a `Selection` based on the specified position.
  * 
  * @param {MoveItemAfterParams} arg - The parameters for the movement.
@@ -256,46 +297,36 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
  * @param {"T" | "B" | "L" | "R"} arg.position - The position where the item should be placed.
  */
 const moveItemAfter = (arg: MoveItemAfterParams) => {
-    const { selection, moving, position } = arg;
-
+    const { base, moving, position, gap = 0 } = arg;
     // Get bounding boxes of the selection and moving item
-    const baseBounds = getSelectionBounds(selection); // [left, top, right, bottom]
+    const baseBounds = getSelectionBounds(base); // [left, top, right, bottom]
     const movingBounds = getTopMostVisibleItem(moving).geometricBounds; // [left, top, right, bottom]
 
     if(!baseBounds) {
         throw new Error("Base Bounds Empty")
     }
 
-    // Calculate width and height dimensions
-    const movingDim = getWHDimension({
-        left: movingBounds[0],
-        top: movingBounds[1],
-        right: movingBounds[2],
-        bottom: movingBounds[3]
-    });
-
     let dx = 0, dy = 0;
 
     // Calculate movement based on position
     switch (position) {
         case "T": // Move above
-            dy = baseBounds.top - movingBounds[3];
+            dy = baseBounds.top - movingBounds[3] + (gap*72);
             break;
         case "B": // Move below
-            dy = baseBounds.bottom - movingBounds[1];
+            dy = baseBounds.bottom - movingBounds[1] - (gap*72);
             break;
         case "L": // Move left
-            dx = baseBounds.left - movingBounds[2];
+            dx = baseBounds.left - movingBounds[2] - (gap * 72);
             break;
         case "R": // Move right
-            dx = baseBounds.right - movingBounds[0];
+            dx = baseBounds.right - movingBounds[0] + (gap * 72);
             break;
     }
 
     // Apply translation to the moving item
     translateXY(moving,dx,dy);
 };
-
 
 /**
  * Gets the true visible bounds of a masked group by ignoring hidden areas.
@@ -428,11 +459,9 @@ const getWHDimension = (bounds: BoundsObject): DimensionObject => {
  * @param {number} quantity - The total number of items to be arranged.
  * @returns {RowInfoReturn} - An object containing layout details for both orientations and a recommended orientation.
  */
-const getRowInfo = (selections:Selection, quantity: number): RowInfoReturn => {
+const getRowInfo = (dim:DimensionObject, quantity: number): RowInfoReturn => {
 
-    const bounds = getSelectionBounds(selections) as BoundsObject;
-
-    const { width, height } = getWHDimension(bounds);
+    const { width, height } = dim;
 
     // Determine how many items fit per row in both orientations
     const fitCount0 = Math.max(1, Math.floor(PAPER_MAX_SIZE / (width + ITEMS_GAP_SIZE)));
@@ -491,3 +520,9 @@ const endSlice = (
     }
     return originalVal.slice(0, originalVal.length - sliceValue);
 };
+
+const orgInit = (arg:OrganizeInitParams) => {
+    const {doc,mode,quantity,targetSizeChr} = arg;
+    const selection = doc.selection as Selection;
+
+}

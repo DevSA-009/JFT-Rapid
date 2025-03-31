@@ -37,9 +37,12 @@ type PrevNextItems = {
 type MensSize = keyof typeof JFT_SIZE.MENS;
 type BabySize = keyof typeof JFT_SIZE.BABY;
 
+type Mode = "PANT" | "B" | "FB";
+
 interface OrganizeInitParams {
     doc: Application["activeDocument"];
     quantity:number;
+    mode:Mode
     targetSizeChr:MensSize | BabySize;
 }
 
@@ -55,17 +58,22 @@ interface ListData {
     readonly name:string;
 }
 
+type BasePositions = "L" | "R" | "T" | "B";
+
 type RotateDegrees = 90 | -90 | 180 | 0 | -180;
 
 type RunFunctionParams = ((doc: Application["activeDocument"]) => {}) | (() => {}) | null;
 
-type AlignPosition = "L" | "R" | "T" | "B" | "LC" | "RC" | "TC" | "BC" | "C";
+type AlignPosition = BasePositions | "LC" | "RC" | "TC" | "BC" | "C";
 
 interface MoveItemAfterParams {
-    selection:Selection;
+    base:Selection | PageItem;
     moving:PageItem;
-    position:"T" | "B" | "L" | "R"
+    gap?:number;
+    position: BasePositions
 }
+
+
 
 interface FixOrganizeRotateAlignParams {
     to90:boolean;
@@ -74,7 +82,6 @@ interface FixOrganizeRotateAlignParams {
 }
 
 interface OrgFBModeParams {
-
 }
 
 type BoundsObject = { left: number; top: number; right: number; bottom: number}
