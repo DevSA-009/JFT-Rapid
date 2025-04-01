@@ -7,36 +7,76 @@
  */
 class IllustratorDocument {
     private doc: Document | null = null;
-    private fileName: string = "";
+    private title: string;
 
     /**
      * Creates a new Illustrator document.
-     * If `items` are provided, they will be copied to the center of the new document's artboard.
      *
-     * @param {string} fileName - The name of the document.
+     * @param {string} title - The title of the document.
      */
-    constructor(fileName: string = "jftrapidtemp") {
-        this.fileName = fileName;
+    constructor(title: string = "JFT-Rapid") {
+        this.title = title;
     }
 
     /**
-     * Creates a new document and optionally copies items to the center.
+     * Creates a new document with the given title.
      * @param {PageItem[] | null} [items=null] - Optional array of PageItem objects to copy into the new document.
+     * @returns  {Document}
      */
-    create(items: PageItem[] | null = null) {
+    create(items: PageItem[] | null = null): Document {
         const startPreset = app.startupPresetsList[0];
         const presetSettings = new DocumentPreset() as typeof DocumentPreset;
         presetSettings.width = 1;
         presetSettings.height = 1;
-        presetSettings.title = this.fileName;
+        presetSettings.title = this.title;
         presetSettings.units = RulerUnits.Inches;
         presetSettings.colorMode = DocumentColorSpace.CMYK;
-        this.doc = app.documents.addDocument(startPreset,presetSettings);
+        const docObj = this.doc = app.documents.addDocument(startPreset, presetSettings);
 
         if (items && items.length > 0) {
             this.copyItemsToCenter(items);
         }
-    };
+
+        return docObj;
+    }
+
+    /**
+     * Saves the current document as an EPS file.
+     * @param {string} filePath - The full file path to save the EPS file.
+     * @param {string} [fileName] - Optional new file name (without extension).
+     */
+    save(filePath: string, fileName?: string): void {
+        if (!this.doc) {
+            return;
+        }
+
+        let savePath = filePath;
+
+        if (fileName) {
+            const file = new File(filePath);
+            savePath = file.path + "/" + fileName + ".eps"; // Use provided file name
+        }
+
+        const epsOptions = new EPSSaveOptions() as typeof EPSSaveOptions;
+        epsOptions.compatibility = Compatibility.ILLUSTRATOR24;
+        epsOptions.preview = EPSPreview.None;
+        epsOptions.cmykPostScript = true;
+        epsOptions.embedAllFonts = true;
+        epsOptions.includeDocumentThumbnails = false;
+        epsOptions.embedLinkedFiles = true;
+
+        this.doc.saveAs(new File(savePath), epsOptions);
+    }
+
+    /**
+     * Closes the current document without saving.
+     */
+    close(): void {
+        if (this.doc) {
+            this.doc.close(SaveOptions.DONOTSAVECHANGES);
+            this.doc = null;
+        }
+    }
 
     /**
      * Copies given PageItems to the center of the new document's artboard.
@@ -54,18 +94,16 @@ class IllustratorDocument {
         const centerX = (newArtboard[0] + newArtboard[2]) / 2;
         const centerY = (newArtboard[1] + newArtboard[3]) / 2;
 
-        // Duplicate items manually without using .map()
         const duplicatedItems: PageItem[] = [];
         for (let i = 0; i < items.length; i++) {
             duplicatedItems.push(items[i].duplicate(this.doc) as PageItem);
         }
 
-        // Compute the bounding box of the duplicated items
+        // Compute bounding box
         const bounds = this.getBoundingBox(duplicatedItems);
         const itemCenterX = (bounds.left + bounds.right) / 2;
         const itemCenterY = (bounds.top + bounds.bottom) / 2;
 
-        // Adjust position manually without using .forEach()
         for (let i = 0; i < duplicatedItems.length; i++) {
             duplicatedItems[i].left += centerX - itemCenterX;
             duplicatedItems[i].top += centerY - itemCenterY;
@@ -95,35 +133,5 @@ class IllustratorDocument {
         }
 
         return { left, right, top, bottom };
-    }
-
-    /**
-     * Saves the current document as an EPS file.
-     * @param {string} filePath - The full file path to save the EPS file.
-     */
-    save(filePath: string): void {
-        if (!this.doc) {
-            return;
-        }
-
-        const epsOptions = new EPSSaveOptions() as typeof EPSSaveOptions;
-        epsOptions.compatibility = Compatibility.ILLUSTRATOR24;
-        epsOptions.preview = EPSPreview.None;
-        epsOptions.cmykPostScript = true;
-        epsOptions.embedAllFonts = true;
-        epsOptions.includeDocumentThumbnails = false;
-        epsOptions.embedLinkedFiles = true;
-        const file = new File(filePath);
-        this.doc.saveAs(file, epsOptions);
-    }
-
-    /**
-     * Closes the current document without saving.
-     */
-    close(): void {
-        if (this.doc) {
-            this.doc.close(SaveOptions.DONOTSAVECHANGES);
-            this.doc = null;
-        }
     }
 }
