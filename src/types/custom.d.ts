@@ -12,7 +12,7 @@ interface RowInfoReturn {
 }
 
 interface OrgBodyItem {
-    item:GroupItem;
+    item:PageItem;
     x:number;
     y:number;
 }
@@ -38,7 +38,7 @@ interface OrganizeInitParams {
 }
 
 interface OrgBodyItemDir {
-    baseItem:GroupItem;
+    item:PageItem;
     quantity:number;
     fitIn:number;
     to90:boolean;
@@ -55,7 +55,7 @@ type RotateDegrees = 90 | -90 | 180 | 0 | -180;
 
 type RunFunctionParams = ((doc: Application["activeDocument"]) => {}) | (() => {}) | null;
 
-type AlignPosition = BasePositions | "LC" | "RC" | "TC" | "BC" | "C";
+type AlignPosition = BasePositions | "LC" | "RC" | "TC" | "BC" | "C" | "CX" | "CY";
 
 interface MoveItemAfterParams {
     base:Selection | PageItem;
@@ -63,8 +63,6 @@ interface MoveItemAfterParams {
     gap?:number;
     position: BasePositions
 }
-
-
 
 interface FixOrganizeRotateAlignParams {
     to90:boolean;
