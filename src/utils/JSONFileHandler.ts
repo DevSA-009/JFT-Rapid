@@ -9,10 +9,9 @@ class JSONFileHandler {
      * Creates an instance of JSONFileHandler.
      * @param {string} filePath - The path to the JSON file.
      */
-    constructor(filePath: string = "C:\\Users\\Admin\\Documents\\jft.conf") {
+    constructor(filePath: string = "~Documents/jft.conf") {
         this.file = new File(filePath);
-        const fileNameArr = filePath.split("\\")
-        this.fileName = fileNameArr[fileNameArr.length-1];
+        this.fileName = this.file.name;
     }
 
     /**
