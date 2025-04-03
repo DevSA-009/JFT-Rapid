@@ -129,13 +129,13 @@ const alignPageItemsToArtboard = (items: Selection | PageItem, doc: Document, po
     const artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
     const [abLeft, abTop, abRight, abBottom] = artboard.artboardRect;
 
-    const {top:itemTop, left:itemLeft, bottom:itemBottom, right:itemRight} = getSelectionBounds(selection); // [top, left, bottom, right]
+    const { top: itemTop, left: itemLeft, bottom: itemBottom, right: itemRight } = getSelectionBounds(selection); // [top, left, bottom, right]
 
     const isItems = isArray(items);
 
     const groupManger = new GroupManager(selection);
-    const {prev} = getAdjacentPageItems(selection);
-    if(isItems) {
+    const { prev } = getAdjacentPageItems(selection);
+    if (isItems) {
         groupManger.group(prev);
         items = groupManger.tempGroup as PageItem;
     }
@@ -148,36 +148,35 @@ const alignPageItemsToArtboard = (items: Selection | PageItem, doc: Document, po
     let targetY: number = itemCenterY;
 
     switch (position) {
-        case "L": 
-            targetX = abLeft;
+        case "L":
+            targetX = abLeft - (itemLeft - itemCenterX);
             break;
-        case "R": 
-            targetX = abRight;
+        case "R":
+            targetX = abRight - (itemRight - itemCenterX);
             break;
-        case "T": 
-            targetY = abTop;
+        case "T":
+            targetY = abTop - (itemTop - itemCenterY); // 🔹 FIXED
             break;
-        case "B": 
-            targetY = abBottom;
+        case "B":
+            targetY = abBottom - (itemBottom - itemCenterY);
             break;
-        case "TC": 
+        case "TC":
             targetX = (abLeft + abRight) / 2;
-            targetY = abTop;
+            targetY = abTop - (itemTop - itemCenterY);
             break;
-        case "BC": 
+        case "BC":
             targetX = (abLeft + abRight) / 2;
-            targetY = abBottom;
+            targetY = abBottom - (itemBottom - itemCenterY);
             break;
-        case "LC": 
-            targetX = abLeft;
+        case "LC":
+            targetX = abLeft - (itemLeft - itemCenterX);
             targetY = (abTop + abBottom) / 2;
             break;
-        case "RC": 
-            targetX = abRight;
+        case "RC":
+            targetX = abRight - (itemRight - itemCenterX);
             targetY = (abTop + abBottom) / 2;
             break;
         case "C":
-            // Ensure it's centered both horizontally and vertically
             targetX = (abLeft + abRight) / 2;
             targetY = (abTop + abBottom) / 2;
             break;
