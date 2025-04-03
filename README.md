@@ -1,3 +1,9 @@
+> [!IMPORTANT]  
+> ## **Coordinate System Reference**
+> For more information about the coordinate systems used in Illustrator UI and ExtendScript, please refer to the detailed explanation in [COORDINATE SYSTEM](docs/COORDINATE-SYSTEM.md)
+
+---
+
 # Enabling Debug Mode for Adobe CEP Extensions (Windows)
 
 To enable Debug Mode for Adobe CEP extensions, follow these steps:
