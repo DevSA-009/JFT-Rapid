@@ -6,7 +6,7 @@
  * The callback should return a truthy value to indicate that the element matches.
  * @returns {any | null} - The first element that satisfies the callback function or null if none found.
  */
-const findElement = <T> (array: T[], cb: findElementCb<T>): T | null => {
+const findElement = <T>(array: T[], cb: findElementCb<T>): T | null => {
     for (let index = 0; index < array.length; index++) {
         let element = array[index];
         if (cb(element, index)) {
@@ -16,22 +16,28 @@ const findElement = <T> (array: T[], cb: findElementCb<T>): T | null => {
     return null;
 }
 
-/**
- * Get the previous and next items relative to the selected page item.
- *
- * @param {Selection} selection - The selected page items.
- * @returns {PrevNextItems} The previous, current, and next page items.
- */
-const getAdjacentPageItems = (selection: Selection): PrevNextItems => {
-    const parent: PageItems = ((selection[0] as PageItem).parent as PageItem | Layer).pageItems;
+const getAdjacentPageItems = (selection: Selection | PageItem): PrevNextItems => {
+    const isSelectionArr = isArray(selection);
 
-    const currentIdx = indexOf(parent, selection[0]);
+    // Get the first item if selection is an array, otherwise use selection itself
+    const firstItem = isSelectionArr ? (selection as Selection)[0] : (selection as PageItem);
+    const parent: PageItems = (firstItem.parent as PageItem | Layer).pageItems;
 
-    // Safely get the previous and next items based on the current index
-    const prev = currentIdx > 0 ? parent[currentIdx - 1] : null;  // Check if prev exists
-    const next = currentIdx < parent.length - 1 ? parent[currentIdx + 1] : null;  // Check if next exists
+    // If selection is an array, get the index of the last item in selection
+    const lastItem = isSelectionArr ? (selection as Selection)[selection.length - 1] : firstItem;
+    const lastItemIdx = indexOf(parent, lastItem);
 
-    return { prev, current: parent[currentIdx], next }
+    // If selection is a single item, use its index, otherwise use lastItem index
+    const currentIdx = indexOf(parent, firstItem);
+
+    // If selection is an array, next is the item after lastItem
+    // If selection is a single item, next is the normal next item in parent
+    const next = lastItemIdx < parent.length - 1 ? parent[lastItemIdx + 1] : null;
+
+    // If selection is an array, prev is the item before firstItem
+    const prev = currentIdx > 0 ? parent[currentIdx - 1] : null;
+
+    return { prev, current: firstItem, next };
 };
 
 /**
@@ -111,6 +117,157 @@ const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
 };
 
 /**
+ * Positions one or more PageItems in the active artboard by aligning their center to specified edges or center points.
+ * Handles both single items and selections by temporarily grouping when needed.
+ * 
+ * @param {Selection|PageItem} items - The item(s) to position. Can be a single PageItem or a Selection collection.
+ * @param {Document} doc - The Illustrator document containing the artboard.
+ * @param {AlignPosition} [position="C"] - The alignment position
+ */
+const alignPageItemsToArtboard = (items: Selection | PageItem, doc: Document, position: AlignPosition = "C"): void => {
+
+    const artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
+    const [abLeft, abTop, abRight, abBottom] = artboard.artboardRect;
+
+    const {top:itemTop, left:itemLeft, bottom:itemBottom, right:itemRight} = getSelectionBounds(selection); // [top, left, bottom, right]
+
+    const isItems = isArray(items);
+
+    const groupManger = new GroupManager(selection);
+    const {prev} = getAdjacentPageItems(selection);
+    if(isItems) {
+        groupManger.group(prev);
+        items = groupManger.tempGroup as PageItem;
+    }
+
+    // Calculate current item center
+    const itemCenterX = (itemLeft + itemRight) / 2;
+    const itemCenterY = (itemTop + itemBottom) / 2;
+
+    let targetX: number = itemCenterX;
+    let targetY: number = itemCenterY;
+
+    switch (position) {
+        case "L": 
+            targetX = abLeft;
+            break;
+        case "R": 
+            targetX = abRight;
+            break;
+        case "T": 
+            targetY = abTop;
+            break;
+        case "B": 
+            targetY = abBottom;
+            break;
+        case "TC": 
+            targetX = (abLeft + abRight) / 2;
+            targetY = abTop;
+            break;
+        case "BC": 
+            targetX = (abLeft + abRight) / 2;
+            targetY = abBottom;
+            break;
+        case "LC": 
+            targetX = abLeft;
+            targetY = (abTop + abBottom) / 2;
+            break;
+        case "RC": 
+            targetX = abRight;
+            targetY = (abTop + abBottom) / 2;
+            break;
+        case "C":
+            // Ensure it's centered both horizontally and vertically
+            targetX = (abLeft + abRight) / 2;
+            targetY = (abTop + abBottom) / 2;
+            break;
+    }
+
+    // Compute translation distance
+    const deltaX = targetX - itemCenterX;
+    const deltaY = targetY - itemCenterY;
+
+    // Move the item
+    (items as PageItem).translate(deltaX, deltaY);
+
+    if (isItems) {
+        groupManger.ungroup(prev);
+    }
+};
+
+/**
+ * Moves a selected item to a specific position on the Illustrator canvas.
+ * 
+ * @param {PageItem} item - The selected object in Illustrator.
+ * @param {AlignPosition} position - The desired position:
+ *  - `"L"`  (Left)  
+ *  - `"R"`  (Right)  
+ *  - `"T"`  (Top)  
+ *  - `"B"`  (Bottom)  
+ *  - `"LC"` (Left-Center)  
+ *  - `"RC"` (Right-Center)  
+ *  - `"TC"` (Top-Center)  
+ *  - `"BC"` (Bottom-Center)  
+ *  - `"C"`  (Center both horizontally and vertically)  
+ */
+const moveItemToCanvas = (
+    item: PageItem,
+    position: AlignPosition = "C"
+): void => {
+    // Illustrator's max canvas size is 16383 x 16383 points
+    const canvasSize = 16383;
+    const canvasHalf = canvasSize / 2;
+
+    // Get item bounds using getSelectionBounds
+    const bounds = getSelectionBounds(item);
+    const itemWidth = bounds.right - bounds.left;
+    const itemHeight = bounds.top - bounds.bottom;
+
+    // Default movement offsets (no movement)
+    let moveX = 0;
+    let moveY = 0;
+
+    // Calculate target positions based on alignment choice
+    switch (position) {
+        case "L": // Left edge
+            moveX = -canvasHalf - bounds.left;
+            break;
+        case "R": // Right edge
+            moveX = canvasHalf - bounds.right;
+            break;
+        case "T": // Top edge
+            moveY = canvasHalf - bounds.top;
+            break;
+        case "B": // Bottom edge
+            moveY = -canvasHalf - bounds.bottom;
+            break;
+        case "LC": // Left-Center
+            moveX = -canvasHalf - bounds.left;
+            moveY = -bounds.top + itemHeight / 2;
+            break;
+        case "RC": // Right-Center
+            moveX = canvasHalf - bounds.right;
+            moveY = -bounds.top + itemHeight / 2;
+            break;
+        case "TC": // Top-Center
+            moveX = -bounds.left + itemWidth / 2;
+            moveY = canvasHalf - bounds.top;
+            break;
+        case "BC": // Bottom-Center
+            moveX = -bounds.left + itemWidth / 2;
+            moveY = -canvasHalf - bounds.bottom;
+            break;
+        case "C": // Fully Centered
+            moveX = -bounds.left + itemWidth / 2;
+            moveY = -bounds.top + itemHeight / 2;
+            break;
+    }
+
+    // Apply movement
+    item.translate(moveX, moveY);
+};
+
+/**
  * Calculates the visible bounding box of selected items in Adobe Illustrator.
  * 
  * @param selection - Array of selected items in Illustrator.
@@ -159,7 +316,7 @@ const getSelectionBounds = (selection: Selection | PageItem): BoundsObject => {
         maxY = Math.max(maxY, top);
     };
 
-    if(isArray(selection)) {
+    if (isArray(selection)) {
         // Process each selected item using a for loop
         for (let i = 0; i < selection.length; i++) {
             processItem((selection as Selection)[i]);
@@ -189,17 +346,17 @@ const getSelectionBounds = (selection: Selection | PageItem): BoundsObject => {
  * @param targetWidth - The desired total width for the selection in points.
  * @param targetHeight - The desired total height for the selection in points.
  */
-const resizeSelection = (selection: Selection, targetWidth: number = 0, targetHeight: number = 0): void => {
+const resizeSelection = (selection: Selection | PageItem, targetWidth: number = 0, targetHeight: number = 0): void => {
     if (!selection || selection.length === 0) {
         alert("No selection found!");
         return;
     }
 
-    if (selection.length > 1) {
+    if (isArray(selection) && selection.length > 1) {
         const bounds = getSelectionBounds(selection) as BoundsObject;
         const { width, height } = getWHDimension(bounds);
         const { prev } = getAdjacentPageItems(selection);
-        const groupManger = new GroupManager(selection);
+        const groupManger = new GroupManager(selection as Selection);
 
         groupManger.group(prev);
 
@@ -213,13 +370,102 @@ const resizeSelection = (selection: Selection, targetWidth: number = 0, targetHe
 
         groupManger.ungroup(prev);
     } else {
-        const topMostItem = getTopMostVisibleItem(selection[0]);
+        const topMostItem = getTopMostVisibleItem(isArray(selection) ? (selection as Selection)[0] : selection as PageItem);
         const [left, top, right, bottom] = topMostItem.geometricBounds;
         const { width, height } = getWHDimension({ left, right, top, bottom });
         // Calculate scaling factors for both width and height
         const scaleX = targetWidth ? (targetWidth / width) * 100 : 100;
         const scaleY = targetHeight ? (targetHeight / height) * 100 : 100;
         topMostItem.resize(scaleX, scaleY)
+    }
+};
+
+/**
+ * Resizes multiple selected objects to a target width and height while maintaining their relative positions.
+ * This approach avoids temporary grouping and scales each object individually.
+ *
+ * @param selection - Array of selected items in Illustrator.
+ * @param targetWidth - The desired total width for the selection in points.
+ * @param targetHeight - The desired total height for the selection in points.
+ * @param maintainProportions - Whether to maintain proportions when resizing.
+ */
+const resizeSelectionWithoutGrouping = (
+    selection: Selection,
+    targetWidth: number = 0,
+    targetHeight: number = 0,
+    maintainProportions: boolean = false
+): void => {
+    if (!selection || selection.length === 0) {
+        alert("No selection found!");
+        return;
+    }
+
+    // Get the overall bounds of the entire selection
+    const selectionBounds = getSelectionBounds(selection);
+    const { left, top, right, bottom } = selectionBounds;
+    const selectionWidth = right - left;
+    const selectionHeight = top - bottom;
+
+    // Calculate scaling factors based on the target dimensions
+    let scaleX = targetWidth ? targetWidth / selectionWidth : 1;
+    let scaleY = targetHeight ? targetHeight / selectionHeight : 1;
+
+    // Use the smaller scale factor if we want to maintain proportions
+    if (maintainProportions && targetWidth && targetHeight) {
+        const scaleFactor = Math.min(scaleX, scaleY);
+        scaleX = scaleY = scaleFactor;
+    }
+
+    // Calculate the center point of the original selection (pivot point)
+    const centerX = (left + right) / 2;
+    const centerY = (top + bottom) / 2;
+
+    // Process each item individually
+    for (let i = 0; i < selection.length; i++) {
+        const item = selection[i];
+
+        // Get the current item's bounds
+        const itemBounds = getSelectionBounds(item);
+
+        // Calculate the item's center
+        const itemCenterX = (itemBounds.left + itemBounds.right) / 2;
+        const itemCenterY = (itemBounds.top + itemBounds.bottom) / 2;
+
+        // Calculate the item's position relative to the selection center
+        const relativeX = itemCenterX - centerX;
+        const relativeY = itemCenterY - centerY;
+
+        // Calculate the new position after scaling
+        const newRelativeX = relativeX * scaleX;
+        const newRelativeY = relativeY * scaleY;
+
+        // Calculate the new center position for the item
+        const newItemCenterX = centerX + newRelativeX;
+        const newItemCenterY = centerY + newRelativeY;
+
+        // Use Illustrator's built-in resize method with transformation options
+        // This approach is more direct and avoids separate translate operations
+        item.resize(
+            scaleX * 100,
+            scaleY * 100,
+            true,  // changePositions
+            true,  // changeFillPatterns
+            true,  // changeFillGradients
+            true,  // changeStrokePatter
+        );
+
+        // Calculate the current position after resizing
+        const newBounds = getSelectionBounds(item);
+        const currentCenterX = (newBounds.left + newBounds.right) / 2;
+        const currentCenterY = (newBounds.top + newBounds.bottom) / 2;
+
+        // Calculate and apply the translation needed to move to the correct position
+        const translateX = newItemCenterX - currentCenterX;
+        const translateY = newItemCenterY - currentCenterY;
+
+        if (Math.abs(translateX) > 0.001 || Math.abs(translateY) > 0.001) {
+            item.translate(translateX, translateY);
+        }
     }
 };
 
@@ -255,10 +501,10 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
  * @param {PageItem} item
  * @param {90 | -90 | 180 | 0 | -180} deg
  */
-const rotateItem = (item:PageItem | PageItem, deg: RotateDegrees) => {
+const rotateItem = (item: PageItem | PageItem, deg: RotateDegrees) => {
 
     // Get original bounds
-    const {left,top,right,bottom} = getSelectionBounds(item);
+    const { left, top, right, bottom } = getSelectionBounds(item);
     const originalCenterX = (left + right) / 2;
     const originalCenterY = (top + bottom) / 2;
 
@@ -302,7 +548,7 @@ const moveItemAfter = (arg: MoveItemAfterParams) => {
     const baseBounds = getSelectionBounds(base); // [left, top, right, bottom]
     const movingBounds = getTopMostVisibleItem(moving).geometricBounds; // [left, top, right, bottom]
 
-    if(!baseBounds) {
+    if (!baseBounds) {
         throw new Error("Base Bounds Empty")
     }
 
@@ -311,10 +557,10 @@ const moveItemAfter = (arg: MoveItemAfterParams) => {
     // Calculate movement based on position
     switch (position) {
         case "T": // Move above
-            dy = baseBounds.top - movingBounds[3] + (gap*72);
+            dy = baseBounds.top - movingBounds[3] + (gap * 72);
             break;
         case "B": // Move below
-            dy = baseBounds.bottom - movingBounds[1] - (gap*72);
+            dy = baseBounds.bottom - movingBounds[1] - (gap * 72);
             break;
         case "L": // Move left
             dx = baseBounds.left - movingBounds[2] - (gap * 72);
@@ -325,7 +571,7 @@ const moveItemAfter = (arg: MoveItemAfterParams) => {
     }
 
     // Apply translation to the moving item
-    translateXY(moving,dx,dy);
+    translateXY(moving, dx, dy);
 };
 
 /**
@@ -366,7 +612,7 @@ const getMaskedBounds = (groupItem: GroupItem): number[] | null => {
  * @returns {void}
  * @throws {Error} - May throw an error if the position is invalid or if item manipulation fails.
  */
-const alignItems = (baseGroupItem:PageItem, movingGroupItem: PageItem, position: AlignPosition): void => {
+const alignItems = (baseGroupItem: PageItem, movingGroupItem: PageItem, position: AlignPosition): void => {
     const baseBounds = getTopMostVisibleItem(baseGroupItem).geometricBounds;
 
     // Get geometric bounds for the moving item
@@ -459,7 +705,7 @@ const getWHDimension = (bounds: BoundsObject): DimensionObject => {
  * @param {number} quantity - The total number of items to be arranged.
  * @returns {RowInfoReturn} - An object containing layout details for both orientations and a recommended orientation.
  */
-const getRowInfo = (dim:DimensionObject, quantity: number): RowInfoReturn => {
+const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
 
     const { width, height } = dim;
 
@@ -521,8 +767,49 @@ const endSlice = (
     return originalVal.slice(0, originalVal.length - sliceValue);
 };
 
-const orgInit = (arg:OrganizeInitParams) => {
-    const {doc,mode,quantity,targetSizeChr} = arg;
-    const selection = doc.selection as Selection;
+/**
+ * Duplicates an item and moves it to the specified position.
+ * @param {OrgBodyItem} arg - The item and positioning information 
+ * @returns {PageItem} - The duplicated item
+ */
+const organizeBody = (arg: OrgBodyItem): PageItem => {
+    const { item, x, y } = arg;
+    const duplicated = item.duplicate();
+    translateXY(duplicated, x, y);
+    return duplicated;
+};
 
-}
+/**
+ * Organizes items in a grid layout.
+ * @param {OrganizeInitParams} arg - The parameters for organizing items.
+ * @returns {void} - Array of created items
+ */
+const organizeBodyXY = (arg: OrgBodyItemDir): void => {
+    const { item, quantity, fitIn, to90 } = arg;
+    const tempBase = item.duplicate();
+    const { width, height } = getWHDimension(getSelectionBounds(item))
+    let row = 0;
+    let col = 0;
+
+    if (to90) {
+        rotateItem(tempBase, -90);
+    }
+
+    for (let index = 1; index <= quantity; index++) {
+
+        const x = (col) * (to90 ? height : width);
+        const y = -(row) * (to90 ? width : height);
+        const xWithGap = x ? x + (ITEMS_GAP_SIZE * col) : x;
+        const yWithGap = y ? y - (ITEMS_GAP_SIZE * row) : y;
+        const duplicated = organizeBody({ item: tempBase, x: xWithGap * 72, y: yWithGap * 72 });
+
+        if (col >= fitIn - 1) {
+            col = 0; // Reset column when it reaches the fitIn limit
+            row += 1; // Move to the next row
+        } else {
+            col += 1;
+        }
+    }
+
+    tempBase.remove();
+};
