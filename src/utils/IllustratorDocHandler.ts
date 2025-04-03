@@ -26,8 +26,8 @@ class IllustratorDocument {
     create(items: PageItem[] | null = null): Document {
         const startPreset = app.startupPresetsList[0];
         const presetSettings = new DocumentPreset() as typeof DocumentPreset;
-        presetSettings.width = 1;
-        presetSettings.height = 1;
+        presetSettings.width = 1*72;
+        presetSettings.height = 1*72;
         presetSettings.title = this.title;
         presetSettings.units = RulerUnits.Inches;
         presetSettings.colorMode = DocumentColorSpace.CMYK;
@@ -88,50 +88,11 @@ class IllustratorDocument {
             return;
         }
 
-        const newArtboard = this.doc.artboards[0].artboardRect;
-
-        // Calculate center of the new document
-        const centerX = (newArtboard[0] + newArtboard[2]) / 2;
-        const centerY = (newArtboard[1] + newArtboard[3]) / 2;
-
         const duplicatedItems: PageItem[] = [];
         for (let i = 0; i < items.length; i++) {
             duplicatedItems.push(items[i].duplicate(this.doc) as PageItem);
         }
 
-        // Compute bounding box
-        const bounds = this.getBoundingBox(duplicatedItems);
-        const itemCenterX = (bounds.left + bounds.right) / 2;
-        const itemCenterY = (bounds.top + bounds.bottom) / 2;
-
-        for (let i = 0; i < duplicatedItems.length; i++) {
-            duplicatedItems[i].left += centerX - itemCenterX;
-            duplicatedItems[i].top += centerY - itemCenterY;
-        }
-    }
-
-    /**
-     * Calculates the bounding box of an array of PageItems.
-     * @param {PageItem[]} items - The items to measure.
-     * @returns {{ left: number; right: number; top: number; bottom: number }} - The bounding box dimensions.
-     * @private
-     */
-    private getBoundingBox(items: PageItem[]): { left: number; right: number; top: number; bottom: number } {
-        let left = Infinity;
-        let right = -Infinity;
-        let top = -Infinity;
-        let bottom = Infinity;
-
-        for (let i = 0; i < items.length; i++) {
-            const bounds = items[i].visibleBounds;
-            if (bounds) {
-                if (bounds[0] < left) left = bounds[0];
-                if (bounds[1] > top) top = bounds[1];
-                if (bounds[2] > right) right = bounds[2];
-                if (bounds[3] < bottom) bottom = bounds[3];
-            }
-        }
-
-        return { left, right, top, bottom };
+        alignPageItemsToArtboard(duplicatedItems, this.doc);
     }
 }
