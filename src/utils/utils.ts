@@ -176,6 +176,12 @@ const alignPageItemsToArtboard = (items: Selection | PageItem, doc: Document, po
             targetX = abRight - (itemRight - itemCenterX);
             targetY = (abTop + abBottom) / 2;
             break;
+        case "CX":
+            targetX = (abLeft + abRight) / 2;
+            break;
+        case "CY":
+            targetY = (abTop + abBottom) / 2;
+            break;
         case "C":
             targetX = (abLeft + abRight) / 2;
             targetY = (abTop + abBottom) / 2;

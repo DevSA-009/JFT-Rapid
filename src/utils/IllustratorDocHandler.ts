@@ -26,8 +26,8 @@ class IllustratorDocument {
     create(items: PageItem[] | null = null): Document {
         const startPreset = app.startupPresetsList[0];
         const presetSettings = new DocumentPreset() as typeof DocumentPreset;
-        presetSettings.width = 1*72;
-        presetSettings.height = 1*72;
+        presetSettings.width = 207*72;
+        presetSettings.height = 207*72;
         presetSettings.title = this.title;
         presetSettings.units = RulerUnits.Inches;
         presetSettings.colorMode = DocumentColorSpace.CMYK;
