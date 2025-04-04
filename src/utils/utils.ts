@@ -502,11 +502,22 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
 }
 
 /**
- * Rotate a item by degrees
- * @param {PageItem} item
+ * Rotate a items by degrees
+ * @param {Selection | PageItem} items
  * @param {90 | -90 | 180 | 0 | -180} deg
  */
-const rotateItem = (item: PageItem | PageItem, deg: RotateDegrees) => {
+const rotateItems = (items: Selection | PageItem, deg: RotateDegrees) => {
+
+    let groupManager:GroupManager|null = null;
+
+    let item = items;
+
+    if(isArray(items)) {
+        groupManager = new GroupManager(items as Selection);
+        const {prev} = getAdjacentPageItems(items);
+        groupManager.group(prev)
+        item = groupManager.tempGroup!;
+    }
 
     // Get original bounds
     const { left, top, right, bottom } = getSelectionBounds(item);
@@ -514,7 +525,7 @@ const rotateItem = (item: PageItem | PageItem, deg: RotateDegrees) => {
     const originalCenterY = (top + bottom) / 2;
 
     // Rotate the object
-    item.rotate(deg);
+    (item as PageItem).rotate(deg);
 
     // Get new bounds after rotation
     const newBounds = getSelectionBounds(item);
@@ -526,7 +537,11 @@ const rotateItem = (item: PageItem | PageItem, deg: RotateDegrees) => {
     const deltaY = originalCenterY - newCenterY;
 
     // Move object back to original center position
-    item.translate(deltaX, deltaY);
+    (item as PageItem).translate(deltaX, deltaY);
+
+    if(groupManager) {
+        groupManager.ungroup();
+    } 
 };
 
 /**
@@ -818,39 +833,4 @@ const organizeBody = (arg: OrgBodyItem): PageItem => {
     const duplicated = item.duplicate();
     translateXY(duplicated, x, y);
     return duplicated;
-};
-
-/**
- * Organizes items in a grid layout.
- * @param {OrganizeInitParams} arg - The parameters for organizing items.
- * @returns {void} - Array of created items
- */
-const organizeBodyXY = (arg: OrgBodyItemDir): void => {
-    const { item, quantity, fitIn, to90 } = arg;
-    const tempBase = item.duplicate();
-    const { width, height } = getWHDimension(getSelectionBounds(item))
-    let row = 0;
-    let col = 0;
-
-    if (to90) {
-        rotateItem(tempBase, -90);
-    }
-
-    for (let index = 1; index <= quantity; index++) {
-
-        const x = (col) * (to90 ? height : width);
-        const y = -(row) * (to90 ? width : height);
-        const xWithGap = x ? x + (ITEMS_GAP_SIZE * col) : x;
-        const yWithGap = y ? y - (ITEMS_GAP_SIZE * row) : y;
-        const duplicated = organizeBody({ item: tempBase, x: xWithGap * 72, y: yWithGap * 72 });
-
-        if (col >= fitIn - 1) {
-            col = 0; // Reset column when it reaches the fitIn limit
-            row += 1; // Move to the next row
-        } else {
-            col += 1;
-        }
-    }
-
-    tempBase.remove();
 };
