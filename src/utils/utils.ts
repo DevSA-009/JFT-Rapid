@@ -613,16 +613,16 @@ const moveItemAfter = (arg: MoveItemAfterParams) => {
     // Calculate movement based on position
     switch (position) {
         case "T": // Move above
-            dy = baseBounds.top - movingBounds[3] + (gap * 72);
+            dy = baseBounds.top - movingBounds[3] + gap;
             break;
         case "B": // Move below
-            dy = baseBounds.bottom - movingBounds[1] - (gap * 72);
+            dy = baseBounds.bottom - movingBounds[1] - gap;
             break;
         case "L": // Move left
-            dx = baseBounds.left - movingBounds[2] - (gap * 72);
+            dx = baseBounds.left - movingBounds[2] - gap;
             break;
         case "R": // Move right
-            dx = baseBounds.right - movingBounds[0] + (gap * 72);
+            dx = baseBounds.right - movingBounds[0] + gap;
             break;
     }
 
