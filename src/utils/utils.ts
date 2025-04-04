@@ -545,7 +545,25 @@ const isBabySize = (sizeChr: MensSize | BabySize, babySizeObj: BabySizeCategory)
     } catch {
         return false
     }
-}
+};
+
+/**
+ * Returns the dimension object for a given size and size category.
+ *
+ * @param sizeCategory - The size category object which contains both BABY and MENS size mappings.
+ * @param size - The size key to lookup. Can be either a BabySize or MensSize.
+ * @param isBaby - A boolean flag indicating whether the size is for a baby.
+ * 
+ * @returns The corresponding DimensionObject for the given size.
+ */
+const getDimensionGenderCategory = (sizeCategory: SizeCategory, size: MensSize | BabySize, isBaby: boolean
+): DimensionObject => {
+    if (isBaby) {
+        return (sizeCategory.BABY as BabySizeCategory)[size as BabySize];
+    } else {
+        return (sizeCategory.MENS as MensSizeCategory)[size as MensSize];
+    }
+};
 
 /**
  * Checks if the provided value is an array.
