@@ -530,6 +530,24 @@ const rotateItem = (item: PageItem | PageItem, deg: RotateDegrees) => {
 };
 
 /**
+ * Checks if a given size belongs to the "BABY" category.
+ * 
+ * This function checks if a size exists within the `babySizeObj` object, which
+ * contains sizes specifically for the "BABY" category.
+ *
+ * @param {MensSize | BabySize} sizeChr - The size to check. This can be either a size from the "MENS" or "BABY" category.
+ * @param {BabySizeCategory} babySizeObj - The "BABY" category object that contains size keys and corresponding dimensions.
+ * @returns {boolean} Returns `true` if the size exists in the "BABY" category, otherwise `false`.
+ */
+const isBabySize = (sizeChr: MensSize | BabySize, babySizeObj: BabySizeCategory): boolean => {
+    try {
+        return sizeChr in babySizeObj;
+    } catch {
+        return false
+    }
+}
+
+/**
  * Checks if the provided value is an array.
  * 
  * @param value - The value to check.
