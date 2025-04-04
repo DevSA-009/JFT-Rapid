@@ -755,10 +755,10 @@ const getWHDimension = (bounds: BoundsObject): DimensionObject => {
 
 /**
  * Computes the total height required to fit a given quantity of items in both 0-degree and 90-degree orientations.
- * It determines how many items fit per row, calculates the total height, and decides whether a 90-degree layout is preferable.
- *
- * @param {Selection} selections - The item group used for layout calculations, including width and height.
- * @param {number} quantity - The total number of items to be arranged.
+ * Determines how many items fit per row, calculates the total height, and decides which orientation is preferable.
+ * 
+ * @param {DimensionObject} dim - The item dimensions used for layout calculations
+ * @param {number} quantity - The total number of items to be arranged
  * @returns {RowInfoReturn} - An object containing layout details for both orientations and a recommended orientation.
  */
 const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
@@ -789,11 +789,11 @@ const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
     const recommendedIn90 = totalHeight90 <= totalHeight0;
 
     return {
-        rowIn0: { fitIn: fitCount0, height: totalHeight0, remaining: remaining0 },
-        rowIn90: { fitIn: fitCount90, height: totalHeight90, remaining: remaining90 },
+        rowIn0: { x: fitCount0, y:rowsIn0, height: totalHeight0, remaining: remaining0,remainingStartIndex:rowsIn0*fitCount0 },
+        rowIn90: { x: fitCount90, y:rowsIn90, height: totalHeight90, remaining: remaining90,remainingStartIndex:rowsIn90*fitCount90 },
         recommendedIn90
     };
-}
+};
 
 /**
  * translate item by x&y value
@@ -803,7 +803,7 @@ const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
  */
 const translateXY = (item: PageItem, x: number, y: number) => {
     item.translate(x, y)
-}
+};
 
 /**
  * Slices a string or array from the end based on the specified slice value.
