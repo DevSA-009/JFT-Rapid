@@ -87,8 +87,6 @@ interface FixOrganizeRotateAlignParams {
     baseItem: GroupItem;
 }
 
-type TempDocumentHandlerCB = (tempDoc: IllustratorDocument) => void
-
 type DataListConatiner = {
     [key in MensSize | BabySize]: Person[];
 };
@@ -125,4 +123,10 @@ interface SelectItemsInDocParams {
     doc:Document;
     items:Selection;
     clear?:boolean;
+}
+
+interface TempDocumentHandlerParams {
+    items: Selection;
+    mode: Mode;
+    cb?:<T = unknown>(doc:Document) => T
 }
