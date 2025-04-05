@@ -52,10 +52,13 @@ interface CalculateDocRowDistributionReturn {
 
 interface OrgBodyItemDir {
     items: Selection;
-    mode: Mode;
     quantity: number;
+    remaining: number;
+    doc:Document;
+    docRow:number;
     fitIn: number;
-    to90: boolean;
+    startIndex:number;
+    is90: boolean;
 }
 
 interface Person {
@@ -117,3 +120,9 @@ interface OrganizerParams {
 
 type BoundsObject = { left: number; top: number; right: number; bottom: number }
 type DimensionObject = { width: number; height: number; }
+
+interface SelectItemsInDocParams {
+    doc:Document;
+    items:Selection;
+    clear?:boolean;
+}

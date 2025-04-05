@@ -843,13 +843,44 @@ const endSlice = (
 };
 
 /**
- * Duplicates an item and moves it to the specified position.
- * @param {OrgBodyItem} arg - The item and positioning information 
- * @returns {PageItem} - The duplicated item
+ * Selects page items in Illustrator if they belong to the specified document.
+ * Optionally clears the current selection if `clear` is true.
+ *
+ * @param {SelectItemsInDocParams} params
+ * @param {Document} params.doc - The target Illustrator document.
+ * @param {PageItem[]} params.items - Array of Illustrator PageItems to check and select.
+ * @param {boolean} [params.clear=true] - Whether to clear the existing selection before selecting new items.
  */
-const organizeBody = (arg: OrgBodyItem): PageItem => {
-    const { item, x, y } = arg;
-    const duplicated = item.duplicate();
-    translateXY(duplicated, x, y);
-    return duplicated;
+const selectItemsInDoc = ({ doc, items, clear = true }: SelectItemsInDocParams): void => {
+    const isInDocument = (item: PageItem): boolean => {
+        // Recursive function to check if the item belongs to the document
+        let parent = item.layer.parent as Document | PageItem;
+        while (parent) {
+            if (parent === doc) {
+                return true;
+            }
+            parent = parent.parent as Document | PageItem;
+        }
+        return false;
+    };
+
+    // If clear is true, reset the selection
+    if (clear) {
+        doc.selection = null;
+    }
+
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        // Check if the item belongs to the correct document
+        if (isInDocument(item)) {
+            item.selected = true;
+        } else {
+            logMessage(`${item.name} not in ${doc.name} document`);
+            items.splice(i,1);
+        }
+
+    }
+    return doc.selection;
 };
+
+
