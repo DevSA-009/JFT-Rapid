@@ -37,6 +37,8 @@ class IllustratorDocument {
             this.copyItemsToCenter(items);
         }
 
+        docObj.selection = null;
+
         return docObj;
     }
 
