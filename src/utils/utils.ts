@@ -16,6 +16,18 @@ const findElement = <T>(array: T[], cb: findElementCb<T>): T | null => {
     return null;
 }
 
+/**
+ * Returns the previous, current, and next `PageItem` relative to a given selection.
+ * 
+ * @param {Selection | PageItem} selection - A single PageItem or an array of PageItems (Selection).
+ * @returns {PrevNextItems} An object containing:
+ * - `prev`: The PageItem before the first item in the selection (or null if none).
+ * - `current`: The first PageItem in the selection or the single item itself.
+ * - `next`: The PageItem after the last item in the selection (or null if none).
+ * 
+ * @example
+ * const { prev, current, next } = getAdjacentPageItems(app.activeDocument.selection);
+ */
 const getAdjacentPageItems = (selection: Selection | PageItem): PrevNextItems => {
     const isSelectionArr = isArray(selection);
 
@@ -129,15 +141,14 @@ const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
  * roundUpToDivisible(15, 3); // returns 15
  * roundUpToDivisible(16, 3); // returns 18
  */
-const roundUpToDivisible = (quantity:number, divider:number):number => {
+const roundUpToDivisible = (quantity: number, divider: number): number => {
     const remainder = quantity % divider;
     return remainder === 0 ? quantity : quantity + (divider - remainder);
 }
 
-
 /**
  * Positions one or more PageItems in the active artboard by aligning their center to specified edges or center points.
- * Handles both single items and selections by temporarily grouping when needed.
+ * Handles both single item and multiple by temporarily grouping when needed.
  * 
  * @param {Selection|PageItem} items - The item(s) to position. Can be a single PageItem or a Selection collection.
  * @param {Document} doc - The Illustrator document containing the artboard.
@@ -148,12 +159,12 @@ const alignPageItemsToArtboard = (items: Selection | PageItem, doc: Document, po
     const artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
     const [abLeft, abTop, abRight, abBottom] = artboard.artboardRect;
 
-    const { top: itemTop, left: itemLeft, bottom: itemBottom, right: itemRight } = getSelectionBounds(selection); // [top, left, bottom, right]
+    const { top: itemTop, left: itemLeft, bottom: itemBottom, right: itemRight } = getSelectionBounds(items); // [top, left, bottom, right]
 
     const isItems = isArray(items);
 
-    const groupManger = new GroupManager(selection);
-    const { prev } = getAdjacentPageItems(selection);
+    const groupManger = new GroupManager(items as Selection);
+    const { prev } = getAdjacentPageItems(items as Selection);
     if (isItems) {
         groupManger.group(prev);
         items = groupManger.tempGroup as PageItem;
@@ -527,13 +538,13 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
  */
 const rotateItems = (items: Selection | PageItem, deg: RotateDegrees) => {
 
-    let groupManager:GroupManager|null = null;
+    let groupManager: GroupManager | null = null;
 
     let item = items;
 
-    if(isArray(items)) {
+    if (isArray(items)) {
         groupManager = new GroupManager(items as Selection);
-        const {prev} = getAdjacentPageItems(items);
+        const { prev } = getAdjacentPageItems(items);
         groupManager.group(prev)
         item = groupManager.tempGroup!;
     }
@@ -558,9 +569,9 @@ const rotateItems = (items: Selection | PageItem, deg: RotateDegrees) => {
     // Move object back to original center position
     (item as PageItem).translate(deltaX, deltaY);
 
-    if(groupManager) {
+    if (groupManager) {
         groupManager.ungroup();
-    } 
+    }
 };
 
 /**
@@ -808,8 +819,8 @@ const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
     const recommendedIn90 = totalHeight90 <= totalHeight0;
 
     return {
-        rowIn0: { x: fitCount0, y:rowsIn0, height: totalHeight0, remaining: remaining0,remainingStartIndex:rowsIn0*fitCount0 },
-        rowIn90: { x: fitCount90, y:rowsIn90, height: totalHeight90, remaining: remaining90,remainingStartIndex:rowsIn90*fitCount90 },
+        rowIn0: { x: fitCount0, y: rowsIn0, height: totalHeight0, remaining: remaining0, remainingStartIndex: rowsIn0 * fitCount0 },
+        rowIn90: { x: fitCount90, y: rowsIn90, height: totalHeight90, remaining: remaining90, remainingStartIndex: rowsIn90 * fitCount90 },
         recommendedIn90
     };
 };
@@ -876,7 +887,7 @@ const selectItemsInDoc = ({ doc, items, clear = true }: SelectItemsInDocParams):
             item.selected = true;
         } else {
             logMessage(`${item.name} not in ${doc.name} document`);
-            items.splice(i,1);
+            items.splice(i, 1);
         }
 
     }
