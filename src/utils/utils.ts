@@ -117,6 +117,25 @@ const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
 };
 
 /**
+ * Rounds a given number up to the nearest number that is divisible by the specified divider.
+ *
+ * @param {number} quantity - The number to round up.
+ * @param {number} divider - The number to divide by.
+ * @returns {number} - The smallest number greater than or equal to `quantity` that is divisible by `divider`.
+ *
+ * @example
+ * roundUpToDivisible(11, 5); // returns 15
+ * roundUpToDivisible(13, 3); // returns 15
+ * roundUpToDivisible(15, 3); // returns 15
+ * roundUpToDivisible(16, 3); // returns 18
+ */
+const roundUpToDivisible = (quantity:number, divider:number):number => {
+    const remainder = quantity % divider;
+    return remainder === 0 ? quantity : quantity + (divider - remainder);
+}
+
+
+/**
  * Positions one or more PageItems in the active artboard by aligning their center to specified edges or center points.
  * Handles both single items and selections by temporarily grouping when needed.
  * 
