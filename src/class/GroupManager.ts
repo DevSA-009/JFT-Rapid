@@ -3,12 +3,12 @@
  */
 class GroupManager {
     private groupItems: GroupItems;
-    public tempGroup:GroupItem | null = null;
-    private selection:Selection;
+    public tempGroup: GroupItem | null = null;
+    private items: Selection;
 
-    constructor(sel: Selection) {
-        this.selection = sel;
-        this.groupItems = this.selection[0].layer.groupItems;
+    constructor(items: Selection) {
+        this.items = items;
+        this.groupItems = this.items[0].layer.groupItems;
     }
 
     // Group the selection inside the new group.
@@ -19,23 +19,29 @@ class GroupManager {
         } else {
             this.tempGroup = this.groupItems.add();
         }
-        for (let i = this.selection.length; i > 0; i--) {
-            const item = this.selection[i - 1];
+        for (let i = this.items.length; i > 0; i--) {
+            const item = this.items[i - 1];
             item.move(this.tempGroup, ElementPlacement.INSIDE)
         }
     }
 
     // Ungroup the items and return them to their original parent position.
     ungroup(prev: PageItem | null = null): void {
-        if(this.tempGroup) {
+        if (this.tempGroup) {
+            const parent = this.tempGroup.parent;
+
             for (let i = this.tempGroup.pageItems.length; i > 0; i--) {
                 const element = this.tempGroup.pageItems[i - 1];
-                if (prev) {
+                if (prev && prev.parent === parent) {
                     element.move(prev, ElementPlacement.PLACEAFTER);
                 } else {
-                    element.move(this.groupItems.parent, ElementPlacement.INSIDE);
+                    element.move(parent, ElementPlacement.INSIDE);
                 }
             }
+
+            this.tempGroup.remove();
+            this.tempGroup = null;
         }
     }
+
 }
