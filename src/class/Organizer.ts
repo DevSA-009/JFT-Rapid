@@ -136,6 +136,7 @@ class Organizer {
 
         return { doc: tempDoc, docManager: illustratorDocManager };
     }
+
     /**
      * Aligns items according to the specified organization mode.
      * @static
@@ -143,19 +144,14 @@ class Organizer {
      * @param {Selection} items - The items to align
      */
     static alignItemsByMode(mode: Mode, items: Selection): void {
+        const [front, back] = items;
+        alignItems(front, back, "C");
         switch (mode) {
-            case "B":
-                moveItemAfter({
-                    base: items[0],
-                    moving: items[1],
-                    position: "R",
-                });
-                break;
             case "FB":
                 moveItemAfter({
-                    base: items[1],
-                    moving: items[0],
-                    position: "T",
+                    base: front,
+                    moving: back,
+                    position: "B",
                 });
                 break;
             // Add case for "PANT" if needed
@@ -189,6 +185,7 @@ class Organizer {
 
         return { docNeed: docsNeeded, perDocRow: rowsPerDoc };
     }
+
     /**
      * Initializes the organization process with the given parameters.
      * @static
@@ -218,9 +215,6 @@ class Organizer {
         );
 
         let body = Organizer.getBody(doc);
-
-        // Basic organization - center front and back horizontally and vertically
-        alignItems(body[0], body[1], "C");
 
         // Resize items to target dimensions
         resizeSelection(selection, targetDim.width, targetDim.height);
@@ -258,7 +252,7 @@ class Organizer {
         // If recommended orientation is 90 degrees, rotate items
         if (useRotation) {
             rotateItems(body, -90);
-        }
+        };
 
         // Initialize parameters for organizing layout
         const organizeParams: OrgBodyItemDir = {
@@ -270,6 +264,7 @@ class Organizer {
             is90: useRotation,
             quantity,
             docRow: 0,
+            orgMode: mode
         };
 
         // Process and organize items across multiple documents if needed
@@ -284,7 +279,7 @@ class Organizer {
     * @param {number} rowsPerDoc - Number of rows per document
     */
     static processMultipleDocuments(params: OrgBodyItemDir, docNeed: number, rowsPerDoc: number): void {
-        let { items, doc, quantity } = params;
+        let { items, doc, quantity, orgMode } = params;
 
         // Calculate where the "remaining" items start (after regular quantity)
         const remainingStartIndex = quantity + 1;
@@ -295,19 +290,19 @@ class Organizer {
             const startIndex = (index - 1) * rowsPerDoc * params.fitIn + 1;
             params.startIndex = startIndex;
 
-            // Organize items in the current document with explicit remaining item index
+            // Choose the appropriate organization method based on the mode
             Organizer.organizeItemsInGrid({
                 ...params,
                 remainingStartIndex: remainingStartIndex
             });
 
+            const [frontBody, backBody] = items;
+
             // If not the last document, create a new temp document
             if (index < docNeed) {
-                const [frontBody, backBody] = items;
-
                 const newDocHandler = Organizer.createTempDocument({
                     items: items,
-                    mode: params.orgMode || "FB", // Use the original mode if available
+                    mode: params.orgMode, // Use the original mode if available
                     cb: Organizer.selectBodyCB as TempDocumentHandlerParams["cb"]
                 });
 
@@ -322,8 +317,8 @@ class Organizer {
                 params.items = items;
             } else {
                 // Remove original items when done with all documents
-                items[0].remove();
-                items[1].remove();
+                frontBody.remove();
+                backBody.remove();
             }
         }
     }
@@ -367,7 +362,6 @@ class Organizer {
         const maxItemIndexForDoc = Math.min(absoluteQuantity, startIndex + (docRow * fitIn) - 1);
 
         for (let i = startIndex; i <= maxItemIndexForDoc; i++) {
-            logMessage(`Processing item #${i}`);
 
             let newItem: PageItem;
 
@@ -434,16 +428,27 @@ class Organizer {
             }
         }
 
-        // Clear selection and prepare to align all items to artboard
+        Organizer.alignAllToBoardC(doc);
+    }
+
+    /**
+     * Selects all items in the active layer and aligns them to the artboard.
+     *
+     * This function performs the following actions:
+     * 1. Clears any existing selection in the document.
+     * 2. Selects all page items in the active layer.
+     * 3. Aligns the selected items to the artboard.
+     * 4. Clears the selection after alignment.
+     *
+     * @param {Document} doc - The active document in which the operation is performed.
+     */
+    static alignAllToBoardC(doc: Document): void {
+        // Clear selection
         doc.selection = null;
 
         // Select all items in the active layer
         const activeLayerItems = doc.activeLayer.pageItems;
-        const itemsToSelect = [];
-
-        for (let i = 0; i < activeLayerItems.length; i++) {
-            itemsToSelect.push(activeLayerItems[i]);
-        }
+        const itemsToSelect = arrayFrom(activeLayerItems);
 
         // Select all items and align them to the artboard
         doc.selection = itemsToSelect;
@@ -479,7 +484,7 @@ interface OrgBodyItemDir {
     fitIn: number;
     startIndex: number;
     is90: boolean;
-    orgMode?: Mode;           // Added to pass mode information
+    orgMode: Mode;           // Added to pass mode information
     remainingStartIndex?: number; // Added to track where remaining items start
 }
 
