@@ -1,3 +1,10 @@
+interface ArrayLike<T> {
+    length: number;
+    [n: number]: T;
+}
+
+// ========== Type Definitions End ==========
+
 /**
  * Finds the first occurrence of a specified value in an array and returns its index.
  * If the value is not found, it returns -1.
@@ -23,4 +30,21 @@ const indexOf = <T>(array: T[], searchElement: T, fromIndex?: number): number =>
     }
 
     return -1;
-}
+};
+
+/**
+ * Converts an array-like object to an array.
+ * This mimics the functionality of `Array.from()` in older JavaScript versions.
+ *
+ * @param {ArrayLike<T>} arrayLike - An object that has a `length` property and indexed elements (e.g., NodeList, arguments object).
+ * @returns {T[]} A new array containing the elements from the array-like object.
+ * 
+ * @template T - The type of elements in the array-like object.
+ */
+const arrayFrom = <T>(arrayLike: ArrayLike<T>): T[] => {
+    const arr: T[] = [];
+    for (let i = 0; i < arrayLike.length; i++) {
+        arr.push(arrayLike[i]);
+    }
+    return arr;
+};
