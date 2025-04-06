@@ -1,3 +1,7 @@
+/**
+ * A class that handles organizing and arranging items in an Illustrator document
+ * based on size, quantity, and layout mode.
+ */
 class Organizer {
     private data: DataListContainer;
     private targetSizeChr: MensSize | BabySize;
@@ -5,6 +9,15 @@ class Organizer {
     private doc: Document;
     private sizeContainer: string;
 
+    /**
+     * Constructs an Organizer instance with the provided parameters.
+     * @param {OrganizerParams} arg - Configuration parameters for the organizer
+     * @property {string} arg.dataString - JSON string containing size data
+     * @property {MensSize|BabySize} arg.targetSizeChr - Target size character
+     * @property {Mode} arg.mode - Organization mode (B, FB, etc.)
+     * @property {Document} [arg.doc=app.activeDocument] - Target Illustrator document
+     * @property {string} [arg.sizeContainer="JFT"] - Size container identifier
+     */
     constructor(arg: OrganizerParams) {
         const {
             dataString,
@@ -20,6 +33,10 @@ class Organizer {
         this.doc = doc;
     }
 
+    /**
+     * Main organization method that processes all sizes in the data container.
+     * Creates temporary documents and organizes items according to the specified mode.
+     */
     public organize(): void {
         for (const size in this.data) {
             const sizeChr = size as MensSize | BabySize;
@@ -42,6 +59,14 @@ class Organizer {
         }
     }
 
+    /**
+     * Retrieves the front and back body items from a document or selection.
+     * @static
+     * @param {Document} doc - The Illustrator document to search in
+     * @param {Selection|null} [selection=null] - Optional selection to search within
+     * @returns {[PageItem, PageItem]} Tuple containing front and back body items
+     * @throws {Error} If either FRONT or BACK items cannot be found
+     */
     static getBody(
         doc: Document,
         selection: Selection | null = null
@@ -57,6 +82,11 @@ class Organizer {
         return [frontBody, backBody];
     }
 
+    /**
+     * Callback function that selects body items in a document.
+     * @static
+     * @param {Document} doc - The document where selection should occur
+     */
     static selectBodyCB(doc: Document): void {
         selectItemsInDoc({
             doc: doc,
@@ -64,10 +94,24 @@ class Organizer {
         });
     }
 
+    /**
+     * Calculates the dimensions of a page item.
+     * @static
+     * @param {PageItem} item - The Illustrator page item to measure
+     * @returns {DimensionObject} Object containing width and height in points
+     */
     static getDimensionForItem(item: PageItem): DimensionObject {
         return getWHDimension(getSelectionBounds(item));
     }
 
+    /**
+     * Creates a temporary document for organizing operations.
+     * @static
+     * @param {TempDocumentHandlerParams} params - Parameters for temp document creation
+     * @property {Mode} params.mode - Organization mode
+     * @property {Selection} params.items - Items to include in the temp document
+     * @property {Function} [params.cb=null] - Optional callback to execute on the new document
+     */
     static createTempDocument(params: TempDocumentHandlerParams) {
         const { mode, items, cb = null } = params;
 
@@ -92,7 +136,12 @@ class Organizer {
 
         return { doc: tempDoc, docManager: illustratorDocManager };
     }
-
+    /**
+     * Aligns items according to the specified organization mode.
+     * @static
+     * @param {Mode} mode - The organization mode (B, FB, etc.)
+     * @param {Selection} items - The items to align
+     */
     static alignItemsByMode(mode: Mode, items: Selection): void {
         switch (mode) {
             case "B":
@@ -113,6 +162,15 @@ class Organizer {
         }
     }
 
+    /**
+     * Calculates document distribution for rows based on dimensions and quantity.
+     * @static
+     * @param {CalculateDocRowDistributionParams} params - Calculation parameters
+     * @property {DimensionObject} params.dim - Item dimensions
+     * @property {number} params.rowLength - Number of items per row
+     * @property {boolean} [params.to90=true] - Whether to consider 90° rotation
+     * @returns {CalculateDocRowDistributionReturn} Object containing document needs and rows per doc
+     */
     static calculateDocRowDistribution(
         params: CalculateDocRowDistributionParams
     ): CalculateDocRowDistributionReturn {
@@ -131,7 +189,16 @@ class Organizer {
 
         return { docNeed: docsNeeded, perDocRow: rowsPerDoc };
     }
-
+    /**
+     * Initializes the organization process with the given parameters.
+     * @static
+     * @param {OrganizeInitParams} arg - Organization parameters
+     * @property {Document} arg.doc - Target document
+     * @property {Mode} arg.mode - Organization mode
+     * @property {number} arg.quantity - Number of items to organize
+     * @property {string} [arg.sizeContainer="JFT"] - Size container identifier
+     * @property {MensSize|BabySize} arg.targetSizeChr - Target size character
+     */
     static initializeOrganization(arg: OrganizeInitParams): void {
         const { doc, mode, quantity, sizeContainer = "JFT", targetSizeChr } = arg;
         const selection = doc.selection as Selection;
@@ -209,6 +276,13 @@ class Organizer {
         Organizer.processMultipleDocuments(organizeParams, docNeed, perDocRow);
     }
 
+    /**
+    * Handles organization across multiple documents when content exceeds single document capacity.
+    * @static
+    * @param {OrgBodyItemDir} params - Organization parameters
+    * @param {number} docNeed - Total number of documents required
+    * @param {number} rowsPerDoc - Number of rows per document
+    */
     static processMultipleDocuments(params: OrgBodyItemDir, docNeed: number, rowsPerDoc: number): void {
         let { items, doc, quantity } = params;
 
@@ -254,6 +328,20 @@ class Organizer {
         }
     }
 
+    /**
+     * Organizes items in a grid pattern within a document.
+     * @static
+     * @param {OrgBodyItemDir} arg - Grid organization parameters
+     * @property {Selection} arg.items - Items to organize
+     * @property {number} arg.quantity - Total quantity of items
+     * @property {number} arg.fitIn - Number of items that fit in a row
+     * @property {boolean} arg.is90 - Whether items are rotated 90°
+     * @property {number} arg.startIndex - Starting index for item numbering
+     * @property {number} arg.remaining - Number of remaining items to handle
+     * @property {Document} arg.doc - Target document
+     * @property {number} arg.docRow - Current document row count
+     * @property {number} [arg.remainingStartIndex] - Starting index for remaining items
+     */
     static organizeItemsInGrid(arg: OrgBodyItemDir): void {
         const {
             items,
