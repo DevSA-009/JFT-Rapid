@@ -91,8 +91,8 @@ class IllustratorDocument {
         }
 
         const duplicatedItems: PageItem[] = [];
-        for (let i = 0; i < items.length; i++) {
-            duplicatedItems.push(items[i].duplicate(this.doc) as PageItem);
+        for (let i = items.length; i >= 1; i--) {
+            duplicatedItems.unshift(items[i-1].duplicate(this.doc) as PageItem);
         }
 
         alignPageItemsToArtboard(duplicatedItems, this.doc);
