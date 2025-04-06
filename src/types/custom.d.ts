@@ -29,36 +29,18 @@ type PrevNextItems = {
 
 type MensSize = "S" | "M" | "L" | "XL" | "2XL";
 type BabySize = "2" | "4" | "6" | "8" | "10" | "12" | "14" | "16";
+type ApparelSize = MensSize | BabySize;
 
 type Mode = "PANT" | "B" | "FB";
-
-interface OrganizeInitParams {
-    doc: Application["activeDocument"];
-    quantity: number;
-    mode: Mode;
-    sizeConatiner?: string;
-    targetSizeChr: MensSize | BabySize;
-}
 
 interface CalculateDocRowDistributionParams {
     dim: DimensionObject;
     rowLength: number;
-    to90?:boolean;
+    to90?: boolean;
 }
 interface CalculateDocRowDistributionReturn {
-    docNeed:number;
-    perDocRow:number;
-}
-
-interface OrgBodyItemDir {
-    items: Selection;
-    quantity: number;
-    remaining: number;
-    doc:Document;
-    docRow:number;
-    fitIn: number;
-    startIndex:number;
-    is90: boolean;
+    docNeed: number;
+    perDocRow: number;
 }
 
 interface Person {
@@ -87,7 +69,7 @@ interface FixOrganizeRotateAlignParams {
     baseItem: GroupItem;
 }
 
-type DataListConatiner = {
+type DataListContainer = {
     [key in MensSize | BabySize]: Person[];
 };
 
@@ -108,25 +90,11 @@ interface SizeContainer {
     [key: string]: SizeCategory
 }
 
-interface OrganizerParams {
-    dataString: string;
-    mode: Mode;
-    targetSizeChr: MensSize | BabySize;
-    doc?: Document;
-    sizeConatiner: string;
-}
-
 type BoundsObject = { left: number; top: number; right: number; bottom: number }
 type DimensionObject = { width: number; height: number; }
 
 interface SelectItemsInDocParams {
-    doc:Document;
-    items:Selection;
-    clear?:boolean;
-}
-
-interface TempDocumentHandlerParams {
+    doc: Document;
     items: Selection;
-    mode: Mode;
-    cb?:<T = unknown>(doc:Document) => T
+    clear?: boolean;
 }
