@@ -894,4 +894,22 @@ const selectItemsInDoc = ({ doc, items, clear = true }: SelectItemsInDocParams):
     return doc.selection;
 };
 
-
+/**
+ * Renames the size token for a given group item by updating the contents of a text frame 
+ * with the specified target size. If no matching text frame is found, an alert is displayed.
+ *
+ * @param {GroupItem} item - The group item that contains the page items.
+ * @param {ApparelSize} targetSizeChr - The target apparel size to be set in the size token.
+ * 
+ * @returns {void} - This function does not return any value.
+ *
+ * @throws {Error} - Throws an alert dialog if the size token text frame is not found.
+ */
+const renameSizeTKN = (item:GroupItem,targetSizeChr:ApparelSize): void => {
+    const sizeTextFrame = findElement(item.pageItems, (item) => item.typename === PageItemType.TextFrame && item.name === SIZE_TKN);
+    if(sizeTextFrame) {
+        (sizeTextFrame as TextFrame).contents = `size-${targetSizeChr}`.toUpperCase();
+    } else {
+        alertDialogSA(`Size token not found in ${item.name}`);
+    }
+}

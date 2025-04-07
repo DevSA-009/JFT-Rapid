@@ -219,6 +219,10 @@ class Organizer {
         // Resize items to target dimensions
         resizeSelection(selection, targetDim.width, targetDim.height);
 
+        // renaming body size token
+        renameSizeTKN(body[0] as GroupItem,targetSizeChr);
+        renameSizeTKN(body[1] as GroupItem,targetSizeChr);
+
         const groupManager = new GroupManager(body);
         let itemForDimensionCalculation = body[1];
 
