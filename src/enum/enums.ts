@@ -5,4 +5,5 @@ enum PageItemType {
     CompoundPathItem = "CompoundPathItem",
     PlacedItem = "PlacedItem",
     RasterItem = "RasterItem",
+    Layer = "Layer"
 }

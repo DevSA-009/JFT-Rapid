@@ -22,7 +22,7 @@ interface OrgBodyItem {
 type Selection = PageItem[];
 
 type PrevNextItems = {
-    prev: PageItem | null;
+    prev: PageItem | GroupItem | null;
     current: PageItem;
     next: PageItem | null;
 };

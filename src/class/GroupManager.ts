@@ -12,7 +12,7 @@ class GroupManager {
     }
 
     // Group the selection inside the new group.
-    group(prev: PageItem | null = null): void {
+    group(prev: PageItem | GroupItem | Layer | null = null): void {
         if (prev) {
             this.tempGroup = this.groupItems.add();
             this.tempGroup.move(prev, ElementPlacement.PLACEAFTER);
@@ -26,7 +26,7 @@ class GroupManager {
     }
 
     // Ungroup the items and return them to their original parent position.
-    ungroup(prev: PageItem | null = null): void {
+    ungroup(prev: PageItem | GroupItem | Layer | null = null): void {
         if (this.tempGroup) {
             const parent = this.tempGroup.parent;
 

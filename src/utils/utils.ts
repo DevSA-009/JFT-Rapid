@@ -14,42 +14,41 @@ const findElement = <T>(array: T[], cb: findElementCb<T>): T | null => {
         }
     }
     return null;
-}
+};
 
 /**
- * Returns the previous, current, and next `PageItem` relative to a given selection.
- * 
- * @param {Selection | PageItem} selection - A single PageItem or an array of PageItems (Selection).
- * @returns {PrevNextItems} An object containing:
- * - `prev`: The PageItem before the first item in the selection (or null if none).
- * - `current`: The first PageItem in the selection or the single item itself.
- * - `next`: The PageItem after the last item in the selection (or null if none).
- * 
- * @example
- * const { prev, current, next } = getAdjacentPageItems(app.activeDocument.selection);
+ * Get the previous, current, and next PageItem around a selection,
+ * while supporting GroupItem or Layer parents.
+ * If there's no valid previous PageItem, `prev` will be `null`.
  */
 const getAdjacentPageItems = (selection: Selection | PageItem): PrevNextItems => {
     const isSelectionArr = isArray(selection);
 
-    // Get the first item if selection is an array, otherwise use selection itself
     const firstItem = isSelectionArr ? (selection as Selection)[0] : (selection as PageItem);
-    const parent: PageItems = (firstItem.parent as PageItem | Layer).pageItems;
+    const lastItem = isSelectionArr ? (selection as Selection)[(selection as Selection).length - 1] : firstItem;
 
-    // If selection is an array, get the index of the last item in selection
-    const lastItem = isSelectionArr ? (selection as Selection)[selection.length - 1] : firstItem;
-    const lastItemIdx = indexOf(parent, lastItem);
+    const parent = firstItem.parent as PageItem | Layer;
+    let siblings: PageItems;
 
-    // If selection is a single item, use its index, otherwise use lastItem index
-    const currentIdx = indexOf(parent, firstItem);
+    if (parent.typename === PageItemType.Layer) {
+        siblings = (parent as Layer).pageItems;
+    } else if (parent.typename === PageItemType.GroupItem) {
+        siblings = (parent as GroupItem).pageItems;
+    } else {
+        throw new Error("Unsupported parent type: " + parent.typename);
+    }
 
-    // If selection is an array, next is the item after lastItem
-    // If selection is a single item, next is the normal next item in parent
-    const next = lastItemIdx < parent.length - 1 ? parent[lastItemIdx + 1] : null;
+    const firstIndex = indexOf(siblings, firstItem);
+    const lastIndex = indexOf(siblings, lastItem);
 
-    // If selection is an array, prev is the item before firstItem
-    const prev = currentIdx > 0 ? parent[currentIdx - 1] : null;
+    const prev = firstIndex > 0 ? siblings[firstIndex - 1] : null;
+    const next = lastIndex < siblings.length - 1 ? siblings[lastIndex + 1] : null;
 
-    return { prev, current: firstItem, next };
+    return {
+        prev,
+        current: firstItem,
+        next
+    };
 };
 
 /**
@@ -87,45 +86,73 @@ const logMessage = (message: string) => {
  */
 const formatNumber = (value: number, precision: number = 4): number => {
     return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
-}
+};
 
 /**
- * Returns the top-most visible item from a GroupItem, checking for clipping or nested GroupItems.
+ * Recursively finds the largest visible item (by geometric area) inside a GroupItem or PageItem.
  * 
- * If the PageItem is clipped, it will return the first clipped PageItem.
- * If the PageItem is not clipped, it will recursively check for child GroupItems and return the top-most visible child.
- * 
- * @param {GroupItem} groupItem - The GroupItem to check for the top-most visible objects.
- * @returns {GroupItem | PageItem} - The top-most visible GroupItem or PageItem.
+ * - Clipped groups only consider the clipping path for visibility.
+ * - Unclipped groups are traversed fully.
+ * - For each visible item, its geometric bounds area is calculated and compared.
+ *
+ * @param {PageItem} item - The root PageItem or GroupItem to search through.
+ * @returns {PageItem} - The single visible item with the largest geometric area.
  */
-const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
-    if (groupItem.typename === "GroupItem") {
-        if (groupItem.clipped) {
-            // Find and return the first clipping path if it's available, then stop processing further
-            for (let i = 0; i < groupItem.pageItems.length; i++) {
-                if (groupItem.pageItems[i].clipping) {
-                    return groupItem.pageItems[i]; // Return the clipped PageItem
-                }
-            }
-            return groupItem; // Return the GroupItem if no clipping path is found
-        } else {
-            // Recursively check each child GroupItem if the parent is not clipped
-            for (let i = 0; i < groupItem.pageItems.length; i++) {
-                const child = groupItem.pageItems[i];
-                if (child.typename === "GroupItem") {
-                    // Recursively process child GroupItems
-                    const topMostChild = getTopMostVisibleItem(child);
-                    if (topMostChild) {
-                        return topMostChild; // Return the top-most visible child GroupItem or PageItem
+const getTopMostVisibleItem = (item: PageItem): PageItem => {
+    let largestItem: PageItem | null = null;
+    let largestArea = -Infinity;
+
+    /**
+     * Calculates the area of a PageItem's geometric bounds.
+     * @param {number[]} bounds - [left, top, right, bottom]
+     * @returns {number} - Width × Height
+     */
+    const calculateArea = (bounds: number[]): number => {
+        const [left, top, right, bottom] = bounds;
+        return Math.abs((right - left) * (top - bottom));
+    };
+
+    /**
+     * Internal recursive function to evaluate items and track the largest.
+     * @param {PageItem} currentItem - The item to check.
+     */
+    const traverse = (currentItem: PageItem): void => {
+        if (currentItem.typename === PageItemType.GroupItem) {
+            const group = currentItem as GroupItem;
+
+            if (group.clipped) {
+                for (let i = 0; i < group.pageItems.length; i++) {
+                    const child = group.pageItems[i];
+                    if (child.clipping) {
+                        const area = calculateArea(child.geometricBounds);
+                        if (area > largestArea) {
+                            largestArea = area;
+                            largestItem = child;
+                        }
+                        return; // only consider clipping path
                     }
                 }
+            } else {
+                for (let i = 0; i < group.pageItems.length; i++) {
+                    traverse(group.pageItems[i]);
+                }
             }
-            return groupItem; // Return the parent GroupItem if no child GroupItem was found
+        } else {
+            const area = calculateArea(currentItem.geometricBounds);
+            if (area > largestArea) {
+                largestArea = area;
+                largestItem = currentItem;
+            }
         }
-    } else {
-        // If the item is not a GroupItem, return it directly (e.g., TextFrames, PathItems, etc.)
-        return groupItem;
+    };
+
+    traverse(item);
+
+    if (!largestItem) {
+        throw new Error("No visible item found.");
     }
+
+    return largestItem;
 };
 
 /**
@@ -144,7 +171,7 @@ const getTopMostVisibleItem = (groupItem: PageItem): GroupItem | PageItem => {
 const roundUpToDivisible = (quantity: number, divider: number): number => {
     const remainder = quantity % divider;
     return remainder === 0 ? quantity : quantity + (divider - remainder);
-}
+};
 
 /**
  * Positions one or more PageItems in the active artboard by aligning their center to specified edges or center points.
@@ -317,7 +344,7 @@ const getSelectionBounds = (selection: Selection | PageItem): BoundsObject => {
      * @param item - The Illustrator item (PathItem, GroupItem, TextFrame, etc.).
      */
     const processItem = (item: PageItem): void => {
-        if (item.typename === "GroupItem") {
+        if (item.typename === PageItemType.GroupItem) {
             if (item.clipped) {
                 // Find the clipping path within the clipped group
                 for (let i = 0; i < item.pageItems.length; i++) {
@@ -375,11 +402,11 @@ const getSelectionBounds = (selection: Selection | PageItem): BoundsObject => {
 };
 
 /**
- * Resizes the selected objects to a target width and height (in points) while maintaining their proportions.
+ * Resizes the selected objects to a target width and height (in INCH) while maintaining their proportions.
  * 
  * @param selection - Array of selected items in Illustrator.
- * @param targetWidth - The desired total width for the selection in points.
- * @param targetHeight - The desired total height for the selection in points.
+ * @param targetWidth - The desired total width for the selection in INCH.
+ * @param targetHeight - The desired total height for the selection in INCH.
  */
 const resizeSelection = (selection: Selection | PageItem, targetWidth: number = 0, targetHeight: number = 0): void => {
     if (!selection || selection.length === 0) {
@@ -405,13 +432,14 @@ const resizeSelection = (selection: Selection | PageItem, targetWidth: number = 
 
         groupManger.ungroup(prev);
     } else {
-        const topMostItem = getTopMostVisibleItem(isArray(selection) ? (selection as Selection)[0] : selection as PageItem);
+        const targetItem = isArray(selection) ? (selection as Selection)[0] : selection as PageItem;
+        const topMostItem = getTopMostVisibleItem(targetItem);
         const [left, top, right, bottom] = topMostItem.geometricBounds;
         const { width, height } = getWHDimension({ left, right, top, bottom });
         // Calculate scaling factors for both width and height
         const scaleX = targetWidth ? (targetWidth / width) * 100 : 100;
         const scaleY = targetHeight ? (targetHeight / height) * 100 : 100;
-        topMostItem.resize(scaleX, scaleY)
+        targetItem.resize(scaleX, scaleY)
     }
 };
 
@@ -516,12 +544,12 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
     let clipPaths: PathItem[] = [];
 
     const findClippingPaths = (item: PageItem): void => {
-        if (item.typename === "GroupItem") {
+        if (item.typename === PageItemType.GroupItem) {
             let group = item as GroupItem;
             for (let i = 0; i < group.pageItems.length; i++) {
                 findClippingPaths(group.pageItems[i]);
             }
-        } else if (item.typename === "PathItem" && (item as PathItem).clipping) {
+        } else if (item.typename === PageItemType.PathItem && (item as PathItem).clipping) {
             clipPaths.push(item as PathItem);
         }
     }
@@ -529,7 +557,7 @@ const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
     findClippingPaths(groupItem);
 
     return clipPaths.length > 0 ? clipPaths[clipPaths.length - 1] : null;
-}
+};
 
 /**
  * Rotate a items by degrees
@@ -686,7 +714,7 @@ const getMaskedBounds = (groupItem: GroupItem): number[] | null => {
     }
 
     return bounds;
-}
+};
 
 /**
  * Aligns a moving group item relative to a base group item with optional rotation handling.
@@ -766,7 +794,7 @@ const alignItems = (baseGroupItem: PageItem, movingGroupItem: PageItem, position
 
     // Move the group item
     translateXY(movingGroupItem, deltaX, deltaY);
-}
+};
 
 /**
  * Calculates the width and height of a bounding box in inches based on its geometric bounds.
@@ -912,4 +940,4 @@ const renameSizeTKN = (item:GroupItem,targetSizeChr:ApparelSize): void => {
     } else {
         alertDialogSA(`Size token not found in ${item.name}`);
     }
-}
+};
