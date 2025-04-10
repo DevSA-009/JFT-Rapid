@@ -48,3 +48,22 @@ const arrayFrom = <T>(arrayLike: ArrayLike<T>): T[] => {
     }
     return arr;
 };
+
+/**
+ * Custom implementation of Object.keys for ES3 using an arrow function
+ * @param obj - The object whose keys you want to retrieve.
+ * @returns An array of the object's own enumerable property names.
+ */
+const objectKeys = (obj: Record<string, any>): string[] => {
+    const keys: string[] = [];
+
+    // Loop through all enumerable properties of the object
+    for (const key in obj) {
+        // Check if the property is directly on the object and not its prototype
+        if (obj.hasOwnProperty(key)) {
+            keys.push(key);
+        }
+    }
+
+    return keys;
+};
