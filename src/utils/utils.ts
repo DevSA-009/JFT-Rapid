@@ -934,7 +934,7 @@ const selectItemsInDoc = ({ doc, items, clear = true }: SelectItemsInDocParams):
  * @throws {Error} - Throws an alert dialog if the size token text frame is not found.
  */
 const renameSizeTKN = (item:GroupItem,targetSizeChr:ApparelSize): void => {
-    const sizeTextFrame = findElement(item.pageItems, (item) => item.typename === PageItemType.TextFrame && item.name === SIZE_TKN);
+    const sizeTextFrame = findElement(item.pageItems, (item) => item.typename === PageItemType.TextFrame && item.name === SearchingKeywords.SIZE_TKN);
     if(sizeTextFrame) {
         (sizeTextFrame as TextFrame).contents = `size-${targetSizeChr}`.toUpperCase();
     } else {

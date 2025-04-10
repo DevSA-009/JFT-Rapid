@@ -72,8 +72,8 @@ class Organizer {
         selection: Selection | null = null
     ): [PageItem, PageItem] {
         const container = selection || doc.activeLayer.pageItems;
-        const frontBody = findElement(container, (item) => item.name === "FRONT");
-        const backBody = findElement(container, (item) => item.name === "BACK");
+        const frontBody = findElement(container, (item) => item.name === SearchingKeywords.FRONT);
+        const backBody = findElement(container, (item) => item.name === SearchingKeywords.BACK);
 
         if (!frontBody || !backBody) {
             throw new Error(`Can't find ${!frontBody ? "FRONT" : "BACK"}`);
