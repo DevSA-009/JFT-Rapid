@@ -220,8 +220,8 @@ class Organizer {
         resizeSelection(selection, targetDim.width, targetDim.height);
 
         // renaming body size token
-        renameSizeTKN(body[0] as GroupItem,targetSizeChr);
-        renameSizeTKN(body[1] as GroupItem,targetSizeChr);
+        renameSizeTKN(body[0] as GroupItem, targetSizeChr);
+        renameSizeTKN(body[1] as GroupItem, targetSizeChr);
 
         const groupManager = new GroupManager(body);
         let itemForDimensionCalculation = body[1];
@@ -259,11 +259,11 @@ class Organizer {
         };
 
         // Initialize parameters for organizing layout
-        const organizeParams: OrgBodyItemDir = {
+        const organizeParams: ProcessMultipleDocumentsParams = {
             items: body,
-            remaining: useRotation ? rowIn90.remaining : rowIn0.remaining,
+            remainingStartIndex: useRotation ? rowIn90.remainingStartIndex : rowIn0.remaining,
             startIndex: 1,
-            fitIn: useRotation ? rowIn90.x : rowIn0.x,
+            docCol: useRotation ? rowIn90.x : rowIn0.x,
             doc: doc,
             is90: useRotation,
             quantity,
@@ -278,12 +278,12 @@ class Organizer {
     /**
     * Handles organization across multiple documents when content exceeds single document capacity.
     * @static
-    * @param {OrgBodyItemDir} params - Organization parameters
+    * @param {OrganizeItemsGrid} params - Organization parameters
     * @param {number} docNeed - Total number of documents required
     * @param {number} rowsPerDoc - Number of rows per document
     */
-    static processMultipleDocuments(params: OrgBodyItemDir, docNeed: number, rowsPerDoc: number): void {
-        let { items, doc, quantity, orgMode } = params;
+    static processMultipleDocuments(params: ProcessMultipleDocumentsParams, docNeed: number, rowsPerDoc: number): void {
+        let { items, doc, quantity, docCol, orgMode, startIndex } = params;
 
         // Calculate where the "remaining" items start (after regular quantity)
         const remainingStartIndex = quantity + 1;
@@ -291,11 +291,11 @@ class Organizer {
         for (let index = 1; index <= docNeed; index++) {
             // Update parameters for current document
             params.docRow = rowsPerDoc;
-            const startIndex = (index - 1) * rowsPerDoc * params.fitIn + 1;
-            params.startIndex = startIndex;
+            const nextIndex = (index - 1) * rowsPerDoc * docCol + 1;
+            startIndex = nextIndex;
 
             // Choose the appropriate organization method based on the mode
-            Organizer.organizeItemsInGrid({
+            Organizer.layoutBodyItemsInGrid({
                 ...params,
                 remainingStartIndex: remainingStartIndex
             });
@@ -306,7 +306,7 @@ class Organizer {
             if (index < docNeed) {
                 const newDocHandler = Organizer.createTempDocument({
                     items: items,
-                    mode: params.orgMode, // Use the original mode if available
+                    mode: orgMode, // Use the original mode if available
                     cb: Organizer.selectBodyCB as TempDocumentHandlerParams["cb"]
                 });
 
@@ -317,8 +317,8 @@ class Organizer {
                 items = Organizer.getBody(doc);
 
                 // Update params for next iteration
-                params.doc = doc;
-                params.items = items;
+                doc = doc;
+                items = items;
             } else {
                 // Remove original items when done with all documents
                 frontBody.remove();
@@ -328,27 +328,24 @@ class Organizer {
     }
 
     /**
-     * Organizes items in a grid pattern within a document.
-     * @static
-     * @param {OrgBodyItemDir} arg - Grid organization parameters
+     * Organizes Only Back items in a grid pattern within a document.
+     * @param {OrganizeItemsGrid} arg - Grid organization parameters
      * @property {Selection} arg.items - Items to organize
      * @property {number} arg.quantity - Total quantity of items
      * @property {number} arg.fitIn - Number of items that fit in a row
      * @property {boolean} arg.is90 - Whether items are rotated 90°
      * @property {number} arg.startIndex - Starting index for item numbering
-     * @property {number} arg.remaining - Number of remaining items to handle
      * @property {Document} arg.doc - Target document
      * @property {number} arg.docRow - Current document row count
-     * @property {number} [arg.remainingStartIndex] - Starting index for remaining items
+     * @property {number} arg.remainingStartIndex - Starting index for remaining items
      */
-    static organizeItemsInGrid(arg: OrgBodyItemDir): void {
+    static layoutBodyItemsInGrid(arg: OrganizeItemsGrid): void {
         const {
             items,
             quantity,
-            fitIn,
+            docCol,
             is90,
             startIndex,
-            remaining,
             doc,
             docRow,
             remainingStartIndex = quantity + 1  // Default to position after last regular item
@@ -356,81 +353,63 @@ class Organizer {
 
         const [frontBody, backBody] = items;
 
-        let lastItem: PageItem = backBody;
-        let currentRowFirstItem = lastItem;
-
         // Round up quantity to be divisible by the number that fits in a row
-        const absoluteQuantity = roundUpToDivisible(quantity, fitIn);
+        const absoluteQuantity = roundUpToDivisible(quantity, docCol);
 
-        // Maximum item index for this document
-        const maxItemIndexForDoc = Math.min(absoluteQuantity, startIndex + (docRow * fitIn) - 1);
+        const maxRowForThisDoc = Math.min(absoluteQuantity, startIndex + (docRow * docCol) - 1);
 
-        for (let i = startIndex; i <= maxItemIndexForDoc; i++) {
+        let lastUsedItem: PageItem = backBody;
+        let currentRowFirstItem: PageItem = backBody;
+        let changingRow = false;
 
-            let newItem: PageItem;
+        for (let i = startIndex; i <= absoluteQuantity; i++) {
+            if (i > maxRowForThisDoc) {
+                break;
+            }
 
-            // Handle remaining items (after quantity) differently by using frontBody
-            if (i >= remainingStartIndex && remaining > 0) {
-                // For remaining items, duplicate the front body instead
-                newItem = frontBody.duplicate();
+            const newDupItem = i === remainingStartIndex ? frontBody.duplicate() : lastUsedItem.duplicate();
+
+            newDupItem.zOrder(ZOrderMethod.BRINGTOFRONT);
+
+            newDupItem.name = i.toString();
+
+            if (i !== startIndex && !(i % 2) && is90) {
+                rotateItems(newDupItem, 180);
+            }
+
+            if (i === remainingStartIndex) {
+                alignItems(lastUsedItem, newDupItem, "B");
+            }
+
+            if (changingRow) {
                 moveItemAfter({
-                    base: lastItem,
-                    moving: newItem,
-                    position: "R",
-                    gap: 0.1 * 72
-                });
-                alignItems(currentRowFirstItem, newItem, "B");
+                    base: lastUsedItem,
+                    moving: newDupItem,
+                    position: "B",
+                    gap: ITEMS_GAP_SIZE * 72
+                })
+                currentRowFirstItem = newDupItem;
+                changingRow = false;
+
             } else {
-                // For regular items, continue the pattern by duplicating the last item
-                newItem = lastItem.duplicate();
                 if (i !== startIndex) {
                     moveItemAfter({
-                        base: lastItem,
-                        moving: newItem,
+                        base: lastUsedItem,
+                        moving: newDupItem,
                         position: "R",
-                        gap: 0.1 * 72
+                        gap: ITEMS_GAP_SIZE * 72
                     });
                 }
             }
 
-            // Name the item with its index
-            newItem.name = i.toString();
-            lastItem = newItem;
-            lastItem.zOrder(ZOrderMethod.BRINGTOFRONT);
-
-            // Check if this is the end of a row (but not the very last item)
-            if (i % fitIn === 0 && i !== maxItemIndexForDoc) {
-                // Create first item of the new row
-                const nextRowFirstItem = lastItem.duplicate();
-                nextRowFirstItem.name = (i + 1).toString();
-
-                // Align with the first item of the current row
-                alignItems(currentRowFirstItem, nextRowFirstItem, "L");
-
-                // Move below the current row
-                moveItemAfter({
-                    base: currentRowFirstItem,
-                    moving: nextRowFirstItem,
-                    position: "B",
-                    gap: 0.1 * 72
-                });
-
-                // Rotate if needed for alternating pattern
-                if (is90) {
-                    rotateItems(lastItem, -180);
-                }
-
-                // Update tracking variables
-                currentRowFirstItem = nextRowFirstItem;
-                lastItem = nextRowFirstItem;
-                i++;
+            if (i % docCol === 0) {
+                changingRow = true;
+                lastUsedItem = currentRowFirstItem;
+            } else {
+                lastUsedItem = newDupItem;
             }
 
-            // Rotate items in alternating pattern if needed
-            if (is90 && i % fitIn === 0) {
-                rotateItems(lastItem, -180);
-            }
-        }
+        };
 
         Organizer.alignAllToBoardC(doc);
     }
@@ -479,17 +458,15 @@ interface OrganizeInitParams {
     targetSizeChr: MensSize | BabySize;
 }
 
-interface OrgBodyItemDir {
-    items: Selection;
-    quantity: number;
-    remaining: number;
+interface OrganizeItemsGrid {
     doc: Document;
     docRow: number;
-    fitIn: number;
+    docCol: number;
+    items: Selection;
+    quantity: number;
     startIndex: number;
     is90: boolean;
-    orgMode: Mode;           // Added to pass mode information
-    remainingStartIndex?: number; // Added to track where remaining items start
+    remainingStartIndex: number; // Added to track where remaining items start
 }
 
 interface CalculateDocRowDistributionParams {
@@ -501,6 +478,10 @@ interface CalculateDocRowDistributionParams {
 interface CalculateDocRowDistributionReturn {
     docNeed: number;
     perDocRow: number;
+}
+
+interface ProcessMultipleDocumentsParams extends OrganizeItemsGrid {
+    orgMode: Mode;
 }
 interface TempDocumentHandlerParams {
     items: Selection;
