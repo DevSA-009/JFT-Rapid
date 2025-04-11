@@ -203,7 +203,7 @@ class Organizer {
         if (quantity < 2) {
             alertDialogSA("Minimum length 2 required");
             return;
-        }
+        };
 
         const sizeCategory =
             CONFIG.Size_Container[sizeContainer as keyof typeof CONFIG.Size_Container];
@@ -229,12 +229,15 @@ class Organizer {
         if (mode === "FB") {
             groupManager.group();
             itemForDimensionCalculation = groupManager.tempGroup as PageItem;
-        }
+        };
 
         const itemDimensions = Organizer.getDimensionForItem(
             itemForDimensionCalculation
         );
-        groupManager.ungroup();
+
+        if (groupManager.tempGroup) {
+            groupManager.ungroup();
+        };
 
         // Get row information
         const { recommendedIn90, rowIn0, rowIn90 } = getRowInfo(

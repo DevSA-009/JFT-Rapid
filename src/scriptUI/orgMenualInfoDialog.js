@@ -113,7 +113,7 @@ const orgMenualInfoDialog = () => {
 
     itemsGapField.addEventListener("keydown", (event) => {
         const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
-        
+
         if (event.keyName === "Escape") {
             dialogRoot.close();
             return;
@@ -235,24 +235,24 @@ const orgMenualInfoDialog = () => {
 
     enterBn.onClick = () => {
         dialogRoot.close();
-            function fixMultipleDots(str) {
-                const parts = str.split('.');
-                if (parts.length <= 2) {
-                    return parseFloat(str); // Already a valid float
-                }
-
-                // Join only the first two parts to make a valid float
-                const fixedStr = parts[0] + '.' + parts[1];
-                return parseFloat(fixedStr);
+        function fixMultipleDots(str) {
+            const parts = str.split('.');
+            if (parts.length <= 2) {
+                return parseFloat(str); // Already a valid float
             }
 
-            if (parseInt(quantityField.text) < 2) {
-                alertDialogSA("Minimum quantity 2 required");
-                return;
-            }
+            // Join only the first two parts to make a valid float
+            const fixedStr = parts[0] + '.' + parts[1];
+            return parseFloat(fixedStr);
+        }
 
-            CONFIG.Items_Gap = fixMultipleDots(itemsGapField.text);
-            CONFIG.perDoc = parseInt(perDocField.text);
+        if (!quantityField.text || parseInt(quantityField.text) < 2) {
+            alertDialogSA("Minimum quantity 2 required");
+            return;
+        }
+
+        CONFIG.Items_Gap = itemsGapField.text ? fixMultipleDots(itemsGapField.text) : 0;
+        CONFIG.perDoc = perDocField.text ? parseInt(perDocField.text) : 0;
 
         dialogRoot.close(1); // success signal
     }
@@ -263,7 +263,7 @@ const orgMenualInfoDialog = () => {
     if (result === 1) {
         orgMenuallyCB({
             mode: orgModeList.selection.text,
-            quantity: parseInt(quantityField.text),
+            quantity: quantityField.text ? parseInt(quantityField.text) : 0,
             sizeContainer: sizeContainerList.selection.text,
             targetSizeChr: sizeList.selection.text
         });
