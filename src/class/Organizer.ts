@@ -206,7 +206,7 @@ class Organizer {
         }
 
         const sizeCategory =
-            SIZE_CONTAINER[sizeContainer as keyof typeof SIZE_CONTAINER];
+            CONFIG.Size_Container[sizeContainer as keyof typeof CONFIG.Size_Container];
         const isBaby = isBabySize(targetSizeChr, sizeCategory["BABY"]);
         const targetDim = getDimensionGenderCategory(
             sizeCategory,
@@ -283,16 +283,15 @@ class Organizer {
     * @param {number} rowsPerDoc - Number of rows per document
     */
     static processMultipleDocuments(params: ProcessMultipleDocumentsParams, docNeed: number, rowsPerDoc: number): void {
-        let { items, doc, quantity, docCol, orgMode, startIndex } = params;
 
         // Calculate where the "remaining" items start (after regular quantity)
-        const remainingStartIndex = quantity + 1;
+        const remainingStartIndex = params.quantity + 1;
 
         for (let index = 1; index <= docNeed; index++) {
             // Update parameters for current document
             params.docRow = rowsPerDoc;
-            const nextIndex = (index - 1) * rowsPerDoc * docCol + 1;
-            startIndex = nextIndex;
+            const nextIndex = (index - 1) * rowsPerDoc * params.docCol + 1;
+            params.startIndex = nextIndex;
 
             // Choose the appropriate organization method based on the mode
             Organizer.layoutBodyItemsInGrid({
@@ -300,25 +299,22 @@ class Organizer {
                 remainingStartIndex: remainingStartIndex
             });
 
-            const [frontBody, backBody] = items;
+            const [frontBody, backBody] = params.items;
 
             // If not the last document, create a new temp document
             if (index < docNeed) {
                 const newDocHandler = Organizer.createTempDocument({
-                    items: items,
-                    mode: orgMode, // Use the original mode if available
+                    items: params.items,
+                    mode: params.orgMode, // Use the original mode if available
                     cb: Organizer.selectBodyCB as TempDocumentHandlerParams["cb"]
                 });
 
                 frontBody.remove();
                 backBody.remove();
 
-                doc = newDocHandler.doc;
-                items = Organizer.getBody(doc);
+                params.doc = newDocHandler.doc;
+                params.items = Organizer.getBody(params.doc);
 
-                // Update params for next iteration
-                doc = doc;
-                items = items;
             } else {
                 // Remove original items when done with all documents
                 frontBody.remove();
@@ -386,7 +382,7 @@ class Organizer {
                     base: lastUsedItem,
                     moving: newDupItem,
                     position: "B",
-                    gap: ITEMS_GAP_SIZE * 72
+                    gap: CONFIG.Items_Gap * 72
                 })
                 currentRowFirstItem = newDupItem;
                 changingRow = false;
@@ -397,7 +393,7 @@ class Organizer {
                         base: lastUsedItem,
                         moving: newDupItem,
                         position: "R",
-                        gap: ITEMS_GAP_SIZE * 72
+                        gap: CONFIG.Items_Gap * 72
                     });
                 }
             }
