@@ -171,7 +171,7 @@ class Organizer {
         params: CalculateDocRowDistributionParams
     ): CalculateDocRowDistributionReturn {
         const CANVAS_MAX_HEIGHT = 207 * 72; // Convert inches to points
-        const { dim, rowLength, to90 = true } = params;
+        const { dim, rowLength, to90 = true, perDoc = 0 } = params;
 
         // Apply dimension transformation if rotated 90 degrees
         const finalDim: DimensionObject = to90
@@ -179,9 +179,9 @@ class Organizer {
             : { width: dim.width * 72, height: dim.height * 72 };
 
         const totalHeight = finalDim.height * rowLength;
-        const docsNeeded = Math.ceil(totalHeight / CANVAS_MAX_HEIGHT);
+        const docsNeeded = !perDoc ? Math.ceil(totalHeight / CANVAS_MAX_HEIGHT) : Math.ceil(rowLength / perDoc);
         const maxHeightPerDoc = Math.ceil(totalHeight / docsNeeded);
-        const rowsPerDoc = Math.ceil(maxHeightPerDoc / finalDim.height);
+        const rowsPerDoc = !perDoc ? Math.ceil(maxHeightPerDoc / finalDim.height) : perDoc;
 
         return { docNeed: docsNeeded, perDocRow: rowsPerDoc };
     }
@@ -250,6 +250,7 @@ class Organizer {
         const { docNeed, perDocRow } = Organizer.calculateDocRowDistribution({
             dim: itemDimensions,
             rowLength,
+            perDoc: CONFIG.perDoc,
             to90: useRotation,
         });
 

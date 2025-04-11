@@ -43,6 +43,7 @@ type Mode = keyof typeof OrgMode;
 interface CalculateDocRowDistributionParams {
     dim: DimensionObject;
     rowLength: number;
+    perDoc?:number;
     to90?: boolean;
 }
 interface CalculateDocRowDistributionReturn {
