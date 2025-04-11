@@ -824,8 +824,8 @@ const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
     const { width, height } = dim;
 
     // Determine how many items fit per row in both orientations
-    const fitCount0 = Math.max(1, Math.floor(PAPER_MAX_SIZE / (width + ITEMS_GAP_SIZE)));
-    const fitCount90 = Math.max(1, Math.floor(PAPER_MAX_SIZE / (height + ITEMS_GAP_SIZE)));
+    const fitCount0 = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (width + CONFIG.Items_Gap)));
+    const fitCount90 = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (height + CONFIG.Items_Gap)));
 
     // Calculate the number of full rows needed
     const rowsIn0 = Math.max(1, Math.floor(quantity / fitCount0));

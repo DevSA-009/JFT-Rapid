@@ -7,6 +7,13 @@ interface RowInfo {
     remainingStartIndex: number;
 }
 
+interface JFTRapid_Config {
+    readonly PAPER_MAX_SIZE:number;
+    readonly Size_Container:SizeContainer;
+    Items_Gap:number;
+    perDoc: number;
+}
+
 interface RowInfoReturn {
     rowIn0: RowInfo;
     rowIn90: RowInfo;
@@ -31,7 +38,7 @@ type MensSize = "S" | "M" | "L" | "XL" | "2XL";
 type BabySize = "2" | "4" | "6" | "8" | "10" | "12" | "14" | "16";
 type ApparelSize = MensSize | BabySize;
 
-type Mode = "PANT" | "B" | "FB";
+type Mode = keyof typeof OrgMode;
 
 interface CalculateDocRowDistributionParams {
     dim: DimensionObject;
@@ -97,4 +104,11 @@ interface SelectItemsInDocParams {
     doc: Document;
     items: Selection;
     clear?: boolean;
+}
+
+interface OrgManuallyParams {
+    readonly mode:Mode;
+    readonly quantity:number;
+    readonly targetSizeChr:ApparelSize;
+    readonly sizeContainer:string;
 }

@@ -17,3 +17,9 @@ enum SearchingKeywords {
     NO = "NO",
     NAME = "NAME"
 }
+
+enum OrgMode {
+    B = "B",
+    FB = "FB",
+    PANT = "PANT"
+}
