@@ -23,3 +23,9 @@ enum OrgMode {
     FB = "FB",
     PANT = "PANT"
 }
+
+enum OrgOriented {
+    V = "V",
+    H = "H",
+    L = "L"
+}
