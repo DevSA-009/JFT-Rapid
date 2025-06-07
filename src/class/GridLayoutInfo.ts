@@ -20,7 +20,7 @@ mode = "B"
 
 class GridLayoutInfo {
     private dimension: DimensionObject;
-    private mode: ApparelSize;
+    private mode: Mode;
     quantity: number;
 
     constructor(params: GridLayoutInfo) {
@@ -28,6 +28,24 @@ class GridLayoutInfo {
         this.quantity = params.quantity;
         this.mode = params.mode;
     }
+
+    /**
+     * Calculates L-shaped dimensions based on raw width/height and gap configuration
+     * @returns {DimensionObject} Dimensions of the L-shape {width, height}
+     */
+    calculateLShapeDimensions(): DimensionObject {
+        const { width: rawWidth, height: rawHeight } = this.dimension;
+        const gap = CONFIG.Items_Gap;
+        const widthDifference = rawHeight - rawWidth;
+
+        const shapeWidth = rawWidth + rawHeight + gap;
+        const shapeHeight = (rawHeight * 2) - widthDifference + gap;
+
+        return {
+            width: shapeWidth,
+            height: shapeHeight
+        };
+    };
 
     private getFitInPage() {
         const width = this.dimension.width;
@@ -54,7 +72,7 @@ class GridLayoutInfo {
     };
 
     private getRecommendedOrientation() {
-        
+
     }
 
 }
@@ -63,4 +81,22 @@ interface GridLayoutInfoCons {
     dimension: DimensionObject;
     mode: ApparelSize;
     quantity: number;
+}
+
+interface LayoutFitInfo {
+    /** Number of items that fit per row in horizontal orientation */
+    inH: number;
+    /** Number of items that fit per row in vertical orientation */
+    inV: number;
+    /** Boolean indicating if L-shape layout is possible */
+    inL: boolean;
+}
+
+interface RowCalculationResult {
+    /** Number of rows needed for horizontal layout */
+    inH: number;
+    /** Number of rows needed for vertical layout */
+    inV: number;
+    /** Number of L-shaped pairs needed (0 if not possible) */
+    inL: number;
 }
