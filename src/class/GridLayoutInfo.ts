@@ -47,6 +47,26 @@ class GridLayoutInfo {
         };
     };
 
+    /**
+     * Calculates the number of rows needed for different layout configurations
+     * based on the quantity of items and paper size constraints.
+     * 
+     * @returns {RowCalculationResult} An object containing:
+     *   - inH: Number of rows needed for horizontal layout
+     *   - inV: Number of rows needed for vertical layout 
+     *   - inL: Number of L-shaped pairs needed (0 if L-shape not possible)
+     * 
+     */
+    getRow(): RowCalculationResult {
+        const { inH, inL, inV } = this.getFitInPage();
+
+        return {
+            inH: Math.ceil(this.quantity / inH),
+            inV: Math.ceil(this.quantity / inV),
+            inL: inL ? Math.ceil(this.quantity / 2) : 0
+        }
+    };
+
     private getFitInPage() {
         const width = this.dimension.width;
         const height = this.dimension.height;
