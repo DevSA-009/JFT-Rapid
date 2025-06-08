@@ -129,7 +129,7 @@ class GridLayoutInfo {
 
         const totalHeightInH = rawWidth * inH + ((inH - 1) * CONFIG.Items_Gap);
 
-        const totalHeightInL = lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap);
+        const totalHeightInL = inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL;
 
         return {
             inH: totalHeightInH,
