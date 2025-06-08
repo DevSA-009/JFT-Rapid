@@ -30,6 +30,20 @@ class GridLayoutInfo {
     }
 
     /**
+     * Calculates raw dimensions based on the current mode.
+     * For "FB" mode, doubles the height.
+     * 
+     * @returns {DimensionObject} An object containing the calculated width and height dimensions
+     */
+    getRawDimensionsBasedOnMode(): DimensionObject {
+        const { width, height } = this.dimension;
+        return {
+            width,
+            height: this.mode === "FB" ? height * 2 : height
+        };
+    };
+
+    /**
      * Calculates L-shaped dimensions based on raw width/height and gap configuration
      * @returns {DimensionObject} Dimensions of the L-shape {width, height}
      */
@@ -75,18 +89,18 @@ class GridLayoutInfo {
      * @returns {ItemsPerRow} Object containing:
     */
     private getItemsPerRow(): ItemsPerRow  {
-        const width = this.dimension.width;
-        const height = this.dimension.height;
+
+        const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
 
         // Determine how many items fit per row in both orientations
-        const inV = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (width + CONFIG.Items_Gap)));
-        const inH = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (height + CONFIG.Items_Gap)));
+        const inV = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (rawWidth + CONFIG.Items_Gap)));
+        const inH = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (rawHeight + CONFIG.Items_Gap)));
 
         let lShapePossible: boolean = false;
 
         if (inV < 3 || inH < 3) {
             // addtion with  width wih height
-            const newMixedWidth = width + height + CONFIG.Items_Gap;
+            const newMixedWidth = this.dimension.width + this.dimension.height + CONFIG.Items_Gap;
 
             lShapePossible = newMixedWidth < CONFIG.PAPER_MAX_SIZE;
         }
@@ -107,8 +121,8 @@ class GridLayoutInfo {
     private calculateTotalHeights(): LayoutTotalHeights {
         const { inH, inL, inV } = this.getRow();
 
-        const rawWidth = this.dimension.width;
-        const rawHeight = this.dimension.height;
+        const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
+        
         const lShapeDimension = this.calculateLShapeDimensions();
 
         const totalHeightInV = rawHeight * inV + ((inV - 1) * CONFIG.Items_Gap);
