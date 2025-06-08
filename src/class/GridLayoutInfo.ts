@@ -91,8 +91,33 @@ class GridLayoutInfo {
         }
     };
 
-    private getRecommendedOrientation() {
+    /**
+     * Calculates the total height required for each layout type (horizontal, vertical, L-shape)
+     * including gaps between rows.
+     * 
+     * @returns {LayoutTotalHeights} Object containing total heights for each layout type:
+    */
+    private calculateTotalHeights(): LayoutTotalHeights {
+        const { inH, inL, inV } = this.getRow();
 
+        const rawWidth = this.dimension.width;
+        const rawHeight = this.dimension.height;
+        const lShapeDimension = this.calculateLShapeDimensions();
+
+        const totalHeightInV = rawHeight * inV + ((inV - 1) * CONFIG.Items_Gap);
+
+        const totalHeightInH = rawWidth * inH + ((inH - 1) * CONFIG.Items_Gap);
+
+        const totalHeightInL = lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap);
+
+        return {
+            inH: totalHeightInH,
+            inV: totalHeightInV,
+            inL: totalHeightInL
+        }
+    };
+
+    private getRecommendedOrientation() {
     }
 
 }
@@ -120,3 +145,5 @@ interface RowCalculationResult {
     /** Number of L-shaped pairs needed (0 if not possible) */
     inL: number;
 }
+
+type LayoutTotalHeights = RowCalculationResult;
