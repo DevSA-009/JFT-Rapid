@@ -58,16 +58,23 @@ class GridLayoutInfo {
      * 
      */
     getRow(): RowCalculationResult {
-        const { inH, inL, inV } = this.getFitInPage();
+        const { inH, lShapePossible, inV } = this.getItemsPerRow();
 
         return {
             inH: Math.ceil(this.quantity / inH),
             inV: Math.ceil(this.quantity / inV),
-            inL: inL ? Math.ceil(this.quantity / 2) : 0
+            inL: lShapePossible ? Math.ceil(this.quantity / 2) : 0
         }
     };
 
-    private getFitInPage() {
+    /**
+     * Calculates how many items can fit in a single row for different layout orientations
+     * considering paper size constraints and gap requirements.
+     * 
+     * @private
+     * @returns {ItemsPerRow} Object containing:
+    */
+    private getItemsPerRow(): ItemsPerRow  {
         const width = this.dimension.width;
         const height = this.dimension.height;
 
@@ -75,19 +82,19 @@ class GridLayoutInfo {
         const inV = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (width + CONFIG.Items_Gap)));
         const inH = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (height + CONFIG.Items_Gap)));
 
-        let inL: boolean = false;
+        let lShapePossible: boolean = false;
 
         if (inV < 3 || inH < 3) {
             // addtion with  width wih height
-            const newMixedWidth = width + height;
+            const newMixedWidth = width + height + CONFIG.Items_Gap;
 
-            inL = newMixedWidth < CONFIG.PAPER_MAX_SIZE;
+            lShapePossible = newMixedWidth < CONFIG.PAPER_MAX_SIZE;
         }
 
         return {
             inH,
             inV,
-            inL
+            lShapePossible
         }
     };
 
@@ -128,13 +135,13 @@ interface GridLayoutInfoCons {
     quantity: number;
 }
 
-interface LayoutFitInfo {
+interface ItemsPerRow {
     /** Number of items that fit per row in horizontal orientation */
     inH: number;
     /** Number of items that fit per row in vertical orientation */
     inV: number;
-    /** Boolean indicating if L-shape layout is possible */
-    inL: boolean;
+    /** Whether L-shaped layout is possible within paper constraints */
+    lShapePossible: boolean;
 }
 
 interface RowCalculationResult {
