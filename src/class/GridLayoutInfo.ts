@@ -49,15 +49,12 @@ class GridLayoutInfo {
      */
     calculateLShapeDimensions(): DimensionObject {
         const { width: rawWidth, height: rawHeight } = this.dimension;
-        const gap = CONFIG.Items_Gap;
-        const widthDifference = rawHeight - rawWidth;
 
-        const shapeWidth = rawWidth + rawHeight + gap;
-        const shapeHeight = (rawHeight * 2) - widthDifference + gap;
+        const totalSize = rawWidth + rawHeight + CONFIG.Items_Gap;
 
         return {
-            width: shapeWidth,
-            height: shapeHeight
+            width: totalSize,
+            height: totalSize // Enforced symmetry for L-shape
         };
     };
 
@@ -74,10 +71,12 @@ class GridLayoutInfo {
     getRow(): RowCalculationResult {
         const { inH, lShapePossible, inV } = this.getItemsPerRow();
 
+        const inLBasedOnMode = lShapePossible ? Math.ceil(this.quantity / 2) : 0;
+
         return {
             inH: Math.ceil(this.quantity / inH),
             inV: Math.ceil(this.quantity / inV),
-            inL: lShapePossible ? Math.ceil(this.quantity / 2) : 0
+            inL: this.mode === "B" ? Math.ceil(inLBasedOnMode / 2) : inLBasedOnMode
         }
     };
 
@@ -171,5 +170,7 @@ interface RowCalculationResult {
     /** Number of L-shaped pairs needed (0 if not possible) */
     inL: number;
 }
+
+type LayoutShapeConstants =  "V" | "H" | "L";
 
 type LayoutTotalHeights = RowCalculationResult;
