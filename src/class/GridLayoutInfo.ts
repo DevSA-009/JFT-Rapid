@@ -88,7 +88,7 @@ class GridLayoutInfo {
      * @private
      * @returns {ItemsPerRow} Object containing:
     */
-    private getItemsPerRow(): ItemsPerRow  {
+    private getItemsPerRow(): ItemsPerRow {
 
         const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
 
@@ -117,12 +117,15 @@ class GridLayoutInfo {
      * including gaps between rows.
      * 
      * @returns {LayoutTotalHeights} Object containing total heights for each layout type:
-    */
+     *   - inH: Total height for horizontal layout (items rotated 90°)
+     *   - inV: Total height for vertical layout (standard orientation)
+     *   - inL: Total height for L-shape layout (adjusted for mode if needed)
+     */
     private calculateTotalHeights(): LayoutTotalHeights {
         const { inH, inL, inV } = this.getRow();
 
         const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
-        
+
         const lShapeDimension = this.calculateLShapeDimensions();
 
         const totalHeightInV = rawHeight * inV + ((inV - 1) * CONFIG.Items_Gap);
@@ -131,10 +134,12 @@ class GridLayoutInfo {
 
         const totalHeightInL = inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL;
 
+        const totalHeightInLBasedOnMode = totalHeightInL ? this.mode === "B" ? totalHeightInL / 2 : totalHeightInL : totalHeightInL;
+
         return {
             inH: totalHeightInH,
             inV: totalHeightInV,
-            inL: totalHeightInL
+            inL: totalHeightInLBasedOnMode
         }
     };
 
