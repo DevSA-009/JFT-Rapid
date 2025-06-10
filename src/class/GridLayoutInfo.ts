@@ -21,7 +21,7 @@ mode = "B"
 class GridLayoutInfo {
     private dimension: DimensionObject;
     private mode: Mode;
-    quantity: number;
+    private quantity: number;
 
     constructor(params: GridLayoutInfo) {
         this.dimension = params.dimension;
@@ -228,11 +228,39 @@ class GridLayoutInfo {
         return finalDimension;
     };
 
+    /**
+     * Calculates document requirements for printing based on physical constraints.
+     * Determines either:
+     * - Documents needed when limited by maximum canvas height (inches), or
+     * - Documents needed when using fixed rows-per-document configuration
+     * 
+     * @returns {RequiredDocReturn} Object containing:
+     *   - docsNeeded: Total number of documents required
+     *   - rowsPerDoc: Maximum rows that can fit in each document
+     */
+    private requiredDocs(): RequiredDocReturn {
+        const CANVAS_MAX_HEIGHT = 207;
+
+        const rowsPerDocConfig = CONFIG.perDoc;
+
+        const orientation = this.getRecommendedOrientation();
+
+        const { totalHeight, rows, dimensions } = this.getLayoutSpecification(orientation);
+
+        const docsNeeded = !rowsPerDocConfig ? Math.ceil(totalHeight / CANVAS_MAX_HEIGHT) : Math.ceil(rows / rowsPerDocConfig);
+
+        const maxHeightPerDoc = Math.ceil(totalHeight / docsNeeded);
+        
+        const rowsPerDoc = !rowsPerDocConfig ? Math.ceil(maxHeightPerDoc / dimensions.height) : rowsPerDocConfig;
+
+        return { docsNeeded, rowsPerDoc };
+    };
+
 }
 
 interface GridLayoutInfoCons {
     dimension: DimensionObject;
-    mode: ApparelSize;
+    mode: Mode;
     quantity: number;
 }
 
@@ -259,8 +287,10 @@ type LayoutShapeConstants = "V" | "H" | "L";
 type LayoutTotalHeights = RowCalculationResult;
 
 interface RequiredDocReturn {
-    docNeed: number;
-    perDocRow: number;
+    /** Total documents required to fit all content */
+    docsNeeded: number;
+    /** Maximum rows allocated per document */
+    rowsPerDoc: number;
 }
 
 interface LayoutSpecification {
