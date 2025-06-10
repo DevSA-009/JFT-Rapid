@@ -107,6 +107,23 @@ class Organizer {
 
         return [frontBody, backBody];
     };
+
+    /**
+     * find actual dimension from size container using size chr
+     * @param {GetBodyDimenstionParams} params
+     * @returns {DimensionObject} - return exact dimension
+     */
+    static getBodyDimenstion(params: GetBodyDimenstionParams):DimensionObject {
+        const {sizeContainer,targetSizeChr} = params;
+        const sizeCategory =
+            CONFIG.Size_Container[sizeContainer as keyof typeof CONFIG.Size_Container];
+        const isBaby = isBabySize(targetSizeChr, sizeCategory["BABY"]);
+        return getDimensionGenderCategory(
+            sizeCategory,
+            targetSizeChr,
+            isBaby
+        );
+    };
 }
 
 type ArtboardScaler = {
@@ -114,3 +131,8 @@ type ArtboardScaler = {
     width: number;
     height: number;
 };
+
+interface GetBodyDimenstionParams {
+    sizeContainer:string;
+    targetSizeChr:ApparelSize;
+}
