@@ -170,6 +170,34 @@ class GridLayoutInfo {
         }
     };
 
+    /**
+     * Determines final dimensions based on the recommended layout orientation.
+     * Returns either L-shape dimensions or swapped dimensions for horizontal layout.
+     * 
+     * @returns {DimensionObject} Final dimensions for cutting/printing:
+     *   - L-shape dimensions if "L" orientation recommended
+     *   - Swapped width/height for "H" (horizontal) orientation
+     *   - Original dimensions for "V" (vertical) orientation
+     * 
+     * @example
+     * // Returns { width: 30, height: 20.5 } when "H" is recommended
+     * getDimensionBasedOnOrientation();
+    */
+    private getDimensionBasedOnOrientation ():DimensionObject {
+
+        const recommendedOrientation = this.getRecommendedOrientation();
+
+        const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
+
+        const lShapeDimension = this.calculateLShapeDimensions();
+
+        const finalDimension = recommendedOrientation === "L" ? lShapeDimension : {
+            width: recommendedOrientation === "H" ? rawHeight : rawWidth,
+            height: recommendedOrientation === "H" ? rawWidth : rawHeight,
+        }
+
+        return finalDimension;
+    };
 }
 
 interface GridLayoutInfoCons {
