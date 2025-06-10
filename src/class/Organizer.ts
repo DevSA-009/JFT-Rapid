@@ -55,11 +55,11 @@ class Organizer {
      * @returns {Selection} Array of selected items
      */
     static selectAllItems(doc: Document): PageItem[] {
-        var items = doc.pageItems;
-        var selectedItems = [];
+        const items = doc.pageItems;
+        const selectedItems = [];
 
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
 
             // Skip hidden items (default behavior)
             if (item.hidden) continue;
@@ -71,6 +71,23 @@ class Organizer {
         }
 
         doc.selection = selectedItems;
+        return selectedItems;
+    };
+
+    /**
+     * Converts an Illustrator PageItems collection to a standard array
+     * @param {PageItems} pageItems - The Illustrator PageItems collection to convert
+     * @returns {PageItem[]} Array containing all items from the collection
+     */
+    static pageItemsToArray (pageItems:PageItems): PageItem[] {
+        const selectedItems = [];
+
+        for (let i = 0; i < pageItems.length; i++) {
+            const item = pageItems[i];
+
+            selectedItems.push(item);
+        }
+
         return selectedItems;
     };
 }
