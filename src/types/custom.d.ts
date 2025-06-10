@@ -71,6 +71,8 @@ interface MoveItemAfterParams {
     position: BasePositions
 }
 
+type BodyItems = [PageItem, PageItem];
+
 interface FixOrganizeRotateAlignParams {
     to90: boolean;
     lastItem: GroupItem;
