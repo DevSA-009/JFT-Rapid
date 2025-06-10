@@ -23,7 +23,7 @@ class GridLayoutInfo {
     private mode: Mode;
     private quantity: number;
 
-    constructor(params: GridLayoutInfo) {
+    constructor(params: GridLayoutInfoCons) {
         this.dimension = params.dimension;
         this.quantity = params.quantity;
         this.mode = params.mode;
