@@ -133,7 +133,13 @@ class GridLayoutInfo {
 
         const totalHeightInL = inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL;
 
-        const totalHeightInLBasedOnMode = totalHeightInL ? this.mode === "B" ? totalHeightInL / 2 : totalHeightInL : totalHeightInL;
+        let totalHeightInLBasedOnMode = 0;
+
+        if (totalHeightInL && this.mode === "B") {
+            totalHeightInLBasedOnMode = totalHeightInL / 2;
+        } else if (totalHeightInL) {
+            totalHeightInLBasedOnMode = totalHeightInL;
+        }
 
         return {
             inH: totalHeightInH,
