@@ -182,6 +182,7 @@ class GridLayoutInfo {
      * @param {LayoutShapeConstants} [orientation] Optional forced orientation (overrides recommendation)
      * @returns {LayoutSpecification} Consolidated layout data including:
      *   - orientation: The layout type being used (V/H/L)
+     *   - rows: Number of cols fit in page
      *   - rows: Number of rows required
      *   - totalHeight: Total height including gaps between rows
      *   - dimensions: Physical dimensions to use for layout
@@ -191,10 +192,16 @@ class GridLayoutInfo {
     private getLayoutSpecification(orientation?: LayoutShapeConstants): LayoutSpecification {
         const selectedOrientation = orientation || this.getRecommendedOrientation();
         const allRows = this.getRow();
+        const allCols = this.getItemsPerRow();
         const allHeights = this.calculateTotalHeights();
 
         return {
             orientation: selectedOrientation,
+
+            cols: selectedOrientation === 'L' ? 1
+                : selectedOrientation === 'H' ? allCols.inH
+                    : allCols.inV,
+
             rows: selectedOrientation === 'L' ? allRows.inL
                 : selectedOrientation === 'H' ? allRows.inH
                     : allRows.inV,
@@ -302,6 +309,8 @@ interface RequiredDocReturn {
 interface LayoutSpecification {
     /** Recommended layout orientation */
     orientation: LayoutShapeConstants;
+    /** Number of columns fit in per row */
+    cols: number;
     /** Number of rows needed */
     rows: number;
     /** Total height including gaps */
