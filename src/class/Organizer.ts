@@ -90,6 +90,23 @@ class Organizer {
 
         return selectedItems;
     };
+
+    /**
+     * Retrieves the front and back body items from a document or selection.
+     * @param {Selection|null} [items=null] - Optional selection to search within
+     * @returns {[PageItem, PageItem]} Tuple containing front and back body items
+     * @throws {Error} If either FRONT or BACK items cannot be found
+     */
+    static getBodyItems(items: Selection): [PageItem, PageItem] {
+        const frontBody = findElement(items, (item) => item.name === SearchingKeywords.FRONT);
+        const backBody = findElement(items, (item) => item.name === SearchingKeywords.BACK);
+
+        if (!frontBody || !backBody) {
+            throw new Error(`Can't find ${!frontBody ? "FRONT" : "BACK"}`);
+        }
+
+        return [frontBody, backBody];
+    };
 }
 
 type ArtboardScaler = {
