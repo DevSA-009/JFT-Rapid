@@ -171,6 +171,35 @@ class GridLayoutInfo {
     };
 
     /**
+     * Gets complete layout specifications for either a specified orientation or the automatically recommended one.
+     * 
+     * @param {LayoutShapeConstants} [orientation] Optional forced orientation (overrides recommendation)
+     * @returns {LayoutSpecification} Consolidated layout data including:
+     *   - orientation: The layout type being used (V/H/L)
+     *   - rows: Number of rows required
+     *   - totalHeight: Total height including gaps between rows
+     *   - dimensions: Physical dimensions to use for layout
+     * 
+     * getLayoutSpecification('H'); // Returns H layout data
+     */
+    private getLayoutSpecification(orientation?: LayoutShapeConstants): LayoutSpecification {
+        const selectedOrientation = orientation || this.getRecommendedOrientation();
+        const allRows = this.getRow();
+        const allHeights = this.calculateTotalHeights();
+
+        return {
+            orientation: selectedOrientation,
+            rows: selectedOrientation === 'L' ? allRows.inL
+                : selectedOrientation === 'H' ? allRows.inH
+                    : allRows.inV,
+            totalHeight: selectedOrientation === 'L' ? allHeights.inL
+                : selectedOrientation === 'H' ? allHeights.inH
+                    : allHeights.inV,
+            dimensions: this.getDimensionBasedOnOrientation()
+        };
+    }
+
+    /**
      * Determines final dimensions based on the recommended layout orientation.
      * Returns either L-shape dimensions or swapped dimensions for horizontal layout.
      * 
@@ -183,7 +212,7 @@ class GridLayoutInfo {
      * // Returns { width: 30, height: 20.5 } when "H" is recommended
      * getDimensionBasedOnOrientation();
     */
-    private getDimensionBasedOnOrientation ():DimensionObject {
+    private getDimensionBasedOnOrientation(): DimensionObject {
 
         const recommendedOrientation = this.getRecommendedOrientation();
 
@@ -198,6 +227,7 @@ class GridLayoutInfo {
 
         return finalDimension;
     };
+
 }
 
 interface GridLayoutInfoCons {
@@ -231,4 +261,15 @@ type LayoutTotalHeights = RowCalculationResult;
 interface RequiredDocReturn {
     docNeed: number;
     perDocRow: number;
+}
+
+interface LayoutSpecification {
+    /** Recommended layout orientation */
+    orientation: LayoutShapeConstants;
+    /** Number of rows needed */
+    rows: number;
+    /** Total height including gaps */
+    totalHeight: number;
+    /** Final dimensions to use */
+    dimensions: DimensionObject;
 }
