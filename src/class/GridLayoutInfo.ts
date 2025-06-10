@@ -27,7 +27,7 @@ class GridLayoutInfo {
         this.dimension = params.dimension;
         this.quantity = params.quantity;
         this.mode = params.mode;
-    }
+    };
 
     /**
      * Calculates raw dimensions based on the current mode.
@@ -35,7 +35,7 @@ class GridLayoutInfo {
      * 
      * @returns {DimensionObject} An object containing the calculated width and height dimensions
      */
-    getRawDimensionsBasedOnMode(): DimensionObject {
+    private getRawDimensionsBasedOnMode(): DimensionObject {
         const { width, height } = this.dimension;
         return {
             width,
@@ -47,7 +47,7 @@ class GridLayoutInfo {
      * Calculates L-shaped dimensions based on raw width/height and gap configuration
      * @returns {DimensionObject} Dimensions of the L-shape {width, height}
      */
-    calculateLShapeDimensions(): DimensionObject {
+    private calculateLShapeDimensions(): DimensionObject {
         const { width: rawWidth, height: rawHeight } = this.dimension;
 
         const totalSize = rawWidth + rawHeight + CONFIG.Items_Gap;
@@ -68,7 +68,7 @@ class GridLayoutInfo {
      *   - inL: Number of L-shaped pairs needed (0 if L-shape not possible)
      * 
      */
-    getRow(): RowCalculationResult {
+    private getRow(): RowCalculationResult {
         const { inH, lShapePossible, inV } = this.getItemsPerRow();
 
         const inLBasedOnMode = lShapePossible ? Math.ceil(this.quantity / 2) : 0;
@@ -142,8 +142,33 @@ class GridLayoutInfo {
         }
     };
 
-    private getRecommendedOrientation() {
-    }
+    /**
+     * Determines the most space-efficient layout orientation by comparing total heights
+     * of all possible configurations (horizontal, vertical, and L-shape).
+     * 
+     * @returns {LayoutShapeConstants} Recommended layout type:
+     *   - "L" - When L-shape is viable AND has smallest total height
+     *   - "H" - When horizontal layout is more compact than vertical
+     *   - "V" - When vertical layout is most space-efficient
+     * 
+     * @example
+     * // Returns "H" for 7 items (20.5x30") since horizontal height (82.3") < vertical (90.2")
+     * getRecommendedOrientation();
+     * 
+     * @example
+     * // Returns "L" when L-shape exists and has smallest height
+     * getRecommendedOrientation(); 
+     */
+    private getRecommendedOrientation(): LayoutShapeConstants {
+
+        const { inH: heighInH, inV: heightInV, inL: heightInL } = this.calculateTotalHeights();
+
+        if (heightInL && heightInL < heighInH && heightInL < heightInV) {
+            return "L";
+        } else {
+            return heighInH <= heightInV ? "H" : "V"
+        }
+    };
 
 }
 
@@ -171,6 +196,11 @@ interface RowCalculationResult {
     inL: number;
 }
 
-type LayoutShapeConstants =  "V" | "H" | "L";
+type LayoutShapeConstants = "V" | "H" | "L";
 
 type LayoutTotalHeights = RowCalculationResult;
+
+interface RequiredDocReturn {
+    docNeed: number;
+    perDocRow: number;
+}
