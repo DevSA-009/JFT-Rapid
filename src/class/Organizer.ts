@@ -15,7 +15,7 @@ class Organizer {
     static artboardScaler(params: ArtboardScaler): void {
         const artboardManager = new ArtboardManager(params.doc);
         artboardManager.resize(params.width * 72, params.height * 72);
-    }
+    };
 
     /**
      * Resizes the active artboard to a small default size (1x1 inches).
@@ -29,7 +29,7 @@ class Organizer {
             width: 1,
             height: 1
         });
-    }
+    };
 
     /**
      * Aligns all items in the active layer to the artboard boundaries.
@@ -47,7 +47,32 @@ class Organizer {
         doc.selection = itemsToSelect;
         alignPageItemsToArtboard(doc.selection, doc);
         doc.selection = null;
-    }
+    };
+
+    /**
+     * Selects all visible & unlocked items in an Illustrator document
+     * @param {Document} doc - The Illustrator document to process
+     * @returns {Selection} Array of selected items
+     */
+    static selectAllItems(doc: Document): PageItem[] {
+        var items = doc.pageItems;
+        var selectedItems = [];
+
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+
+            // Skip hidden items (default behavior)
+            if (item.hidden) continue;
+
+            // Skip locked items unless explicitly included
+            if (item.locked) continue;
+
+            selectedItems.push(item);
+        }
+
+        doc.selection = selectedItems;
+        return selectedItems;
+    };
 }
 
 type ArtboardScaler = {
