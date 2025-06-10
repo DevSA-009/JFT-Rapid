@@ -269,6 +269,39 @@ class GridLayoutInfo {
         return { docsNeeded, rowsPerDoc };
     };
 
+    /**
+     * Aggregates all critical layout information for display or export.
+     * Combines layout specifications with document requirements in a single response.
+     * 
+     * @returns {LayoutInfo} Consolidated layout metadata including:
+     *   - requiredDocuments: { docsNeeded: number, rowsPerDoc: number }
+     *   - orientation: Recommended layout type ("V" | "H" | "L")
+     *   - totalHeight: Total height including gaps (inches)
+     *   - rows: Number of rows needed
+     *   - cols: Number of columns (items per row)
+     * 
+     * @example
+     * // Returns for 8 items (20.5x30") in mode "B":
+     * {
+     *   requiredDocuments: { docsNeeded: 1, rowsPerDoc: 4 },
+     *   orientation: "H",
+     *   totalHeight: 82.3,
+     *   rows: 4,
+     *   cols: 2
+     * }
+     */
+    public getLayoutInfo(): LayoutInfo {
+        const { orientation, rows, cols, totalHeight } = this.getLayoutSpecification();
+
+        return {
+            requiredDocuments: this.requiredDocs(),
+            orientation,
+            totalHeight,
+            rows,
+            cols
+        };
+    };
+
 }
 
 interface GridLayoutInfoCons {
@@ -317,4 +350,20 @@ interface LayoutSpecification {
     totalHeight: number;
     /** Final dimensions to use */
     dimensions: DimensionObject;
+}
+
+interface LayoutInfo {
+    /** Document requirements for printing */
+    requiredDocuments: {
+        docsNeeded: number;
+        rowsPerDoc: number;
+    };
+    /** Recommended layout orientation */
+    orientation: LayoutShapeConstants;
+    /** Total height including gaps (inches) */
+    totalHeight: number;
+    /** Number of rows in layout */
+    rows: number;
+    /** Number of columns (items per row) */
+    cols: number;
 }
