@@ -4,12 +4,14 @@ class ItemsInitiater {
     private bodyItems: BodyItems;
     private targetSizeChr: ApparelSize;
     private dimension: DimensionObject;
+    private isLShapeOnce:boolean = false;
     private gap = CONFIG.Items_Gap * 72;
 
     constructor(params: ItemsInitiaterConst) {
         this.mode = params.mode;
         this.bodyItems = params.bodyItems;
         this.orientation = params.orientation;
+        this.isLShapeOnce = params.isLShapeOnce || this.isLShapeOnce;
         this.dimension = params.dimension;
         this.targetSizeChr = params.targetSizeChr;
         this.resizeBody();
@@ -54,7 +56,7 @@ class ItemsInitiater {
             position:"B",
             gap:this.gap
         });
-        const groupManager = new GroupManager([back]);
+        const groupManager = new GroupManager(this.bodyItems);
         groupManager.group();
         return groupManager.tempGroup!;
     };
@@ -66,7 +68,9 @@ class ItemsInitiater {
      */
     private initiateInH (): GroupItem {
         const [front, back] = this.bodyItems;
+
         rotateItems(this.bodyItems,-90);
+
         moveItemAfter({
             base:front,
             moving:back,
@@ -76,7 +80,7 @@ class ItemsInitiater {
 
         if(this.mode === "FB") {
             rotateItems(back,180);
-        }
+        };
 
         const groupManager = new GroupManager(this.bodyItems);
         groupManager.group();
@@ -94,6 +98,7 @@ class ItemsInitiater {
         // step 1 L design
         rotateItems(back, 90);
         alignItems(front, back, "B");
+
         moveItemAfter({
             base: front,
             moving: back,
@@ -102,31 +107,38 @@ class ItemsInitiater {
         });
 
         // step 2 reflecting
-        const duplicated = [front.duplicate(), back.duplicate()]
-        rotateItems(duplicated, 180);
+        let duplicated = [] as Selection;
 
-        moveItemAfter({
-            base: front,
-            moving: duplicated[1],
-            position: "T",
-            gap:this.gap
-        })
+        if(!this.isLShapeOnce) {
+            duplicated = [front.duplicate(), back.duplicate()];
 
-        moveItemAfter({
-            base: back,
-            moving: duplicated[0],
-            position: "T",
-            gap:this.gap
-        })
+            rotateItems(duplicated, 180);
+
+            moveItemAfter({
+                base: front,
+                moving: duplicated[1],
+                position: "T",
+                gap: this.gap
+            });
+
+            moveItemAfter({
+                base: back,
+                moving: duplicated[0],
+                position: "T",
+                gap: this.gap
+            });
+        }
 
         const groupManager = new GroupManager([...this.bodyItems,...duplicated]);
         groupManager.group();
+
         return groupManager.tempGroup!;
     };
 }
 
 interface ItemsInitiaterConst {
     mode: Mode;
+    isLShapeOnce?:boolean
     orientation: LayoutShapeConstants;
     bodyItems: BodyItems;
     targetSizeChr: ApparelSize;
