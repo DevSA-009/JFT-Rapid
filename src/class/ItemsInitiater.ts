@@ -50,12 +50,16 @@ class ItemsInitiater {
      */
     private initiateInV (): GroupItem {
         const [front, back] = this.bodyItems;
-        moveItemAfter({
-            base:front,
-            moving:back,
-            position:"B",
-            gap:this.gap
-        });
+
+        if(this.mode === "FB") {
+            moveItemAfter({
+                base: front,
+                moving: back,
+                position: "B",
+                gap: this.gap
+            });
+        }
+
         const groupManager = new GroupManager(this.bodyItems);
         groupManager.group();
         return groupManager.tempGroup!;
@@ -71,14 +75,13 @@ class ItemsInitiater {
 
         rotateItems(this.bodyItems,-90);
 
-        moveItemAfter({
-            base:front,
-            moving:back,
-            position:"R",
-            gap:this.gap
-        });
-
         if(this.mode === "FB") {
+            moveItemAfter({
+                base: front,
+                moving: back,
+                position: "R",
+                gap: this.gap
+            });
             rotateItems(back,180);
         };
 
