@@ -124,6 +124,50 @@ class Organizer {
             isBaby
         );
     };
+
+    /**
+     * Gets the current document's directory and counts files in that directory
+     * @param {Document} [doc=app.activeDocument] - The Illustrator document to check
+     * @returns {GetDirectoryFileInfoReturn}
+     * @throws {Error} If no document is open or document isn't saved
+     */
+    static getDirectoryFileInfo(doc: Document = app.activeDocument): GetDirectoryFileInfoReturn {
+
+        if (!app.documents.length) {
+            throw new Error("No document is open!");
+        }
+
+        const docPath = doc.fullName;
+
+        if (!docPath) {
+            throw new Error("Document must be saved first to determine its location.");
+        }
+
+        const folder = docPath.parent;
+        const items = folder.getFiles();
+        let fileCount = 0;
+        let folderCount = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            if (items[i] instanceof Folder) {
+                folderCount++;
+            } else if (items[i] instanceof File) {
+                fileCount++;
+            }
+        }
+
+        return {
+            files:fileCount,
+            folder:folderCount,
+            nexFileIndex:fileCount
+        };
+    };
+}
+
+interface GetDirectoryFileInfoReturn {
+    folder:number;
+    files:number;
+    nexFileIndex:number;
 }
 
 type ArtboardScaler = {
