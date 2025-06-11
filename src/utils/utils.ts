@@ -190,7 +190,7 @@ const alignPageItemsToArtboard = (items: Selection | PageItem, doc: Document, po
 
     const isItems = isArray(items);
 
-    const groupManger = new GroupManager(items as Selection);
+    const groupManger = new GroupManager(isItems ? items as Selection : ([items] as Selection));
     const { prev } = getAdjacentPageItems(items as Selection);
     if (isItems) {
         groupManger.group(prev);
