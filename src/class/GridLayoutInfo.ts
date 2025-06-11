@@ -69,12 +69,12 @@ class GridLayoutInfo {
      * 
      */
     private getRow(): RowCalculationResult {
-        const { inH, lShapePossible, inV } = this.getItemsPerRow();
+        const { inH, inL, inV } = this.getItemsPerRow();
 
-        const inLBasedOnMode = lShapePossible ? Math.ceil(this.quantity / 2) : 0;
+        const inLBasedOnMode = inL ? Math.ceil(this.quantity / 2) : inL;
 
         return {
-            inH: Math.ceil(this.quantity / inH),
+            inH: inH ? Math.ceil(this.quantity / inH) : inH,
             inV: Math.ceil(this.quantity / inV),
             inL: this.mode === "B" ? Math.ceil(inLBasedOnMode / 2) : inLBasedOnMode
         }
@@ -92,22 +92,22 @@ class GridLayoutInfo {
         const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
 
         // Determine how many items fit per row in both orientations
-        const inV = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (rawWidth + CONFIG.Items_Gap)));
-        const inH = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (rawHeight + CONFIG.Items_Gap)));
+        const inV = Math.floor(CONFIG.PAPER_MAX_SIZE / (rawWidth + CONFIG.Items_Gap));
+        const inH = Math.floor(CONFIG.PAPER_MAX_SIZE / (rawHeight + CONFIG.Items_Gap));
 
-        let lShapePossible: boolean = false;
+        let inL = 0;
 
         if (inV < 3 || inH < 3) {
             // addtion with  width wih height
             const newMixedWidth = this.dimension.width + this.dimension.height + CONFIG.Items_Gap;
 
-            lShapePossible = newMixedWidth < CONFIG.PAPER_MAX_SIZE;
+            inL = newMixedWidth < CONFIG.PAPER_MAX_SIZE ? 1 : 0;
         }
 
         return {
             inH,
             inV,
-            lShapePossible
+            inL
         }
     };
 
@@ -127,11 +127,11 @@ class GridLayoutInfo {
 
         const lShapeDimension = this.calculateLShapeDimensions();
 
-        const totalHeightInV = rawHeight * inV + ((inV - 1) * CONFIG.Items_Gap);
+        const totalHeightInV = inV ? (rawHeight * inV + ((inV - 1) * CONFIG.Items_Gap)) : inV;
 
-        const totalHeightInH = rawWidth * inH + ((inH - 1) * CONFIG.Items_Gap);
+        const totalHeightInH = inH ? (rawWidth * inH + ((inH - 1) * CONFIG.Items_Gap)) : inH;
 
-        const totalHeightInL = inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL;
+        const totalHeightInL = (inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL);
 
         return {
             inH: totalHeightInH,
@@ -141,68 +141,76 @@ class GridLayoutInfo {
     };
 
     /**
-     * Determines the most space-efficient layout orientation by comparing total heights
-     * of all possible configurations (horizontal, vertical, and L-shape).
-     * 
-     * @returns {LayoutShapeConstants} Recommended layout type:
-     *   - "L" - When L-shape is viable AND has smallest total height
-     *   - "H" - When horizontal layout is more compact than vertical
-     *   - "V" - When vertical layout is most space-efficient
-     * 
-     * @example
-     * // Returns "H" for 7 items (20.5x30") since horizontal height (82.3") < vertical (90.2")
-     * getRecommendedOrientation();
-     * 
-     * @example
-     * // Returns "L" when L-shape exists and has smallest height
-     * getRecommendedOrientation(); 
+     * Determines the recommended layout orientation based on calculated total heights
+     * for horizontal ("H"), vertical ("V"), and landscape ("L") layouts.
+     *
+     * The logic ensures:
+     * - Only considers layout heights that are greater than 0.
+     * - Returns "L" (landscape) only if it is valid (> 0) and smaller than both "H" and "V".
+     * - Handles cases where one or more layout types are invalid (i.e., height <= 0).
      */
     private getRecommendedOrientation(): LayoutShapeConstants {
+        const { inH: heightInH, inV: heightInV, inL: heightInL } = this.calculateTotalHeights();
 
-        const { inH: heighInH, inV: heightInV, inL: heightInL } = this.calculateTotalHeights();
+        const isValidL = heightInL > 0;
+        const isValidH = heightInH > 0;
+        const isValidV = heightInV > 0;
 
-        if (heightInL && heightInL < heighInH && heightInL < heightInV) {
+        if (
+            isValidL &&
+            (!isValidH || heightInL < heightInH) &&
+            (!isValidV || heightInL < heightInV)
+        ) {
             return "L";
-        } else {
-            return heighInH <= heightInV ? "H" : "V"
         }
+
+        if (!isValidH) return "V";
+        if (!isValidV) return "H";
+
+        return heightInH <= heightInV ? "H" : "V";
     };
 
     /**
-     * Gets complete layout specifications for either a specified orientation or the automatically recommended one.
-     * 
-     * @param {LayoutShapeConstants} [orientation] Optional forced orientation (overrides recommendation)
-     * @returns {LayoutSpecification} Consolidated layout data including:
-     *   - orientation: The layout type being used (V/H/L)
-     *   - rows: Number of cols fit in page
-     *   - rows: Number of rows required
-     *   - totalHeight: Total height including gaps between rows
-     *   - dimensions: Physical dimensions to use for layout
-     * 
-     * getLayoutSpecification('H'); // Returns H layout data
+     * Builds a layout specification object based on the given or recommended orientation.
+     * Uses map-based lookup for rows, columns, and totalHeight based on orientation.
+     *
+     * @param orientation Optional layout orientation ("L", "H", or "V"). If not provided, the best one is auto-selected.
+     * @returns {LayoutSpecification} Layout spec including orientation, dimensions, rows, cols, and height.
      */
     private getLayoutSpecification(orientation?: LayoutShapeConstants): LayoutSpecification {
         const selectedOrientation = orientation || this.getRecommendedOrientation();
+
         const allRows = this.getRow();
         const allCols = this.getItemsPerRow();
         const allHeights = this.calculateTotalHeights();
 
+        const rowsMap = {
+            L: allRows.inL,
+            H: allRows.inH,
+            V: allRows.inV,
+        };
+
+        const colsMap = {
+            L: allCols.inL,
+            H: allCols.inH,
+            V: allCols.inV,
+        };
+
+        const heightMap = {
+            L: allHeights.inL,
+            H: allHeights.inH,
+            V: allHeights.inV,
+        };
+
         return {
             orientation: selectedOrientation,
-
-            cols: selectedOrientation === 'L' ? 1
-                : selectedOrientation === 'H' ? allCols.inH
-                    : allCols.inV,
-
-            rows: selectedOrientation === 'L' ? allRows.inL
-                : selectedOrientation === 'H' ? allRows.inH
-                    : allRows.inV,
-            totalHeight: selectedOrientation === 'L' ? allHeights.inL
-                : selectedOrientation === 'H' ? allHeights.inH
-                    : allHeights.inV,
+            rows: rowsMap[selectedOrientation] ?? 0,
+            cols: colsMap[selectedOrientation] ?? 0,
+            totalHeight: heightMap[selectedOrientation] ?? 0,
             dimensions: this.getDimensionBasedOnOrientation()
         };
-    }
+    };
+
 
     /**
      * Determines final dimensions based on the recommended layout orientation.
@@ -255,7 +263,7 @@ class GridLayoutInfo {
         const docsNeeded = !rowsPerDocConfig ? Math.ceil(totalHeight / CANVAS_MAX_HEIGHT) : Math.ceil(rows / rowsPerDocConfig);
 
         const maxHeightPerDoc = Math.ceil(totalHeight / docsNeeded);
-        
+
         const rowsPerDoc = !rowsPerDocConfig ? Math.ceil(maxHeightPerDoc / dimensions.height) : rowsPerDocConfig;
 
         return { docsNeeded, rowsPerDoc };
@@ -308,7 +316,7 @@ interface ItemsPerRow {
     /** Number of items that fit per row in vertical orientation */
     inV: number;
     /** Whether L-shaped layout is possible within paper constraints */
-    lShapePossible: boolean;
+    inL: number;
 }
 
 interface RowCalculationResult {
