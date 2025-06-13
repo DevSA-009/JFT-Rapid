@@ -217,7 +217,8 @@ class AutomateGridLayout {
                 cols: colsPerDoc,
                 doc: docsIns.doc,
                 initItem: initiateItem,
-                rows: this.gridLayoutInfo.rows
+                rows: this.gridLayoutInfo.rows,
+                isLastDoc
             });
         }
 
@@ -298,7 +299,7 @@ class AutomateGridLayout {
      * @param params.initItem - Initial item to use as the grid template
      */
     private processGridLayout(params: ProcessGridLayoutParams) {
-        const { rows, cols, doc, initItem } = params;
+        const { rows, cols, doc, isLastDoc, initItem } = params;
 
         const gap = CONFIG.Items_Gap * 72;
 
@@ -374,7 +375,9 @@ class AutomateGridLayout {
             }
         }
 
-        this.removeSingleItemFromLShape(prevBody);
+        if(isLastDoc) {
+            this.removeSingleItemFromLShape(prevBody);
+        }
     };
 
 }
@@ -427,4 +430,5 @@ interface ProcessGridLayoutParams {
     readonly initItem: PageItem;
     readonly cols: number;
     readonly rows: number;
+    readonly isLastDoc:boolean;
 }
