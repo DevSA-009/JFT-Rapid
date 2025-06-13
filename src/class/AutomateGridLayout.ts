@@ -185,7 +185,7 @@ class AutomateGridLayout {
 
         for (let i = 1; i <= docsNeeded; i++) {
 
-            const fileIndex = this.filesSeqIndex < 9 ? `0${this.filesSeqIndex}` : this.filesSeqIndex.toString();
+            const fileIndex = this.filesSeqIndex < 9 ? `0${this.filesSeqIndex+i}` : (this.filesSeqIndex+i).toString();
 
             const isLastDoc = i === docsNeeded;
 
