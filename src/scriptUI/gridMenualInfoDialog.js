@@ -1,13 +1,13 @@
 /*
 Code for Import https://scriptui.joonas.me — (Triple click to select): 
-{"activeId":25,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"constName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"ORG Body","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"constName":"orgBody","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"constName":"modeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"constName":"orgMode","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Mode:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"constName":"orgModeList","text":"DropDownList","listItems":"A,B","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-6":{"id":6,"type":"Group","parentId":18,"style":{"enabled":true,"constName":"sizeContGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-7":{"id":7,"type":"StaticText","parentId":6,"style":{"enabled":true,"constName":"sizeContainer","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Container","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-8":{"id":8,"type":"DropDownList","parentId":6,"style":{"enabled":true,"constName":"sizeContainerList","text":"DropDownList","listItems":"JFT,SLCV,PLS","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"constName":"perDocGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"constName":"perDoc","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Document","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"constName":"perDocField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-12":{"id":12,"type":"Group","parentId":18,"style":{"enabled":true,"constName":"targetSizeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-13":{"id":13,"type":"StaticText","parentId":12,"style":{"enabled":true,"constName":"targetSize","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Target Size","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-14":{"id":14,"type":"DropDownList","parentId":12,"style":{"enabled":true,"constName":"sizeList","text":"DropDownList","listItems":"S,M,L,XL,2XL,3XL","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"constName":"itemsGap","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"constName":"itemsGap","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"constName":"itemsGapField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"constName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Size & Required","preferredSize":[200,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-20":{"id":20,"type":"Group","parentId":18,"style":{"enabled":true,"constName":"quantityGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-21":{"id":21,"type":"StaticText","parentId":20,"style":{"enabled":true,"constName":"quantity","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Quantity","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-22":{"id":22,"type":"EditText","parentId":20,"style":{"enabled":true,"constName":"quantityField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"2","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"constName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"constName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"constName":"enterBn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}}},"order":[0,23,2,3,4,5,9,10,11,15,16,17,18,6,7,8,12,13,14,20,21,22,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"none"}}
+{"activeId":25,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"constName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"grid Body","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"constName":"gridBody","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"constName":"modeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"constName":"gridMode","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Mode:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"constName":"gridModeList","text":"DropDownList","listItems":"A,B","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-6":{"id":6,"type":"Group","parentId":18,"style":{"enabled":true,"constName":"sizeContGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-7":{"id":7,"type":"StaticText","parentId":6,"style":{"enabled":true,"constName":"sizeContainer","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Container","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-8":{"id":8,"type":"DropDownList","parentId":6,"style":{"enabled":true,"constName":"sizeContainerList","text":"DropDownList","listItems":"JFT,SLCV,PLS","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"constName":"perDocGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"constName":"perDoc","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Document","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"constName":"perDocField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-12":{"id":12,"type":"Group","parentId":18,"style":{"enabled":true,"constName":"targetSizeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-13":{"id":13,"type":"StaticText","parentId":12,"style":{"enabled":true,"constName":"targetSize","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Target Size","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-14":{"id":14,"type":"DropDownList","parentId":12,"style":{"enabled":true,"constName":"sizeList","text":"DropDownList","listItems":"S,M,L,XL,2XL,3XL","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"constName":"itemsGap","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"constName":"itemsGap","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"constName":"itemsGapField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"constName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Size & Required","preferredSize":[200,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-20":{"id":20,"type":"Group","parentId":18,"style":{"enabled":true,"constName":"quantityGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-21":{"id":21,"type":"StaticText","parentId":20,"style":{"enabled":true,"constName":"quantity","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Quantity","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-22":{"id":22,"type":"EditText","parentId":20,"style":{"enabled":true,"constName":"quantityField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"2","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"constName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"constName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"constName":"enterBn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}}},"order":[0,23,2,3,4,5,9,10,11,15,16,17,18,6,7,8,12,13,14,20,21,22,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"none"}}
 */
 
 // DIALOGROOT
 // ==========
-const orgMenualInfoDialog = () => {
+const gridMenualInfoDialog = () => {
     const dialogRoot = new Window("dialog");
-    dialogRoot.text = "ORG Body";
+    dialogRoot.text = "Grid Layout Body";
     dialogRoot.orientation = "column";
     dialogRoot.alignChildren = ["center", "center"];
     dialogRoot.spacing = 0;
@@ -44,19 +44,19 @@ const orgMenualInfoDialog = () => {
     panelContGrp.spacing = 10;
     panelContGrp.margins = [0, 0, 0, 10];
 
-    // ORGBODY
+    // gridBODY
     // =======
-    const orgBody = panelContGrp.add("panel", undefined, undefined, { name: "orgBody" });
-    orgBody.text = "Basic";
-    orgBody.preferredSize.width = 200;
-    orgBody.orientation = "column";
-    orgBody.alignChildren = ["center", "top"];
-    orgBody.spacing = 10;
-    orgBody.margins = 10;
+    const gridBody = panelContGrp.add("panel", undefined, undefined, { name: "gridBody" });
+    gridBody.text = "Basic";
+    gridBody.preferredSize.width = 200;
+    gridBody.orientation = "column";
+    gridBody.alignChildren = ["center", "top"];
+    gridBody.spacing = 10;
+    gridBody.margins = 10;
 
     // MODEGRP
     // =======
-    const modeGrp = orgBody.add("group", undefined, { name: "modeGrp" });
+    const modeGrp = gridBody.add("group", undefined, { name: "modeGrp" });
     modeGrp.preferredSize.width = 100;
     modeGrp.orientation = "column";
     modeGrp.alignChildren = ["center", "center"];
@@ -64,20 +64,20 @@ const orgMenualInfoDialog = () => {
     modeGrp.margins = 0;
     modeGrp.alignment = ["center", "top"];
 
-    const orgMode = modeGrp.add("statictext", undefined, undefined, { name: "orgMode" });
-    orgMode.text = "Mode:";
-    orgMode.justify = "center";
+    const gridMode = modeGrp.add("statictext", undefined, undefined, { name: "gridMode" });
+    gridMode.text = "Mode:";
+    gridMode.justify = "center";
 
-    const orgModeList_array = objectKeys(OrgMode);
-    const orgModeList = modeGrp.add("dropdownlist", undefined, undefined, { name: "orgModeList", items: orgModeList_array });
-    orgModeList.selection = 0;
-    orgModeList.preferredSize.width = 70;
-    orgModeList.preferredSize.height = 10;
-    orgModeList.alignment = ["center", "center"];
+    const gridModeList_array = objectKeys(GridMode);
+    const gridModeList = modeGrp.add("dropdownlist", undefined, undefined, { name: "gridModeList", items: gridModeList_array });
+    gridModeList.selection = 0;
+    gridModeList.preferredSize.width = 70;
+    gridModeList.preferredSize.height = 10;
+    gridModeList.alignment = ["center", "center"];
 
     // ORIENTATIONGRP
     // ==============
-    const orientationGrp = orgBody.add("group", undefined, { name: "orientationGrp" });
+    const orientationGrp = gridBody.add("group", undefined, { name: "orientationGrp" });
     orientationGrp.preferredSize.width = 100;
     orientationGrp.orientation = "column";
     orientationGrp.alignChildren = ["center", "center"];
@@ -85,11 +85,11 @@ const orgMenualInfoDialog = () => {
     orientationGrp.margins = 0;
     orientationGrp.alignment = ["center", "top"];
 
-    const orgOrientation = orientationGrp.add("statictext", undefined, undefined, { name: "orgOrientation" });
-    orgOrientation.text = "Orientation:";
-    orgOrientation.justify = "center";
+    const gridOrientation = orientationGrp.add("statictext", undefined, undefined, { name: "gridOrientation" });
+    gridOrientation.text = "Orientation:";
+    gridOrientation.justify = "center";
 
-    const orientations_array = ["Auto", "Vertical", "Horizontal"];
+    const orientations_array = ["Auto", ...objectKeys(GridOrientation)];
     const orientations = orientationGrp.add("dropdownlist", undefined, undefined, { name: "orientations", items: orientations_array });
     orientations.selection = 0;
     orientations.preferredSize.width = 70;
@@ -98,7 +98,7 @@ const orgMenualInfoDialog = () => {
 
     // PERDOCGRP
     // =========
-    const perDocGrp = orgBody.add("group", undefined, { name: "perDocGrp" });
+    const perDocGrp = gridBody.add("group", undefined, { name: "perDocGrp" });
     perDocGrp.preferredSize.width = 100;
     perDocGrp.orientation = "column";
     perDocGrp.alignChildren = ["center", "center"];
@@ -117,7 +117,7 @@ const orgMenualInfoDialog = () => {
 
     // ITEMSGAP
     // ========
-    const itemsGap = orgBody.add("group", undefined, { name: "itemsGap" });
+    const itemsGap = gridBody.add("group", undefined, { name: "itemsGap" });
     itemsGap.preferredSize.width = 100;
     itemsGap.orientation = "column";
     itemsGap.alignChildren = ["center", "center"];
@@ -292,7 +292,7 @@ const orgMenualInfoDialog = () => {
 
         CONFIG.Items_Gap = itemsGapField.text ? fixMultipleDots(itemsGapField.text) : 0;
         CONFIG.perDoc = perDocField.text ? parseInt(perDocField.text) : 0;
-
+        CONFIG.orientation = orientations.selection.text;
         dialogRoot.close(1); // success signal
     }
 
@@ -300,8 +300,8 @@ const orgMenualInfoDialog = () => {
     const result = dialogRoot.show();
 
     if (result === 1) {
-        orgMenuallyCB({
-            mode: orgModeList.selection.text,
+        gridMenuallyCB({
+            mode: gridModeList.selection.text,
             quantity: quantityField.text ? parseInt(quantityField.text) : 0,
             sizeContainer: sizeContainerList.selection.text,
             targetSizeChr: sizeList.selection.text
