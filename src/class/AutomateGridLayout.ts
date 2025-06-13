@@ -102,22 +102,6 @@ class AutomateGridLayout {
     };
 
     /**
-     * Creates a safety backup document of original items.
-     * @private
-     * @returns {IllustratorDocumentResult} Safety document and handler
-     */
-    private safetyDocument(): IllustratorDocumentResult {
-
-        const safetyDoc = this.documentCreator({ title: "Safety-Doc-SA" });
-
-        Organizer.smallArtboard(safetyDoc.doc);
-
-        this.docItems = Organizer.pageItemsToArray(safetyDoc.doc.activeLayer.pageItems);
-
-        return safetyDoc;
-    };
-
-    /**
      * Initializes body items for the current document with specified layout configuration.
      * 
      * Creates an ItemsInitiater instance to process body items based on the current mode,
@@ -311,7 +295,7 @@ class AutomateGridLayout {
             for (let row = 1; row < rows; row++) {
                 if (this.itemIdx > this.quantity) {
                 this.writeDataInBody(prevBody);
-                return;
+                break;
                 }
 
                 const copiedBody = prevBody.duplicate(
@@ -342,7 +326,7 @@ class AutomateGridLayout {
             if (cols > 1 && col < cols) {
                 if (this.itemIdx > this.quantity) {
                 this.writeDataInBody(prevBody);
-                return;
+                break;
                 }
 
                 const copiedBody = prevBody.duplicate(
