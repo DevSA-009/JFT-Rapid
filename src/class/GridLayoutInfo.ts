@@ -175,24 +175,28 @@ class GridLayoutInfo {
      * - Handles cases where one or more layout types are invalid (i.e., height <= 0).
      */
     private getRecommendedOrientation(): LayoutShapeConstants {
-        const { inH: heightInH, inV: heightInV, inL: heightInL } = this.calculateTotalHeights();
+        if (CONFIG.orientation === "Auto") {
+            const { inH: heightInH, inV: heightInV, inL: heightInL } = this.calculateTotalHeights();
 
-        const isValidL = heightInL > 0;
-        const isValidH = heightInH > 0;
-        const isValidV = heightInV > 0;
+            const isValidL = heightInL > 0;
+            const isValidH = heightInH > 0;
+            const isValidV = heightInV > 0;
 
-        if (
-            isValidL &&
-            (!isValidH || heightInL < heightInH) &&
-            (!isValidV || heightInL < heightInV)
-        ) {
-            return "L";
+            if (
+                isValidL &&
+                (!isValidH || heightInL < heightInH) &&
+                (!isValidV || heightInL < heightInV)
+            ) {
+                return "L";
+            }
+
+            if (!isValidH) return "V";
+            if (!isValidV) return "H";
+
+            return heightInH <= heightInV ? "H" : "V";
         }
 
-        if (!isValidH) return "V";
-        if (!isValidV) return "H";
-
-        return heightInH <= heightInV ? "H" : "V";
+        return CONFIG.orientation;
     };
 
     /**
@@ -202,10 +206,10 @@ class GridLayoutInfo {
      * @param orientation Optional layout orientation ("L", "H", or "V"). If not provided, the best one is auto-selected.
      * @returns {LayoutSpecification} Layout spec including orientation, dimensions, columns, rows, and height.
      */
-    private getLayoutSpecification(orientation?: LayoutShapeConstants): LayoutSpecification {
-        let selectedOrientation = orientation || this.getRecommendedOrientation();
+    private getLayoutSpecification(): LayoutSpecification {
+        let selectedOrientation = this.getRecommendedOrientation();
 
-        if (!orientation && this.mode === "B" && this.quantity === 1) {
+        if (this.mode === "B" && this.quantity === 1) {
             selectedOrientation = "L";
         };
 
@@ -282,8 +286,7 @@ class GridLayoutInfo {
     private requiredDocs(): RequiredDocReturn {
         const CANVAS_MAX_HEIGHT = 207;
         const colsPerDocConfig = CONFIG.perDoc;
-        const orientation = this.getRecommendedOrientation();
-        const { totalHeight, cols, dimensions } = this.getLayoutSpecification(orientation);
+        const { cols, dimensions } = this.getLayoutSpecification();
 
         let docsNeeded: number;
 
@@ -367,7 +370,7 @@ interface ColCalculationResult {
     inL: number;
 }
 
-type LayoutShapeConstants = "V" | "H" | "L";
+type LayoutShapeConstants = keyof typeof GridOrientation;
 
 type LayoutTotalHeights = ColCalculationResult;
 
