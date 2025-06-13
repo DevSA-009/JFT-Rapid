@@ -106,7 +106,7 @@ const gridMenualInfoDialog = () => {
     perDocGrp.margins = 0;
 
     const perDoc = perDocGrp.add("statictext", undefined, undefined, { name: "perDoc" });
-    perDoc.text = "Per Document";
+    perDoc.text = "Per Doc Row";
     perDoc.justify = "center";
 
     const perDocField = perDocGrp.add('edittext {justify: "center", properties: {name: "perDocField"}}');

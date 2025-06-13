@@ -102,7 +102,7 @@ class Organizer {
         const backBody = findElement(items, (item) => item.name === SearchingKeywords.BACK);
 
         if (!frontBody || !backBody) {
-            throw new Error(`Can't find ${!frontBody ? "FRONT" : "BACK"}`);
+            throw new Error(`Can't found ${!frontBody ? "FRONT" : "BACK"}`);
         }
 
         return [frontBody, backBody];
