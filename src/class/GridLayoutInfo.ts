@@ -59,16 +59,16 @@ class GridLayoutInfo {
     };
 
     /**
-     * Calculates the number of rows needed for different layout configurations
+     * Calculates the number of columns needed for different layout configurations
      * based on the quantity of items and paper size constraints.
      * 
-     * @returns {RowCalculationResult} An object containing:
-     *   - inH: Number of rows needed for horizontal layout
-     *   - inV: Number of rows needed for vertical layout 
+     * @returns {ColCalculationResult} An object containing:
+     *   - inH: Number of columns needed for horizontal layout
+     *   - inV: Number of columns needed for vertical layout 
      *   - inL: Number of L-shaped pairs needed (0 if L-shape not possible)
      * 
      */
-    private getRow(): RowCalculationResult {
+    private getCol(): ColCalculationResult {
         const { inH, inL, inV } = this.getItemsPerRow();
 
         const inLBasedOnMode = inL ? Math.ceil(this.quantity / 2) : inL;
@@ -76,7 +76,7 @@ class GridLayoutInfo {
         return {
             inH: inH ? Math.ceil(this.quantity / inH) : inH,
             inV: Math.ceil(this.quantity / inV),
-            inL: this.mode === "B" ? Math.ceil(inLBasedOnMode / 2) : inLBasedOnMode
+            inL: inLBasedOnMode
         }
     };
 
@@ -86,34 +86,55 @@ class GridLayoutInfo {
      * 
      * @private
      * @returns {ItemsPerRow} Object containing:
-    */
+     */
     private getItemsPerRow(): ItemsPerRow {
-
         const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
 
-        // Determine how many items fit per row in both orientations
-        const inV = Math.floor(CONFIG.PAPER_MAX_SIZE / (rawWidth + CONFIG.Items_Gap));
-        const inH = Math.floor(CONFIG.PAPER_MAX_SIZE / (rawHeight + CONFIG.Items_Gap));
+        // First, calculate how many items fit without considering gaps
+        const itemsInV_NoGap = Math.floor(CONFIG.PAPER_MAX_SIZE / rawWidth);
+        const itemsInH_NoGap = Math.floor(CONFIG.PAPER_MAX_SIZE / rawHeight);
+
+        // Calculate how many items fit considering gaps between items
+        // For vertical layout (items arranged horizontally): width + gap between each item
+        let inV = 0;
+        for (let i = 1; i <= itemsInV_NoGap; i++) {
+            const totalWidth = (i * rawWidth) + ((i - 1) * CONFIG.Items_Gap);
+            if (totalWidth <= CONFIG.PAPER_MAX_SIZE) {
+                inV = i;
+            } else {
+                break;
+            }
+        }
+
+        // For horizontal layout (items arranged vertically): height + gap between each item
+        let inH = 0;
+        for (let i = 1; i <= itemsInH_NoGap; i++) {
+            const totalHeight = (i * rawHeight) + ((i - 1) * CONFIG.Items_Gap);
+            if (totalHeight <= CONFIG.PAPER_MAX_SIZE) {
+                inH = i;
+            } else {
+                break;
+            }
+        }
 
         let inL = 0;
 
         if (inV < 3 || inH < 3) {
-            // addtion with  width wih height
-            const newMixedWidth = this.dimension.width + this.dimension.height + CONFIG.Items_Gap;
-
-            inL = newMixedWidth < CONFIG.PAPER_MAX_SIZE ? 1 : 0;
+            // Mixed orientation: combine width and height (no gap added here as requested)
+            const newMixedWidth = this.dimension.width + this.dimension.height;
+            inL = newMixedWidth <= CONFIG.PAPER_MAX_SIZE ? 1 : 0;
         }
 
         return {
             inH,
             inV,
             inL
-        }
+        };
     };
 
     /**
      * Calculates the total height required for each layout type (horizontal, vertical, L-shape)
-     * including gaps between rows.
+     * including gaps between columns.
      * 
      * @returns {LayoutTotalHeights} Object containing total heights for each layout type:
      *   - inH: Total height for horizontal layout (items rotated 90°)
@@ -121,7 +142,7 @@ class GridLayoutInfo {
      *   - inL: Total height for L-shape layout (adjusted for mode if needed)
      */
     private calculateTotalHeights(): LayoutTotalHeights {
-        const { inH, inL, inV } = this.getRow();
+        const { inH, inL, inV } = this.getCol();
 
         const { width: rawWidth, height: rawHeight } = this.getRawDimensionsBasedOnMode();
 
@@ -131,7 +152,11 @@ class GridLayoutInfo {
 
         const totalHeightInH = inH ? (rawWidth * inH + ((inH - 1) * CONFIG.Items_Gap)) : inH;
 
-        const totalHeightInL = (inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL);
+        let totalHeightInL = (inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL);
+
+        if (this.mode === "B" && inL) {
+            totalHeightInL = totalHeightInL / 2;
+        }
 
         return {
             inH: totalHeightInH,
@@ -172,28 +197,32 @@ class GridLayoutInfo {
 
     /**
      * Builds a layout specification object based on the given or recommended orientation.
-     * Uses map-based lookup for rows, columns, and totalHeight based on orientation.
+     * Uses map-based lookup for columns, rows, and totalHeight based on orientation.
      *
      * @param orientation Optional layout orientation ("L", "H", or "V"). If not provided, the best one is auto-selected.
-     * @returns {LayoutSpecification} Layout spec including orientation, dimensions, rows, cols, and height.
+     * @returns {LayoutSpecification} Layout spec including orientation, dimensions, columns, rows, and height.
      */
     private getLayoutSpecification(orientation?: LayoutShapeConstants): LayoutSpecification {
-        const selectedOrientation = orientation || this.getRecommendedOrientation();
+        let selectedOrientation = orientation || this.getRecommendedOrientation();
 
-        const allRows = this.getRow();
-        const allCols = this.getItemsPerRow();
-        const allHeights = this.calculateTotalHeights();
-
-        const rowsMap = {
-            L: allRows.inL,
-            H: allRows.inH,
-            V: allRows.inV,
+        if (!orientation && this.mode === "B" && this.quantity === 1) {
+            selectedOrientation = "L";
         };
+
+        const allCols = this.getCol();
+        const allRows = this.getItemsPerRow();
+        const allHeights = this.calculateTotalHeights();
 
         const colsMap = {
             L: allCols.inL,
             H: allCols.inH,
             V: allCols.inV,
+        };
+
+        const rowsMap = {
+            L: allRows.inL,
+            H: allRows.inH,
+            V: allRows.inV,
         };
 
         const heightMap = {
@@ -210,7 +239,6 @@ class GridLayoutInfo {
             dimensions: this.getDimensionBasedOnOrientation()
         };
     };
-
 
     /**
      * Determines final dimensions based on the recommended layout orientation.
@@ -245,36 +273,47 @@ class GridLayoutInfo {
      * Calculates document requirements for printing based on physical constraints.
      * Determines either:
      * - Documents needed when limited by maximum canvas height (inches), or
-     * - Documents needed when using fixed rows-per-document configuration
+     * - Documents needed when using fixed columns-per-document configuration
      * 
      * @returns {RequiredDocReturn} Object containing:
      *   - docsNeeded: Total number of documents required
-     *   - rowsPerDoc: Maximum rows that can fit in each document
+     *   - colsPerDoc: Maximum columns that can fit in each document
      */
     private requiredDocs(): RequiredDocReturn {
         const CANVAS_MAX_HEIGHT = 207;
-
-        const rowsPerDocConfig = CONFIG.perDoc;
-
+        const colsPerDocConfig = CONFIG.perDoc;
         const orientation = this.getRecommendedOrientation();
+        const { totalHeight, cols, dimensions } = this.getLayoutSpecification(orientation);
 
-        const { totalHeight, rows, dimensions } = this.getLayoutSpecification(orientation);
+        let docsNeeded: number;
 
-        const docsNeeded = !rowsPerDocConfig ? Math.ceil(totalHeight / CANVAS_MAX_HEIGHT) : Math.ceil(rows / rowsPerDocConfig);
+        let colsPerDoc: number;
 
-        const maxHeightPerDoc = Math.ceil(totalHeight / docsNeeded);
+        if (!colsPerDocConfig) {
+            // Calculate how many columns can fit within the canvas height constraint
+            // This ensures we never exceed CANVAS_MAX_HEIGHT
+            let calculatedColsPerDoc = Math.floor(CANVAS_MAX_HEIGHT / (dimensions.height + CONFIG.Items_Gap));
 
-        const rowsPerDoc = !rowsPerDocConfig ? Math.ceil(maxHeightPerDoc / dimensions.height) : rowsPerDocConfig;
+            // Ensure we don't exceed the total columns needed
+            calculatedColsPerDoc = Math.min(calculatedColsPerDoc, cols);
 
-        return { docsNeeded, rowsPerDoc };
-    };
+            // Ensure at least 1 column per document
+            colsPerDoc = Math.max(1, calculatedColsPerDoc);
+            docsNeeded = Math.ceil(cols / colsPerDoc);
+        } else {
+            colsPerDoc = colsPerDocConfig;
+            docsNeeded = Math.ceil(cols / colsPerDoc);
+        }
+
+        return { docsNeeded, colsPerDoc };
+    }
 
     /**
      * Aggregates all critical layout information for display or export.
      * Combines layout specifications with document requirements in a single response.
      * 
      * @returns {LayoutInfo} Consolidated layout metadata including:
-     *   - requiredDocuments: { docsNeeded: number, rowsPerDoc: number }
+     *   - requiredDocuments: { docsNeeded: number, colsPerDoc: number }
      *   - orientation: Recommended layout type ("V" | "H" | "L")
      *   - totalHeight: Total height including gaps (inches)
      *   - rows: Number of rows needed
@@ -283,7 +322,7 @@ class GridLayoutInfo {
      * @example
      * // Returns for 8 items (20.5x30") in mode "B":
      * {
-     *   requiredDocuments: { docsNeeded: 1, rowsPerDoc: 4 },
+     *   requiredDocuments: { docsNeeded: 1, colsPerDoc: 4 },
      *   orientation: "H",
      *   totalHeight: 82.3,
      *   rows: 4,
@@ -311,18 +350,18 @@ interface GridLayoutInfoCons {
 }
 
 interface ItemsPerRow {
-    /** Number of items that fit per row in horizontal orientation */
+    /** Number of items that fit per column in horizontal orientation */
     inH: number;
-    /** Number of items that fit per row in vertical orientation */
+    /** Number of items that fit per column in vertical orientation */
     inV: number;
     /** Whether L-shaped layout is possible within paper constraints */
     inL: number;
 }
 
-interface RowCalculationResult {
-    /** Number of rows needed for horizontal layout */
+interface ColCalculationResult {
+    /** Number of columns needed for horizontal layout */
     inH: number;
-    /** Number of rows needed for vertical layout */
+    /** Number of columns needed for vertical layout */
     inV: number;
     /** Number of L-shaped pairs needed (0 if not possible) */
     inL: number;
@@ -330,22 +369,22 @@ interface RowCalculationResult {
 
 type LayoutShapeConstants = "V" | "H" | "L";
 
-type LayoutTotalHeights = RowCalculationResult;
+type LayoutTotalHeights = ColCalculationResult;
 
 interface RequiredDocReturn {
     /** Total documents required to fit all content */
     docsNeeded: number;
-    /** Maximum rows allocated per document */
-    rowsPerDoc: number;
+    /** Maximum columns allocated per document */
+    colsPerDoc: number;
 }
 
 interface LayoutSpecification {
     /** Recommended layout orientation */
     orientation: LayoutShapeConstants;
-    /** Number of columns fit in per row */
-    cols: number;
-    /** Number of rows needed */
+    /** Number of rows fit in per column */
     rows: number;
+    /** Number of columns needed */
+    cols: number;
     /** Total height including gaps */
     totalHeight: number;
     /** Final dimensions to use */
@@ -356,7 +395,7 @@ interface LayoutInfo {
     /** Document requirements for printing */
     requiredDocuments: {
         docsNeeded: number;
-        rowsPerDoc: number;
+        colsPerDoc: number;
     };
     /** Recommended layout orientation */
     orientation: LayoutShapeConstants;
