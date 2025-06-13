@@ -18,13 +18,13 @@ enum SearchingKeywords {
     NAME = "NAME"
 }
 
-enum OrgMode {
+enum GridMode {
     B = "B",
     FB = "FB",
     PANT = "PANT"
 }
 
-enum OrgOriented {
+enum GridOrientation {
     V = "V",
     H = "H",
     L = "L"

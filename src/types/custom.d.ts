@@ -11,6 +11,8 @@ interface JFTRapid_Config {
     readonly PAPER_MAX_SIZE:number;
     readonly Size_Container:SizeContainer;
     Items_Gap:number;
+    sizeInc:number;
+    orientation:"Auto" | LayoutShapeConstants;
     perDoc: number;
 }
 
@@ -38,7 +40,7 @@ type MensSize = "S" | "M" | "L" | "XL" | "2XL";
 type BabySize = "2" | "4" | "6" | "8" | "10" | "12" | "14" | "16";
 type ApparelSize = MensSize | BabySize;
 
-type Mode = keyof typeof OrgMode;
+type Mode = keyof typeof GridMode;
 
 interface CalculateDocRowDistributionParams {
     dim: DimensionObject;
