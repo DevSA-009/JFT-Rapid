@@ -7,6 +7,7 @@
 //@include './class/ItemsInitiater.js';
 //@include './class/ArtboardManager.js';
 //@include './class/AutomateGridLayout.js';
+//@include './class/ValidatorManager.js';
 //@include './class/GroupManager.js';
 //@include './class/GridLayoutInfo.js';
 //@include './class/Organizer.js';
@@ -22,12 +23,16 @@ const CONFIG: JFTRapid_Config = {
     sizeInc: 0,
     PAPER_MAX_SIZE: 63.25,
     Size_Container: sizeContainerFetch as SizeContainer,
-    perDoc: 1
+    perDoc: 0
 };
 
 const gridMenuallyCB = (params: OrgManuallyParams) => {
     try {
         const { mode, quantity, sizeContainer, targetSizeChr } = params;
+
+        // ----------------- validation chaining ---------------\\
+        ValidatorManager.checkBodyItems(app.activeDocument);
+        // ----------------- validation chaining ---------------\\
 
         const dimension = Organizer.getBodyDimenstion({ sizeContainer, targetSizeChr });
 
@@ -47,7 +52,7 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
 };
 // gridMenuallyCB({
 //     mode:"B",
-//     quantity:5,
+//     quantity:4,
 //     sizeContainer:"JFT",
-//     targetSizeChr:"XL"
+//     targetSizeChr:"L"
 // })
