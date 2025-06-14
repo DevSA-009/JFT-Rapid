@@ -8,6 +8,8 @@
     "allowJs": true
   },
   "include": [
+    "src/adobe-types/**/*.ts",
+    "src/types/**/*.ts",
     "src/enum/**/*.ts",
     "src/polyfill/**/*.js",
     "src/polyfill/**/*.ts",
@@ -18,6 +20,10 @@
     "src/class/Organizer.ts",
     "src/class/ItemsInitiater.ts",
     "src/scriptUI/**/*.js",
-    "src/**/*.ts",
+    "src/class/ArtboardManager.ts",
+    "src/class/IllustratorDocHandler.ts",
+    "src/class/GridLayoutInfo.ts",
+    "src/class/AutomateGridLayout.ts",
+    "src/index.ts",
   ]
 }
