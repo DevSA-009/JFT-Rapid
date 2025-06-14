@@ -40,13 +40,13 @@ const initiatePant = () => {
     try {
         ValidatorManager.checkdocument();
         ItemsInitiater.initPant(app.activeDocument);
-    } catch (error:any) {
+    } catch (error: any) {
         alertDialogSA(error.message)
     }
 };
 
 // gridMenuallyCB({
-//     mode:"B",
+//     mode:"PANT",
 //     quantity:3,
 //     sizeContainer:"JFT",
 //     targetSizeChr:"L"

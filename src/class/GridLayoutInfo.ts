@@ -37,6 +37,11 @@ class GridLayoutInfo {
      */
     private getRawDimensionsBasedOnMode(): DimensionObject {
         const { width, height } = this.dimension;
+        if (this.mode === "PANT") {
+            const pant = Organizer.getPant();
+
+            return getWHDimension(getSelectionBounds(pant));
+        }
         return {
             width,
             height: this.mode === "FB" ? height * 2 : height
@@ -186,6 +191,11 @@ class GridLayoutInfo {
      * - Handles cases where one or more layout types are invalid (i.e., height <= 0).
      */
     private getRecommendedOrientation(): LayoutShapeConstants {
+
+        if (this.mode === "PANT") {
+            return "V";
+        }
+
         if (CONFIG.orientation === "Auto") {
             const { inH: heightInH, inV: heightInV, inL: heightInL } = this.calculateTotalHeights();
 
@@ -255,7 +265,7 @@ class GridLayoutInfo {
         };
 
         if (!colsMap[selectedOrientation]) {
-            throw new Error(`${selectedOrientation} orientation exceeded paper size. \n Please choose Auto or others`);
+            throw new Error(this.mode !== "PANT" ? `${selectedOrientation} orientation exceeded paper size. Please choose Auto or others` : `Pant exceeded paper size`);
         };
 
         return {

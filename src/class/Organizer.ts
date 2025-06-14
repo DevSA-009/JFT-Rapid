@@ -79,7 +79,7 @@ class Organizer {
      * @param {PageItems} pageItems - The Illustrator PageItems collection to convert
      * @returns {PageItem[]} Array containing all items from the collection
      */
-    static pageItemsToArray (pageItems:PageItems): PageItem[] {
+    static pageItemsToArray(pageItems: PageItems): PageItem[] {
         const selectedItems = [];
 
         for (let i = 0; i < pageItems.length; i++) {
@@ -113,8 +113,8 @@ class Organizer {
      * @param {GetBodyDimenstionParams} params
      * @returns {DimensionObject} - return exact dimension
      */
-    static getBodyDimenstion(params: GetBodyDimenstionParams):DimensionObject {
-        const {sizeContainer,targetSizeChr} = params;
+    static getBodyDimenstion(params: GetBodyDimenstionParams): DimensionObject {
+        const { sizeContainer, targetSizeChr } = params;
         const sizeCategory =
             CONFIG.Size_Container[sizeContainer as keyof typeof CONFIG.Size_Container];
         const isBaby = isBabySize(targetSizeChr, sizeCategory["BABY"]);
@@ -157,9 +157,9 @@ class Organizer {
         }
 
         return {
-            files:fileCount,
-            folder:folderCount,
-            nexFileIndex:fileCount
+            files: fileCount,
+            folder: folderCount,
+            nexFileIndex: fileCount
         };
     };
 
@@ -200,12 +200,30 @@ class Organizer {
         return [F_L as PageItem, F_R as PageItem, B_L as PageItem, B_R as PageItem];
     };
 
+
+    /**
+     * 
+     * @param {Document} doc - document. default is active document
+     * @returns {GroupItem}
+     * 
+     * @throws {Error} If either PANT cannot be found
+     */
+    static getPant(doc: Document = app.activeDocument): GroupItem {
+        const item = findElement(arrayFrom(doc.pageItems), item => item.name === "PANT");
+
+        if (!item) {
+            throw new Error(`Can't find PANT`);
+        }
+
+        return item as GroupItem;
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
-    folder:number;
-    files:number;
-    nexFileIndex:number;
+    folder: number;
+    files: number;
+    nexFileIndex: number;
 }
 
 type ArtboardScaler = {
@@ -215,6 +233,6 @@ type ArtboardScaler = {
 };
 
 interface GetBodyDimenstionParams {
-    sizeContainer:string;
-    targetSizeChr:ApparelSize;
+    sizeContainer: string;
+    targetSizeChr: ApparelSize;
 }

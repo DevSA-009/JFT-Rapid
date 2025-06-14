@@ -49,8 +49,7 @@ class AutomateGridLayout {
         this.bodyItems = Organizer.getBodyItems(this.docItems!);
         this.dimension = params.dimension;
         this.filesSeqIndex = params.filesSeqIndex;
-        this.targetSizeChr = params.targetSizeChr
-        // this.safetyDocument();
+        this.targetSizeChr = params.targetSizeChr;
 
         this.gridLayoutInfo = new GridLayoutInfo({
             dimension: this.dimension,
@@ -168,6 +167,12 @@ class AutomateGridLayout {
      */
     private processDocuments() {
 
+        let initiatedPant: null | GroupItem;
+
+        if (this.mode === "PANT") {
+            initiatedPant = Organizer.getPant();
+        }
+
         if (this.lShapeQuantityOdd) {
             this.quantity++
         }
@@ -187,16 +192,18 @@ class AutomateGridLayout {
 
             const title = `${fileIndex}-${this.mode}-${this.targetSizeChr}`;
 
-            const docsIns = this.documentCreator({ title, items: this.bodyItems });
+            const itemForNewDoc = this.mode === "PANT" ? [initiatedPant!] : this.bodyItems as Selection;
 
-            const initiateItem = this.initiateBody(docsIns.doc);
+            const docsIns = this.documentCreator({ title, items: itemForNewDoc });
 
-            this.alignTopInitBody(initiateItem, docsIns.doc);
+            const initiatedItem = this.mode === "PANT" ? Organizer.getPant(docsIns.doc) : this.initiateBody(docsIns.doc);
+
+            this.alignTopInitBody(initiatedItem, docsIns.doc);
 
             this.processGridLayout({
                 cols: colsPerDoc,
                 doc: docsIns.doc,
-                initItem: initiateItem,
+                initItem: initiatedItem,
                 rows: this.gridLayoutInfo.rows,
                 isLastDoc
             });
