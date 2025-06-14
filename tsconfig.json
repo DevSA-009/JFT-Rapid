@@ -2,19 +2,17 @@
   "compilerOptions": {
     "target": "ES5",
     "noLib": true,
-    // "removeComments": true,
-    "typeRoots": [
-      "./src/adobe-types/Illustrator/2022/",
-      "./src/adobe-types/Shared/",
-      "./src/types"
-    ],
-    "outDir": "./HOST",
+    "removeComments": true,
+    "outFile": "./HOST/script.js",
     "strict": true,
     "allowJs": true
   },
   "include": [
-    "src/**/*.ts",
     "src/polyfill/json2.js",
-    "src/scriptUI/**/*.js" 
+    "src/class/JSONFileHandler.ts",
+    "src/class/ValidatorManager.ts",
+    "src/class/ItemsInitiater.ts",
+    "src/scriptUI/**/*.js",
+    "src/**/*.ts",
   ]
 }

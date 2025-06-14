@@ -20,7 +20,7 @@
             <DispatchInfo>
                 <Resources>
                     <MainPath>./CLIENT/index.html</MainPath>
-                    <ScriptPath>./HOST/index.js</ScriptPath>
+                    <ScriptPath>./HOST/script.js</ScriptPath>
                 </Resources>
                 <Lifecycle>
                     <AutoVisible>true</AutoVisible>
