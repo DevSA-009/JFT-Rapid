@@ -67,3 +67,49 @@ const objectKeys = (obj: Record<string, any>): string[] => {
 
     return keys;
 };
+
+/**
+ * Checks if the provided value is an array.
+ * 
+ * @param value - The value to check.
+ * @returns {boolean} - Returns `true` if the value is an array, otherwise `false`.
+ */
+const isArray = (value: any): boolean => {
+    return Object.prototype.toString.call(value) === '[object Array]';
+};
+
+/**
+ * Finds an element in an array based on a callback function.
+ * 
+ * @param {Selection} array - The array to search through.
+ * @param {findElementCb} cb - The callback function used to test each element.
+ * The callback should return a truthy value to indicate that the element matches.
+ * @returns {any | null} - The first element that satisfies the callback function or null if none found.
+ */
+const findElement = <T>(array: T[], cb: findElementCb<T>): T | null => {
+    for (let index = 0; index < array.length; index++) {
+        let element = array[index];
+        if (cb(element, index)) {
+            return element;
+        }
+    }
+    return null;
+};
+
+/**
+ * Slices a string or array from the end based on the specified slice value.
+ *
+ * @param originalVal - The input string or array to be sliced.
+ * @param sliceValue - The number of elements to remove from the end.
+ * @returns The sliced value.
+ * @throws {Error} Throws an error if sliceValue is negative.
+ */
+const endSlice = (
+    originalVal: string | unknown[],
+    sliceValue: number,
+): string | unknown[] => {
+    if (sliceValue < 0) {
+        throw new Error("sliceValue must be non-negative");
+    }
+    return originalVal.slice(0, originalVal.length - sliceValue);
+};

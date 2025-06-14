@@ -1,22 +1,4 @@
 /**
- * Finds an element in an array based on a callback function.
- * 
- * @param {Selection} array - The array to search through.
- * @param {findElementCb} cb - The callback function used to test each element.
- * The callback should return a truthy value to indicate that the element matches.
- * @returns {any | null} - The first element that satisfies the callback function or null if none found.
- */
-const findElement = <T>(array: T[], cb: findElementCb<T>): T | null => {
-    for (let index = 0; index < array.length; index++) {
-        let element = array[index];
-        if (cb(element, index)) {
-            return element;
-        }
-    }
-    return null;
-};
-
-/**
  * Get the previous, current, and next PageItem around a selection,
  * while supporting GroupItem or Layer parents.
  * If there's no valid previous PageItem, `prev` will be `null`.
@@ -639,16 +621,6 @@ const getDimensionGenderCategory = (sizeCategory: SizeCategory, size: MensSize |
 };
 
 /**
- * Checks if the provided value is an array.
- * 
- * @param value - The value to check.
- * @returns {boolean} - Returns `true` if the value is an array, otherwise `false`.
- */
-const isArray = (value: any): boolean => {
-    return Object.prototype.toString.call(value) === '[object Array]';
-};
-
-/**
  * Moves a `PageItem` relative to a `Selection` based on the specified position.
  * 
  * @param {MoveItemAfterParams} arg - The parameters for the movement.
@@ -861,24 +833,6 @@ const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
  */
 const translateXY = (item: PageItem, x: number, y: number) => {
     item.translate(x, y)
-};
-
-/**
- * Slices a string or array from the end based on the specified slice value.
- *
- * @param originalVal - The input string or array to be sliced.
- * @param sliceValue - The number of elements to remove from the end.
- * @returns The sliced value.
- * @throws {Error} Throws an error if sliceValue is negative.
- */
-const endSlice = (
-    originalVal: string | unknown[],
-    sliceValue: number,
-): string | unknown[] => {
-    if (sliceValue < 0) {
-        throw new Error("sliceValue must be non-negative");
-    }
-    return originalVal.slice(0, originalVal.length - sliceValue);
 };
 
 /**

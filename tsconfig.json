@@ -8,9 +8,14 @@
     "allowJs": true
   },
   "include": [
-    "src/polyfill/json2.js",
+    "src/enum/**/*.ts",
+    "src/polyfill/**/*.js",
+    "src/polyfill/**/*.ts",
+    "src/utils/**/*.ts",
     "src/class/JSONFileHandler.ts",
     "src/class/ValidatorManager.ts",
+    "src/class/GroupManager.ts",
+    "src/class/Organizer.ts",
     "src/class/ItemsInitiater.ts",
     "src/scriptUI/**/*.js",
     "src/**/*.ts",
