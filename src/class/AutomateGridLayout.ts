@@ -136,11 +136,15 @@ class AutomateGridLayout {
      * @private
      * @param item - The group item to align and process
      * @param doc - The target Illustrator document
-     * @param isLastDoc - Whether this is the last document in the processing sequence
      */
-    private alignTopInitBody(item: GroupItem, doc: Document, isLastDoc: boolean): void {
+    private alignTopInitBody(item: GroupItem, doc: Document): void {
 
         alignPageItemsToArtboard(item, doc, "TC");
+
+        if (this.mode === "B" && this.recommendedOrientation !== "L") {
+            const front = item.pageItems[0];
+            front.remove();
+        }
 
         item.name = this.getItemIndex();
 
@@ -187,7 +191,7 @@ class AutomateGridLayout {
 
             const initiateItem = this.initiateBody(docsIns.doc);
 
-            this.alignTopInitBody(initiateItem, docsIns.doc, isLastDoc);
+            this.alignTopInitBody(initiateItem, docsIns.doc);
 
             this.processGridLayout({
                 cols: colsPerDoc,
@@ -365,8 +369,6 @@ class AutomateGridLayout {
      * It creates a document extracts the front body, removes the back body,
      * and aligns the front item to the artboard XY center.
      * 
-     * @param {number} docIdx - The document index offset to be added to the current file sequence index.
-     * 
      * @remarks
      * - The file index is formatted with a leading zero if less than 10.
      * - Only the front side of the document is kept; the back side is removed.
@@ -398,7 +400,7 @@ class AutomateGridLayout {
      * @param {Document} doc - Document Instance
      */
     private alignCenterDocsItems(doc: Document) {
-        let pagesItems = arrayFrom(doc.activeLayer.pageItems);
+        const pagesItems = arrayFrom(doc.activeLayer.pageItems);
         alignPageItemsToArtboard(pagesItems, doc);
     };
 
