@@ -131,8 +131,6 @@ class AutomateGridLayout {
      * Aligns the initiated body item to the top-center of the artboard and performs mode-specific processing.
      * 
      * Positions the group item at the top-center of the artboard, then applies mode-specific
-     * modifications. For mode "B" with non-L orientation, removes the front item and optionally
-     * duplicates it to left-center for the last document in "01" process. Updates item naming
      * and adjusts artboard size after alignment.
      * 
      * @private
@@ -143,17 +141,6 @@ class AutomateGridLayout {
     private alignTopInitBody(item: GroupItem, doc: Document, isLastDoc: boolean): void {
 
         alignPageItemsToArtboard(item, doc, "TC");
-
-        if (this.mode === "B" && this.recommendedOrientation !== "L") {
-            const front = item.pageItems[0];
-
-            if (isLastDoc && this.process === "01") {
-                const dupFront = front.duplicate(item.parent, ElementPlacement.PLACEATBEGINNING);
-                alignPageItemsToArtboard(dupFront, doc, "LC");
-            }
-
-            front.remove();
-        }
 
         item.name = this.getItemIndex();
 
@@ -183,9 +170,14 @@ class AutomateGridLayout {
 
         const { docsNeeded, colsPerDoc } = this.gridLayoutInfo.requiredDocuments;
 
+        if (this.mode === "B" && this.recommendedOrientation !== "L") {
+            this.createFrontDoc();
+            this.filesSeqIndex++
+        }
+
         for (let i = 1; i <= docsNeeded; i++) {
 
-            const fileIndex = this.filesSeqIndex < 9 ? `0${this.filesSeqIndex+i}` : (this.filesSeqIndex+i).toString();
+            const fileIndex = this.filesSeqIndex < 9 ? `0${this.filesSeqIndex + i}` : (this.filesSeqIndex + i).toString();
 
             const isLastDoc = i === docsNeeded;
 
@@ -204,6 +196,8 @@ class AutomateGridLayout {
                 rows: this.gridLayoutInfo.rows,
                 isLastDoc
             });
+
+            this.alignCenterDocsItems(docsIns.doc);
         }
 
         if (this.lShapeQuantityOdd) {
@@ -294,22 +288,22 @@ class AutomateGridLayout {
         for (let col = 1; col <= cols; col++) {
             for (let row = 1; row < rows; row++) {
                 if (this.itemIdx > this.quantity) {
-                this.writeDataInBody(prevBody);
-                break;
+                    this.writeDataInBody(prevBody);
+                    break;
                 }
 
                 const copiedBody = prevBody.duplicate(
-                prevBody.parent,
-                ElementPlacement.PLACEATEND
+                    prevBody.parent,
+                    ElementPlacement.PLACEATEND
                 );
 
                 copiedBody.name = this.getItemIndex();
 
                 moveItemAfter({
-                base: prevBody,
-                moving: copiedBody,
-                position: "R",
-                gap,
+                    base: prevBody,
+                    moving: copiedBody,
+                    position: "R",
+                    gap,
                 });
 
                 this.writeDataInBody(prevBody);
@@ -317,7 +311,7 @@ class AutomateGridLayout {
                 prevBody = copiedBody;
 
                 if (this.recommendedOrientation === "L") {
-                this.itemIdx++;
+                    this.itemIdx++;
                 }
 
                 this.itemIdx++;
@@ -325,13 +319,13 @@ class AutomateGridLayout {
 
             if (cols > 1 && col < cols) {
                 if (this.itemIdx > this.quantity) {
-                this.writeDataInBody(prevBody);
-                break;
+                    this.writeDataInBody(prevBody);
+                    break;
                 }
 
                 const copiedBody = prevBody.duplicate(
-                prevBody.parent,
-                ElementPlacement.PLACEATEND
+                    prevBody.parent,
+                    ElementPlacement.PLACEATEND
                 );
 
                 copiedBody.name = this.getItemIndex();
@@ -339,10 +333,10 @@ class AutomateGridLayout {
                 alignItems(curColFirstRow, copiedBody, "L");
 
                 moveItemAfter({
-                base: prevBody,
-                moving: copiedBody,
-                position: "B",
-                gap,
+                    base: prevBody,
+                    moving: copiedBody,
+                    position: "B",
+                    gap,
                 });
 
                 this.writeDataInBody(prevBody);
@@ -352,16 +346,60 @@ class AutomateGridLayout {
                 curColFirstRow = prevBody;
 
                 if (this.recommendedOrientation === "L") {
-                this.itemIdx++;
+                    this.itemIdx++;
                 }
 
                 this.itemIdx++;
             }
         }
 
-        if(isLastDoc) {
+        if (isLastDoc) {
             this.removeSingleItemFromLShape(prevBody);
         }
+    };
+
+    /**
+     * Creates and initializes a front document for a file sequence.
+     * 
+     * This method generates a new document title based on the current file index, size, and quantity.
+     * It creates a document extracts the front body, removes the back body,
+     * and aligns the front item to the artboard XY center.
+     * 
+     * @param {number} docIdx - The document index offset to be added to the current file sequence index.
+     * 
+     * @remarks
+     * - The file index is formatted with a leading zero if less than 10.
+     * - Only the front side of the document is kept; the back side is removed.
+     * - The remaining front item is aligned to the artboard XY center.
+     * 
+     * @private
+     */
+    private createFrontDoc() {
+
+        const fileIndex = this.filesSeqIndex < 9 ? `0${this.filesSeqIndex + 1}` : (this.filesSeqIndex + 1).toString();
+
+        const title = `${fileIndex}-F-${this.targetSizeChr}-${this.quantity} PCS`;
+
+        const docsIns = this.documentCreator({ title, items: this.bodyItems });
+
+        const initiateItem = this.initiateBody(docsIns.doc);
+
+        const [front, back] = arrayFrom(initiateItem.pageItems);
+
+        back.remove();
+
+        Organizer.smallArtboard(docsIns.doc);
+
+        alignPageItemsToArtboard(front, docsIns.doc);
+    };
+
+    /**
+     * Align vertically & horizontally center the document page items
+     * @param {Document} doc - Document Instance
+     */
+    private alignCenterDocsItems(doc: Document) {
+        let pagesItems = arrayFrom(doc.activeLayer.pageItems);
+        alignPageItemsToArtboard(pagesItems, doc);
     };
 
 }
@@ -414,5 +452,5 @@ interface ProcessGridLayoutParams {
     readonly initItem: PageItem;
     readonly cols: number;
     readonly rows: number;
-    readonly isLastDoc:boolean;
+    readonly isLastDoc: boolean;
 }
