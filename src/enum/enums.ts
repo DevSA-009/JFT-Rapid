@@ -18,6 +18,13 @@ enum SearchingKeywords {
     NAME = "NAME"
 }
 
+enum SearchingKeywordsForPant {
+    PANT_F_L = "PANT_F_L",
+    PANT_F_R = "PANT_F_R",
+    PANT_B_L = "PANT_B_L",
+    PANT_B_R = "PANT_B_R"
+}
+
 enum GridMode {
     B = "B",
     FB = "FB",

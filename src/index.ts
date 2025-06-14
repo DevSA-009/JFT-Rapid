@@ -35,6 +35,16 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
         alertDialogSA(error.message);
     }
 };
+
+const initiatePant = () => {
+    try {
+        ValidatorManager.checkdocument();
+        ItemsInitiater.initPant(app.activeDocument);
+    } catch (error:any) {
+        alertDialogSA(error.message)
+    }
+};
+
 // gridMenuallyCB({
 //     mode:"B",
 //     quantity:3,

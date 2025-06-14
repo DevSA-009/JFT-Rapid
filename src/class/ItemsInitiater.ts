@@ -133,6 +133,50 @@ class ItemsInitiater {
 
         return groupManager.tempGroup!;
     };
+
+    /**
+     * Arranges pant items to PANT
+     * @private
+     * @returns {GroupItem} PANT arrangement group
+     */
+    static initPant(doc: Document): GroupItem {
+
+        const pantItems = Organizer.getPantItems(doc);
+
+        const [F_L, F_R, B_L, B_R] = pantItems;
+
+        for (let index = 1; index < pantItems.length; index++) {
+            const item = pantItems[index];
+            alignItems(F_L, item, "C");
+        }
+
+        moveItemAfter({
+            base: F_R,
+            moving: F_L,
+            position: "R"
+        });
+
+        moveItemAfter({
+            base: F_L,
+            moving: B_L,
+            position: "R",
+            gap: 0.5 * 72
+        });
+
+        moveItemAfter({
+            base: B_L,
+            moving: B_R,
+            position: "R"
+        });
+
+        const groupManager = new GroupManager(pantItems);
+
+        groupManager.group();
+
+        groupManager.tempGroup!.name = "PANT";
+
+        return groupManager.tempGroup as GroupItem;
+    };
 }
 
 interface ItemsInitiaterConst {

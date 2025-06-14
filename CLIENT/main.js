@@ -10,11 +10,18 @@ const selectElementById = (id) => {
     return document.getElementById(id);
 }
 
-// patch Grid Layout Button
+// ---------- patch Grid Layout Button --------- \\
 const gridLayoutBtn = selectElementById("gridLayoutBtn");
 
 gridLayoutBtn.onclick = () => {
     csInterface.evalScript("gridMenualInfoDialog()");
+}
+
+// ---------- patch Initiate Pant Button Layout Button --------- \\
+const pantInitBtn = selectElementById("pantInit");
+
+pantInitBtn.onclick = () => {
+    csInterface.evalScript("initiatePant()");
 }
 
 /**
@@ -22,7 +29,7 @@ gridLayoutBtn.onclick = () => {
  * @param {HTMLElement} htmlElement 
  * @param {...string} className 
  */
-const removeClass = (htmlElement,...className) => {
+const removeClass = (htmlElement, ...className) => {
     htmlElement.classList.remove(...className)
 };
 /**
@@ -30,7 +37,7 @@ const removeClass = (htmlElement,...className) => {
  * @param {HTMLElement} htmlElement 
  * @param {...string} className 
  */
-const addClass = (htmlElement,...className) => {
+const addClass = (htmlElement, ...className) => {
     htmlElement.classList.add(...className)
 };
 

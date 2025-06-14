@@ -53,6 +53,8 @@ interface CalculateDocRowDistributionReturn {
     perDocRow: number;
 }
 
+type PantItems = [PageItem,PageItem,PageItem,PageItem];
+
 interface Person {
     readonly number: number;
     readonly name: string;
