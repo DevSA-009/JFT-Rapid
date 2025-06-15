@@ -1,6 +1,9 @@
 
+const JFT_CONF_PRODUCTION_PATH = "C:\\Users\\Admin\\AppData\\Roaming\\Adobe\\CEP\\extensions\\com.jftrapid.cep\\jft.conf";
 
-const sizeContainerFetch = new JSONFileHandler("G:\\JFT-Rapid\\jft.conf").read();
+const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
+
+const sizeContainerFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH).read();
 
 const CONFIG: JFTRapid_Config = {
     Items_Gap: 0.1,
