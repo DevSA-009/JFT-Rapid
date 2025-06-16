@@ -186,11 +186,11 @@ class AutomateGridLayout {
 
         for (let i = 1; i <= docsNeeded; i++) {
 
-            const fileIndex = this.filesSeqIndex < 9 ? `0${this.filesSeqIndex + i}` : (this.filesSeqIndex + i).toString();
+            const fileIndex = this.filesSeqIndex < 10 ? `0${this.filesSeqIndex + i}` : (this.filesSeqIndex + i).toString();
 
             const isLastDoc = i === docsNeeded;
 
-            const title = `${fileIndex}-${this.mode}-${this.targetSizeChr}`;
+            const title = `${fileIndex}-${this.mode}${this.mode !== "PANT" ? `-${this.targetSizeChr}` : ``}`;
 
             const itemForNewDoc = this.mode === "PANT" ? [initiatedPant!] : this.bodyItems as Selection;
 
