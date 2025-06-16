@@ -114,7 +114,7 @@ class GridLayoutInfo {
 
         for (let index = itemsInV_NoGap; itemsInV_NoGap > 0; index--) {
 
-            const totalWidth = Math.ceil((rawWidth * index) + (gap * (index - 1)));
+            const totalWidth = ((rawWidth * index) + (gap * (index - 1)));
 
 
             if (totalWidth <= CONFIG.PAPER_MAX_SIZE) {
@@ -125,7 +125,7 @@ class GridLayoutInfo {
 
         for (let index = itemsInH_NoGap; itemsInH_NoGap > 0; index--) {
 
-            const totalWidth = Math.ceil((rawHeight * index) + (gap * (index - 1)));
+            const totalWidth = ((rawHeight * index) + (gap * (index - 1)));
 
 
             if (totalWidth <= CONFIG.PAPER_MAX_SIZE) {
