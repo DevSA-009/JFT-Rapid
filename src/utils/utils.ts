@@ -71,73 +71,6 @@ const formatNumber = (value: number, precision: number = 4): number => {
 };
 
 /**
- * Recursively finds the largest visible item (by geometric area) inside a GroupItem or PageItem.
- * 
- * - Clipped groups only consider the clipping path for visibility.
- * - Unclipped groups are traversed fully.
- * - For each visible item, its geometric bounds area is calculated and compared.
- *
- * @param {PageItem} item - The root PageItem or GroupItem to search through.
- * @returns {PageItem} - The single visible item with the largest geometric area.
- */
-const getTopMostVisibleItem = (item: PageItem): PageItem => {
-    let largestItem: PageItem | null = null;
-    let largestArea = -Infinity;
-
-    /**
-     * Calculates the area of a PageItem's geometric bounds.
-     * @param {number[]} bounds - [left, top, right, bottom]
-     * @returns {number} - Width × Height
-     */
-    const calculateArea = (bounds: number[]): number => {
-        const [left, top, right, bottom] = bounds;
-        return Math.abs((right - left) * (top - bottom));
-    };
-
-    /**
-     * Internal recursive function to evaluate items and track the largest.
-     * @param {PageItem} currentItem - The item to check.
-     */
-    const traverse = (currentItem: PageItem): void => {
-        if (currentItem.typename === PageItemType.GroupItem) {
-            const group = currentItem as GroupItem;
-
-            if (group.clipped) {
-                for (let i = 0; i < group.pageItems.length; i++) {
-                    const child = group.pageItems[i];
-                    if (child.clipping) {
-                        const area = calculateArea(child.geometricBounds);
-                        if (area > largestArea) {
-                            largestArea = area;
-                            largestItem = child;
-                        }
-                        return; // only consider clipping path
-                    }
-                }
-            } else {
-                for (let i = 0; i < group.pageItems.length; i++) {
-                    traverse(group.pageItems[i]);
-                }
-            }
-        } else {
-            const area = calculateArea(currentItem.geometricBounds);
-            if (area > largestArea) {
-                largestArea = area;
-                largestItem = currentItem;
-            }
-        }
-    };
-
-    traverse(item);
-
-    if (!largestItem) {
-        throw new Error("No visible item found.");
-    }
-
-    return largestItem;
-};
-
-/**
  * Rounds a given number up to the nearest number that is divisible by the specified divider.
  *
  * @param {number} quantity - The number to round up.
@@ -415,8 +348,8 @@ const resizeSelection = (selection: Selection | PageItem, targetWidth: number = 
         groupManger.ungroup(prev);
     } else {
         const targetItem = isArray(selection) ? (selection as Selection)[0] : selection as PageItem;
-        const topMostItem = getTopMostVisibleItem(targetItem);
-        const [left, top, right, bottom] = topMostItem.geometricBounds;
+        const topMostItem = getSelectionBounds(targetItem);
+        const {left,bottom,right,top} = topMostItem;
         const { width, height } = getWHDimension({ left, right, top, bottom });
         // Calculate scaling factors for both width and height
         const scaleX = targetWidth ? (targetWidth / width) * 100 : 100;
@@ -632,7 +565,7 @@ const moveItemAfter = (arg: MoveItemAfterParams) => {
     const { base, moving, position, gap = 0 } = arg;
     // Get bounding boxes of the selection and moving item
     const baseBounds = getSelectionBounds(base); // [left, top, right, bottom]
-    const movingBounds = getTopMostVisibleItem(moving).geometricBounds; // [left, top, right, bottom]
+    const movingBounds = getSelectionBounds(moving); // [left, top, right, bottom]
 
     if (!baseBounds) {
         throw new Error("Base Bounds Empty")
@@ -643,16 +576,16 @@ const moveItemAfter = (arg: MoveItemAfterParams) => {
     // Calculate movement based on position
     switch (position) {
         case "T": // Move above
-            dy = baseBounds.top - movingBounds[3] + gap;
+            dy = baseBounds.top - movingBounds.bottom + gap;
             break;
         case "B": // Move below
-            dy = baseBounds.bottom - movingBounds[1] - gap;
+            dy = baseBounds.bottom - movingBounds.top - gap;
             break;
         case "L": // Move left
-            dx = baseBounds.left - movingBounds[2] - gap;
+            dx = baseBounds.left - movingBounds.right - gap;
             break;
         case "R": // Move right
-            dx = baseBounds.right - movingBounds[0] + gap;
+            dx = baseBounds.right - movingBounds.left + gap;
             break;
     }
 
@@ -699,21 +632,21 @@ const getMaskedBounds = (groupItem: GroupItem): number[] | null => {
  * @throws {Error} - May throw an error if the position is invalid or if item manipulation fails.
  */
 const alignItems = (baseGroupItem: PageItem, movingGroupItem: PageItem, position: AlignPosition): void => {
-    const baseBounds = getTopMostVisibleItem(baseGroupItem).geometricBounds;
+    const baseBounds = getSelectionBounds(baseGroupItem);
 
     // Get geometric bounds for the moving item
-    const movingBounds = getTopMostVisibleItem(movingGroupItem).geometricBounds;
+    const movingBounds = getSelectionBounds(movingGroupItem);
 
     // Calculate dimensions and centers
-    const baseLeft = baseBounds[0];
-    const baseTop = baseBounds[1];
-    const baseRight = baseBounds[2];
-    const baseBottom = baseBounds[3];
+    const baseLeft = baseBounds.left;
+    const baseTop = baseBounds.top;
+    const baseRight = baseBounds.right;
+    const baseBottom = baseBounds.bottom;
 
-    const moveLeft = movingBounds[0];
-    const moveTop = movingBounds[1];
-    const moveRight = movingBounds[2];
-    const moveBottom = movingBounds[3];
+    const moveLeft = movingBounds.left;
+    const moveTop = movingBounds.top;
+    const moveRight = movingBounds.right;
+    const moveBottom = movingBounds.bottom;
 
     // Calculate centers
     const baseCenterX = (baseLeft + baseRight) / 2;
