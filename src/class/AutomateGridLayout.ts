@@ -186,7 +186,7 @@ class AutomateGridLayout {
 
         for (let i = 1; i <= docsNeeded; i++) {
 
-            const fileIndex = this.filesSeqIndex < 10 ? `0${this.filesSeqIndex + i}` : (this.filesSeqIndex + i).toString();
+            const fileIndex = (this.filesSeqIndex + i) < 10 ? `0${this.filesSeqIndex + i}` : (this.filesSeqIndex + i).toString();
 
             const isLastDoc = i === docsNeeded;
 
@@ -385,7 +385,7 @@ class AutomateGridLayout {
      */
     private createFrontDoc() {
 
-        const fileIndex = this.filesSeqIndex < 9 ? `0${this.filesSeqIndex + 1}` : (this.filesSeqIndex + 1).toString();
+        const fileIndex = (this.filesSeqIndex + 1) < 10 ? `0${this.filesSeqIndex + 1}` : (this.filesSeqIndex + 1).toString();
 
         const title = `${fileIndex}-F-${this.targetSizeChr}-${this.quantity} PCS`;
 
