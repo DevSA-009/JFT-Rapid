@@ -209,7 +209,7 @@ class Organizer {
      * @throws {Error} If either PANT cannot be found
      */
     static getPant(doc: Document = app.activeDocument): GroupItem {
-        const item = findElement(arrayFrom(doc.pageItems), item => item.name === "PANT");
+        const item = findElement(arrayFrom(doc.activeLayer.pageItems), item => item.name === "PANT");
 
         if (!item) {
             throw new Error(`Can't find PANT`);
