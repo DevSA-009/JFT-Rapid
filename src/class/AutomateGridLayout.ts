@@ -408,7 +408,30 @@ class AutomateGridLayout {
      */
     private alignCenterDocsItems(doc: Document) {
         const pagesItems = arrayFrom(doc.activeLayer.pageItems);
+        this.flipBackToX(pagesItems);
         alignPageItemsToArtboard(pagesItems, doc);
+    };
+
+    /**
+     * Flips items back to the correct orientation based on their position (row index),
+     * only when the mode is "B" and the recommended orientation is "H".
+     * Items at even-numbered positions (2, 4, 6, ...) are rotated 180 degrees.
+     *
+     * @param {PageItem[]} items - The list of items to potentially rotate.
+     * @returns {void}
+     */
+    private flipBackToX(items: PageItem[]): void {
+
+        if (this.mode === "B" && this.recommendedOrientation === "H") {
+            for (let i = 1; i <= items.length; i++) {
+                const item = items[i - 1];
+
+                if (i % 2 === 0) {
+                    rotateItems(item, 180);
+                }
+
+            }
+        }
     };
 
 }
