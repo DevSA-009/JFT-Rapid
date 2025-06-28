@@ -24,6 +24,19 @@ pantInitBtn.onclick = () => {
     csInterface.evalScript("initiatePant()");
 }
 
+// ---------- patch Object Key Handler Button --------- \\
+const makeObjKeyBtn = selectElementById("makeObjectKey");
+const destroyObjKeyBtn = selectElementById("destroyObjectKey");
+
+makeObjKeyBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectKeyHandler({dispatch:true})");
+}
+
+destroyObjKeyBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectKeyHandler({dispatch:false})");
+}
+
+
 /**
  * 
  * @param {HTMLElement} htmlElement 

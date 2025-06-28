@@ -200,7 +200,6 @@ class Organizer {
         return [F_L as PageItem, F_R as PageItem, B_L as PageItem, B_R as PageItem];
     };
 
-
     /**
      * 
      * @param {Document} doc - document. default is active document
@@ -218,6 +217,56 @@ class Organizer {
         return item as GroupItem;
     };
 
+    /**
+     * Handles the key object selection logic.
+     *
+     * This static method checks the current document and selection, and either sets or removes
+     * a custom `key` property on the selected item based on the `dispatch` flag.
+     *
+     * ### Error Cases:
+     * - No document open
+     * - No selection
+     * - Multiple items selected
+     *
+     * @param {KeyObjectHandlerParams} params - An object containing handler parameters.
+     * @param params.doc - The Illustrator document to operate on (defaults to `app.activeDocument`).
+     * @param params.dispatch - A boolean flag indicating whether to set (`true`) or remove (`false`) the `key` property on the selected object.
+     *
+     * @throws Will show an alert dialog with an error message if:
+     * - No document is open.
+     * - No object is selected.
+     * - More than one object is selected.
+     */
+    static objectKeyHandler(params: KeyObjectHandlerParams):void {
+        try {
+            const { doc = app.activeDocument, dispatch } = params;
+
+            const selection: Selection | undefined = doc.selection;
+
+            if (!doc) {
+                throw new Error("No opended document found");
+            }
+
+            if (!selection || !selection.length) {
+                throw new Error("Select a object");
+            }
+
+            if (selection.length > 1) {
+                throw new Error("Multiple key objects are not supported.");
+            }
+
+            const item = selection[0];
+
+            if (dispatch) {
+                item.key = true;
+            } else {
+                delete item.key
+            }
+        } catch (error:any) {
+            alertDialogSA(error.message)
+        }
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
@@ -231,6 +280,11 @@ type ArtboardScaler = {
     width: number;
     height: number;
 };
+
+interface KeyObjectHandlerParams {
+    dispatch:boolean,
+    doc?:Document
+}
 
 interface GetBodyDimenstionParams {
     sizeContainer: string;
