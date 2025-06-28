@@ -36,6 +36,24 @@ destroyObjKeyBtn.onclick = () => {
     csInterface.evalScript("Organizer.objectKeyHandler({dispatch:false})");
 }
 
+// ---------- patch Move After Button --------- \\
+const moveAfterLBtn = selectElementById(`moveAfterL`);
+const moveAfterTBtn = selectElementById(`moveAfterT`);
+const moveAfterRBtn = selectElementById(`moveAfterR`);
+const moveAfterBBtn = selectElementById(`moveAfterB`);
+
+moveAfterLBtn.onclick = () => {
+    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'L'})");
+}
+moveAfterTBtn.onclick = () => {
+    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'T'})");
+}
+moveAfterRBtn.onclick = () => {
+    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'R'})");
+}
+moveAfterBBtn.onclick = () => {
+    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'B'})");
+}
 
 /**
  * 

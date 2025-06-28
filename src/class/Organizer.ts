@@ -237,7 +237,7 @@ class Organizer {
      * - No object is selected.
      * - More than one object is selected.
      */
-    static objectKeyHandler(params: KeyObjectHandlerParams):void {
+    static objectKeyHandler(params: KeyObjectHandlerParams): void {
         try {
             const { doc = app.activeDocument, dispatch } = params;
 
@@ -262,7 +262,72 @@ class Organizer {
             } else {
                 delete item.key
             }
-        } catch (error:any) {
+        } catch (error: any) {
+            alertDialogSA(error.message)
+        }
+    };
+
+    /**
+     * Moves one selected object relative to a "key" object in the specified direction within the active document.
+     *
+     * Requires exactly two selected objects: one marked as the key object (`item.key === true`)
+     * and one to be moved. The method will reposition the non-key object based on the `direction` parameter.
+     *
+     * ### Error Cases:
+     * - No document is open.
+     * - Fewer than two or more than two objects selected.
+     * - Key object not found in selection.
+     * - Move target object not found.
+     *
+     * @param {MoveAfterItemUIParams} params - An object containing move parameters.
+     * @param params.direction - The direction to move the non-key object relative to the key object (e.g. `"before"` or `"after"`).
+     * @param params.doc - The Illustrator document (defaults to `app.activeDocument`).
+     *
+     * @throws Will show an alert dialog if any of the above errors occur.
+     */
+    static moveAfterItemUI(params: MoveAfterItemUIParams) {
+        try {
+            const { direction, doc = app.activeDocument } = params;
+
+            if (!doc) {
+                throw new Error("No open document found.");
+            }
+
+            const selection: Selection | undefined = doc.selection;
+
+            if (!selection || !selection.length) {
+                throw new Error("Please select two objects.");
+            }
+
+            if (selection.length < 2) {
+                throw new Error("Two objects must be selected.");
+            }
+
+            if (selection.length > 2) {
+                throw new Error("Only two objects can be selected.");
+            }
+
+            const keyItem = findElement(selection, (item) => item.key);
+
+            if (!keyItem) {
+                throw new Error("Key object not found in selection.");
+            }
+
+            const moveItem = findElement(selection, (item) => !item.key);
+
+            if (!moveItem) {
+                throw new Error("Object to move not found.");
+            }
+
+            moveItemAfter({
+                base: keyItem,
+                moving: moveItem,
+                position: direction,
+
+            });
+
+
+        } catch (error: any) {
             alertDialogSA(error.message)
         }
     };
@@ -282,11 +347,16 @@ type ArtboardScaler = {
 };
 
 interface KeyObjectHandlerParams {
-    dispatch:boolean,
-    doc?:Document
+    dispatch: boolean,
+    doc?: Document
 }
 
 interface GetBodyDimenstionParams {
     sizeContainer: string;
     targetSizeChr: ApparelSize;
+}
+
+interface MoveAfterItemUIParams {
+    direction: "L" | "R" | "T" | "B";
+    doc?: Document;
 }
