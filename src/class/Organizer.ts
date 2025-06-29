@@ -262,6 +262,7 @@ class Organizer {
             } else {
                 delete item.key
             }
+            app.beep();
         } catch (error: any) {
             alertDialogSA(error.message)
         }
