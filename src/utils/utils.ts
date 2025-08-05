@@ -60,35 +60,6 @@ const logMessage = (message: string) => {
 };
 
 /**
- * Formats a number to a specified number of decimal places.
- * 
- * @param {number} value - The number to format.
- * @param {number} [precision=4] - The number of decimal places to round to (default is 4).
- * @returns {number} The formatted number rounded to the given precision.
- */
-const formatNumber = (value: number, precision: number = 4): number => {
-    return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
-};
-
-/**
- * Rounds a given number up to the nearest number that is divisible by the specified divider.
- *
- * @param {number} quantity - The number to round up.
- * @param {number} divider - The number to divide by.
- * @returns {number} - The smallest number greater than or equal to `quantity` that is divisible by `divider`.
- *
- * @example
- * roundUpToDivisible(11, 5); // returns 15
- * roundUpToDivisible(13, 3); // returns 15
- * roundUpToDivisible(15, 3); // returns 15
- * roundUpToDivisible(16, 3); // returns 18
- */
-const roundUpToDivisible = (quantity: number, divider: number): number => {
-    const remainder = quantity % divider;
-    return remainder === 0 ? quantity : quantity + (divider - remainder);
-};
-
-/**
  * Positions one or more PageItems in the active artboard by aligning their center to specified edges or center points.
  * Handles both single item and multiple by temporarily grouping when needed.
  * 
@@ -359,95 +330,6 @@ const resizeSelection = (selection: Selection | PageItem, targetWidth: number = 
 };
 
 /**
- * Resizes multiple selected objects to a target width and height while maintaining their relative positions.
- * This approach avoids temporary grouping and scales each object individually.
- *
- * @param selection - Array of selected items in Illustrator.
- * @param targetWidth - The desired total width for the selection in points.
- * @param targetHeight - The desired total height for the selection in points.
- * @param maintainProportions - Whether to maintain proportions when resizing.
- */
-const resizeSelectionWithoutGrouping = (
-    selection: Selection,
-    targetWidth: number = 0,
-    targetHeight: number = 0,
-    maintainProportions: boolean = false
-): void => {
-    if (!selection || selection.length === 0) {
-        alert("No selection found!");
-        return;
-    }
-
-    // Get the overall bounds of the entire selection
-    const selectionBounds = getSelectionBounds(selection);
-    const { left, top, right, bottom } = selectionBounds;
-    const selectionWidth = right - left;
-    const selectionHeight = top - bottom;
-
-    // Calculate scaling factors based on the target dimensions
-    let scaleX = targetWidth ? targetWidth / selectionWidth : 1;
-    let scaleY = targetHeight ? targetHeight / selectionHeight : 1;
-
-    // Use the smaller scale factor if we want to maintain proportions
-    if (maintainProportions && targetWidth && targetHeight) {
-        const scaleFactor = Math.min(scaleX, scaleY);
-        scaleX = scaleY = scaleFactor;
-    }
-
-    // Calculate the center point of the original selection (pivot point)
-    const centerX = (left + right) / 2;
-    const centerY = (top + bottom) / 2;
-
-    // Process each item individually
-    for (let i = 0; i < selection.length; i++) {
-        const item = selection[i];
-
-        // Get the current item's bounds
-        const itemBounds = getSelectionBounds(item);
-
-        // Calculate the item's center
-        const itemCenterX = (itemBounds.left + itemBounds.right) / 2;
-        const itemCenterY = (itemBounds.top + itemBounds.bottom) / 2;
-
-        // Calculate the item's position relative to the selection center
-        const relativeX = itemCenterX - centerX;
-        const relativeY = itemCenterY - centerY;
-
-        // Calculate the new position after scaling
-        const newRelativeX = relativeX * scaleX;
-        const newRelativeY = relativeY * scaleY;
-
-        // Calculate the new center position for the item
-        const newItemCenterX = centerX + newRelativeX;
-        const newItemCenterY = centerY + newRelativeY;
-
-        // Use Illustrator's built-in resize method with transformation options
-        // This approach is more direct and avoids separate translate operations
-        item.resize(
-            scaleX * 100,
-            scaleY * 100,
-            true,  // changePositions
-            true,  // changeFillPatterns
-            true,  // changeFillGradients
-            true,  // changeStrokePatter
-        );
-
-        // Calculate the current position after resizing
-        const newBounds = getSelectionBounds(item);
-        const currentCenterX = (newBounds.left + newBounds.right) / 2;
-        const currentCenterY = (newBounds.top + newBounds.bottom) / 2;
-
-        // Calculate and apply the translation needed to move to the correct position
-        const translateX = newItemCenterX - currentCenterX;
-        const translateY = newItemCenterY - currentCenterY;
-
-        if (Math.abs(translateX) > 0.001 || Math.abs(translateY) > 0.001) {
-            item.translate(translateX, translateY);
-        }
-    }
-};
-
-/**
  * Finds the final (topmost) clipping path in a given group.
  * 
  * @param {GroupItem} groupItem - The Illustrator group item.
@@ -594,34 +476,6 @@ const moveItemAfter = (arg: MoveItemAfterParams) => {
 };
 
 /**
- * Gets the true visible bounds of a masked group by ignoring hidden areas.
- * 
- * @param {GroupItem} groupItem - The Illustrator group item.
- * @returns {number[] | null} - The visible bounds [left, top, right, bottom], or null if no mask found.
- */
-const getMaskedBounds = (groupItem: GroupItem): number[] | null => {
-    let finalClipPath = getFinalClippingPath(groupItem);
-    if (!finalClipPath) return null;
-
-    let bounds = finalClipPath.geometricBounds.slice(); // Start with clipping path bounds
-
-    for (let i = 0; i < groupItem.pageItems.length; i++) {
-        let item = groupItem.pageItems[i];
-        if (item !== finalClipPath) { // Ignore the mask itself
-            let itemBounds = item.geometricBounds;
-
-            // Adjust the bounds based on visible objects inside the mask
-            bounds[0] = Math.min(bounds[0], itemBounds[0]); // Left
-            bounds[1] = Math.max(bounds[1], itemBounds[1]); // Top
-            bounds[2] = Math.max(bounds[2], itemBounds[2]); // Right
-            bounds[3] = Math.min(bounds[3], itemBounds[3]); // Bottom
-        }
-    }
-
-    return bounds;
-};
-
-/**
  * Aligns a moving group item relative to a base group item with optional rotation handling.
  * 
  * @function
@@ -714,48 +568,6 @@ const getWHDimension = (bounds: BoundsObject): DimensionObject => {
     const width = (right - left) / 72;
     const height = (top - bottom) / 72;
     return { width, height };
-};
-
-/**
- * Computes the total height required to fit a given quantity of items in both 0-degree and 90-degree orientations.
- * Determines how many items fit per row, calculates the total height, and decides which orientation is preferable.
- * 
- * @param {DimensionObject} dim - The item dimensions used for layout calculations
- * @param {number} quantity - The total number of items to be arranged
- * @returns {RowInfoReturn} - An object containing layout details for both orientations and a recommended orientation.
- */
-const getRowInfo = (dim: DimensionObject, quantity: number): RowInfoReturn => {
-
-    const { width, height } = dim;
-
-    // Determine how many items fit per row in both orientations
-    const fitCount0 = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (width + CONFIG.Items_Gap)));
-    const fitCount90 = Math.max(1, Math.floor(CONFIG.PAPER_MAX_SIZE / (height + CONFIG.Items_Gap)));
-
-    // Calculate the number of full rows needed
-    const rowsIn0 = Math.max(1, Math.floor(quantity / fitCount0));
-    const rowsIn90 = Math.max(1, Math.floor(quantity / fitCount90));
-
-    // Calculate remaining items that do not fit in a full row
-    let remaining0 = quantity % fitCount0;
-    let remaining90 = quantity % fitCount90;
-
-    // Ensure that if only one item fits per row, the remaining count is adjusted
-    if (fitCount0 === 1) remaining0 = quantity - 1;
-    if (fitCount90 === 1) remaining90 = quantity - 1;
-
-    // Calculate total height for both orientations
-    const totalHeight0 = rowsIn0 * height;
-    const totalHeight90 = rowsIn90 * width;
-
-    // Determine if 90-degree orientation is preferable
-    const recommendedIn90 = totalHeight90 <= totalHeight0;
-
-    return {
-        rowIn0: { x: fitCount0, y: rowsIn0, height: totalHeight0, remaining: remaining0, remainingStartIndex: rowsIn0 * fitCount0 },
-        rowIn90: { x: fitCount90, y: rowsIn90, height: totalHeight90, remaining: remaining90, remainingStartIndex: rowsIn90 * fitCount90 },
-        recommendedIn90
-    };
 };
 
 /**

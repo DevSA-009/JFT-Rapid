@@ -1,31 +1,13 @@
 type findElementCb<T> = (element: T, index?: number) => boolean;
-interface RowInfo {
-    height: number;
-    remaining: number;
-    y: number;
-    x: number;
-    remainingStartIndex: number;
-}
 
 interface JFTRapid_Config {
     readonly PAPER_MAX_SIZE:number;
     readonly Size_Container:SizeContainer;
     Items_Gap:number;
+    kidsinV:boolean;
     sizeInc:number;
     orientation:"Auto" | LayoutShapeConstants;
     perDoc: number;
-}
-
-interface RowInfoReturn {
-    rowIn0: RowInfo;
-    rowIn90: RowInfo;
-    recommendedIn90: boolean;
-}
-
-interface OrgBodyItem {
-    item: PageItem;
-    x: number;
-    y: number;
 }
 
 type Selection = PageItem[];
@@ -42,17 +24,6 @@ type ApparelSize = MensSize | BabySize;
 
 type Mode = keyof typeof GridMode;
 
-interface CalculateDocRowDistributionParams {
-    dim: DimensionObject;
-    rowLength: number;
-    perDoc?:number;
-    to90?: boolean;
-}
-interface CalculateDocRowDistributionReturn {
-    docNeed: number;
-    perDocRow: number;
-}
-
 type PantItems = [PageItem,PageItem,PageItem,PageItem];
 
 interface Person {
@@ -64,8 +35,6 @@ type BasePositions = "L" | "R" | "T" | "B";
 
 type RotateDegrees = 90 | -90 | 180 | 0 | -180;
 
-type RunFunctionParams = ((doc: Application["activeDocument"]) => {}) | (() => {}) | null;
-
 type AlignPosition = BasePositions | "LC" | "RC" | "TC" | "BC" | "C" | "CX" | "CY";
 
 interface MoveItemAfterParams {
@@ -76,16 +45,6 @@ interface MoveItemAfterParams {
 }
 
 type BodyItems = [PageItem, PageItem];
-
-interface FixOrganizeRotateAlignParams {
-    to90: boolean;
-    lastItem: GroupItem;
-    baseItem: GroupItem;
-}
-
-type DataListContainer = {
-    [key in MensSize | BabySize]: Person[];
-};
 
 type BabySizeCategory = {
     [key in BabySize]: DimensionObject
