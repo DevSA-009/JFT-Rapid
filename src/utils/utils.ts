@@ -320,7 +320,7 @@ const resizeSelection = (selection: Selection | PageItem, targetWidth: number = 
     } else {
         const targetItem = isArray(selection) ? (selection as Selection)[0] : selection as PageItem;
         const topMostItem = getSelectionBounds(targetItem);
-        const {left,bottom,right,top} = topMostItem;
+        const { left, bottom, right, top } = topMostItem;
         const { width, height } = getWHDimension({ left, right, top, bottom });
         // Calculate scaling factors for both width and height
         const scaleX = targetWidth ? (targetWidth / width) * 100 : 100;
@@ -330,30 +330,84 @@ const resizeSelection = (selection: Selection | PageItem, targetWidth: number = 
 };
 
 /**
- * Finds the final (topmost) clipping path in a given group.
+ * Finds and returns the largest object by area within a given PageItem hierarchy.
+ * Handles both individual objects and groups, including clipped groups where it 
+ * specifically looks for clipping paths.
  * 
- * @param {GroupItem} groupItem - The Illustrator group item.
- * @returns {PathItem | null} - The final clipping path, or null if not found.
+ * @param item - The root PageItem to search within (can be GroupItem, PathItem, TextFrame, etc.)
+ * @returns The PageItem with the largest area, or null if no valid objects are found
+ * 
+ * @example
+ * ```typescript
+ * // Find largest object in a selection
+ * const selection = app.activeDocument.selection[0];
+ * const largestObject = getFinalClippingPath(selection);
+ * 
+ * if (largestObject) {
+ *   alert(`Largest object area: ${largestObject.width * largestObject.height}`);
+ * }
+ * ```
+ * 
+ * @remarks
+ * - For clipped groups, only examines clipping paths
+ * - For unclipped groups, recursively searches all child items  
+ * - Compares objects by total area (width × height)
+ * - Uses geometric bounds for size calculations
+ * 
+ * @since 1.0.0
  */
-const getFinalClippingPath = (groupItem: GroupItem): PathItem | null => {
-    if (!groupItem || groupItem.pageItems.length === 0) return null;
+const getTopClippingPath = (item: PageItem): PageItem | null => {
 
-    let clipPaths: PathItem[] = [];
+    let largestObject: PageItem | null = null;
+    let largestArea: number = 0;
 
-    const findClippingPaths = (item: PageItem): void => {
+    /**
+     * Processes an Illustrator item and finds the largest object by area.
+     * @param item - The Illustrator item (PathItem, GroupItem, TextFrame, etc.).
+     */
+    const processItem = (item: PageItem): void => {
         if (item.typename === PageItemType.GroupItem) {
-            let group = item as GroupItem;
-            for (let i = 0; i < group.pageItems.length; i++) {
-                findClippingPaths(group.pageItems[i]);
+            if (item.clipped) {
+                // Find the clipping path within the clipped group
+                for (let i = 0; i < item.pageItems.length; i++) {
+                    const child = item.pageItems[i];
+                    if (child.clipping) {
+                        checkIfLargest(child);
+                        break; // Stop iterating within this GroupItem
+                    }
+                }
+            } else {
+                // Recursively process child items for un-clipped groups
+                for (let i = 0; i < item.pageItems.length; i++) {
+                    processItem(item.pageItems[i]);
+                }
             }
-        } else if (item.typename === PageItemType.PathItem && (item as PathItem).clipping) {
-            clipPaths.push(item as PathItem);
         }
-    }
+    };
 
-    findClippingPaths(groupItem);
+    /**
+     * Checks if the current item is larger than the previously found largest item.
+     * @param item - The item to check.
+     */
+    const checkIfLargest = (item: PageItem): void => {
+        const bounds = item.geometricBounds;
+        const [left, top, right, bottom] = bounds;
 
-    return clipPaths.length > 0 ? clipPaths[clipPaths.length - 1] : null;
+        // Calculate width and height
+        const width = Math.abs(right - left);
+        const height = Math.abs(top - bottom);
+        const area = width * height;
+
+        // Update largest object if this one is bigger
+        if (area > largestArea) {
+            largestArea = area;
+            largestObject = item;
+        }
+    };
+
+    processItem(item);
+
+    return largestObject;
 };
 
 /**
@@ -632,9 +686,9 @@ const selectItemsInDoc = ({ doc, items, clear = true }: SelectItemsInDocParams):
  *
  * @throws {Error} - Throws an alert dialog if the size token text frame is not found.
  */
-const renameSizeTKN = (item:GroupItem,targetSizeChr:ApparelSize): void => {
+const renameSizeTKN = (item: GroupItem, targetSizeChr: ApparelSize): void => {
     const sizeTextFrame = findElement(item.pageItems, (item) => item.typename === PageItemType.TextFrame && item.name === SearchingKeywords.SIZE_TKN);
-    if(sizeTextFrame) {
+    if (sizeTextFrame) {
         (sizeTextFrame as TextFrame).contents = `size-${targetSizeChr}`.toUpperCase();
     } else {
         alertDialogSA(`Size token not found in ${item.name}`);

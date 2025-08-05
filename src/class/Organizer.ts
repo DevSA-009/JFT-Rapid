@@ -269,6 +269,44 @@ class Organizer {
     };
 
     /**
+     * select all clipped path from selection
+     */
+    static selectTopClippingPath () {
+        try {
+            const doc = app.activeDocument;
+            if (!doc) {
+                throw new Error("No open document found.");
+            }
+
+            const selection: Selection | undefined = doc.selection;
+
+            if (!selection || !selection.length) {
+                throw new Error("Please select objects.");
+            }
+
+            const clippingPathObjects:PageItem[] = [];
+
+            for (let i = 0; i < selection.length; i++) {
+                const item = selection[i];                
+                const topClippingPath = getTopClippingPath(item);
+                if(topClippingPath) {
+                    clippingPathObjects.push(topClippingPath);
+                }
+            }
+
+            if(clippingPathObjects.length) {
+                doc.selection = null;
+                doc.selection = clippingPathObjects;
+            } else {
+                alertDialogSA(`No clipping path found!`)
+            }
+
+        } catch (error:any) {
+            alertDialogSA(error.message)
+        }
+    };
+
+    /**
      * Moves one selected object relative to a "key" object in the specified direction within the active document.
      *
      * Requires exactly two selected objects: one marked as the key object (`item.key === true`)

@@ -27,6 +27,11 @@ pantInitBtn.onclick = () => {
 // ---------- patch Object Key Handler Button --------- \\
 const makeObjKeyBtn = selectElementById("makeObjectKey");
 const destroyObjKeyBtn = selectElementById("destroyObjectKey");
+const selectClipPathBtn = selectElementById("selectClipPath");
+
+selectClipPathBtn.onclick = () => {
+    csInterface.evalScript("Organizer.selectTopClippingPath()")
+}
 
 makeObjKeyBtn.onclick = () => {
     csInterface.evalScript("Organizer.objectKeyHandler({dispatch:true})");
