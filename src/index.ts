@@ -3,7 +3,7 @@ const JFT_CONF_PRODUCTION_PATH = "C:\\Users\\Admin\\AppData\\Roaming\\Adobe\\CEP
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
-const sizeContainerFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH).read();
+const sizeContainerFetch = new JSONFileHandler(JFT_CONF_DEV_PATH).read();
 
 const CONFIG: JFTRapid_Config = {
     Items_Gap: 0.1,
@@ -11,6 +11,7 @@ const CONFIG: JFTRapid_Config = {
     sizeInc: 0,
     PAPER_MAX_SIZE: 63.25,
     Size_Container: sizeContainerFetch as SizeContainer,
+    kidsinV:false,
     perDoc: 0
 };
 
@@ -19,7 +20,9 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
         const { mode, quantity, sizeContainer, targetSizeChr } = params;
 
         // ----------------- validation chaining ---------------\\
-        ValidatorManager.checkBodyItems(app.activeDocument);
+        if(mode !== "PANT") {
+            ValidatorManager.checkBodyItems(app.activeDocument);
+        }
         // ----------------- validation chaining ---------------\\
 
         const dimension = Organizer.getBodyDimenstion({ sizeContainer, targetSizeChr });
@@ -49,8 +52,8 @@ const initiatePant = () => {
 };
 
 // gridMenuallyCB({
-//     mode:"PANT",
-//     quantity:3,
+//     mode:"B",
+//     quantity:4,
 //     sizeContainer:"JFT",
-//     targetSizeChr:"L"
+//     targetSizeChr:"XL"
 // })

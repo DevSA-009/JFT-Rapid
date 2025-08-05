@@ -18,7 +18,7 @@
 class AutomateGridLayout {
     private mode: Mode;
     private quantity: number;
-    private bodyItems: BodyItems;
+    private bodyItems: BodyItems | null = null;
     private docItems: PageItem[] | null = null;
     private dimension: DimensionObject;
     private gridLayoutInfo: LayoutInfo;
@@ -46,7 +46,10 @@ class AutomateGridLayout {
         this.quantity = params.quantity;
         this.mode = params.mode;
         this.setMainDocSelection();
-        this.bodyItems = Organizer.getBodyItems(this.docItems!);
+        
+        if(this.mode !== "PANT") {
+            this.bodyItems = Organizer.getBodyItems(this.docItems!);
+        }
         this.dimension = params.dimension;
         this.filesSeqIndex = params.filesSeqIndex;
         this.targetSizeChr = params.targetSizeChr;
@@ -389,7 +392,7 @@ class AutomateGridLayout {
 
         const title = `${fileIndex}-F-${this.targetSizeChr}-${this.quantity} PCS`;
 
-        const docsIns = this.documentCreator({ title, items: this.bodyItems });
+        const docsIns = this.documentCreator({ title, items: this.bodyItems! });
 
         const initiateItem = this.initiateBody(docsIns.doc);
 
