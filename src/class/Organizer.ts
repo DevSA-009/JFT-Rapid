@@ -271,7 +271,7 @@ class Organizer {
     /**
      * select all clipped path from selection
      */
-    static selectTopClippingPath () {
+    static selectTopClippingPath() {
         try {
             const doc = app.activeDocument;
             if (!doc) {
@@ -284,24 +284,61 @@ class Organizer {
                 throw new Error("Please select objects.");
             }
 
-            const clippingPathObjects:PageItem[] = [];
+            const clippingPathObjects: PageItem[] = [];
 
             for (let i = 0; i < selection.length; i++) {
-                const item = selection[i];                
+                const item = selection[i];
                 const topClippingPath = getTopClippingPath(item);
-                if(topClippingPath) {
+                if (topClippingPath) {
                     clippingPathObjects.push(topClippingPath);
                 }
             }
 
-            if(clippingPathObjects.length) {
+            if (clippingPathObjects.length) {
                 doc.selection = null;
                 doc.selection = clippingPathObjects;
             } else {
                 alertDialogSA(`No clipping path found!`)
             }
 
-        } catch (error:any) {
+        } catch (error: any) {
+            alertDialogSA(error.message)
+        }
+    };
+
+    /**
+     * check the objects are opacity mask existing by moving and rotateting
+     */
+    static checkisOpacityMask() {
+        try {
+
+            const doc = app.activeDocument;
+            if (!doc) {
+                throw new Error("No open document found.");
+            }
+
+            const selection: Selection | undefined = doc.selection;
+
+            if (!selection || !selection.length) {
+                throw new Error("Please select objects.");
+            }
+
+            const groupManager = new GroupManager(selection);
+
+            groupManager.group();
+
+            const gorupItem = groupManager.tempGroup;
+
+            if (!gorupItem) {
+                throw new Error(`Can't grouping`);
+            }
+
+            rotateItems(gorupItem, -90);
+
+            moveItemToCanvas(gorupItem, "T");
+            moveItemToCanvas(gorupItem, "L");
+
+        } catch (error: any) {
             alertDialogSA(error.message)
         }
     };

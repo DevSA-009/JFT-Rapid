@@ -17,6 +17,7 @@ gridLayoutBtn.onclick = () => {
     csInterface.evalScript("gridMenualInfoDialog()");
 }
 
+
 // ---------- patch Initiate Pant Button Layout Button --------- \\
 const pantInitBtn = selectElementById("pantInit");
 
@@ -28,9 +29,14 @@ pantInitBtn.onclick = () => {
 const makeObjKeyBtn = selectElementById("makeObjectKey");
 const destroyObjKeyBtn = selectElementById("destroyObjectKey");
 const selectClipPathBtn = selectElementById("selectClipPath");
+const checkOpacityMaskBtn = selectElementById("checkOpacityMask");
 
 selectClipPathBtn.onclick = () => {
-    csInterface.evalScript("Organizer.selectTopClippingPath()")
+    csInterface.evalScript("Organizer.selectTopClippingPath()");
+}
+
+checkOpacityMaskBtn.onclick = () => {
+    csInterface.evalScript("Organizer.checkisOpacityMask()");
 }
 
 makeObjKeyBtn.onclick = () => {
