@@ -40,11 +40,11 @@ checkOpacityMaskBtn.onclick = () => {
 }
 
 makeObjKeyBtn.onclick = () => {
-    csInterface.evalScript("Organizer.objectKeyHandler({dispatch:true})");
+    csInterface.evalScript("Organizer.objectKeyHandler(true)");
 }
 
 destroyObjKeyBtn.onclick = () => {
-    csInterface.evalScript("Organizer.objectKeyHandler({dispatch:false})");
+    csInterface.evalScript("Organizer.objectKeyHandler(false)");
 }
 
 // ---------- patch Move After Button --------- \\
@@ -54,16 +54,16 @@ const moveAfterRBtn = selectElementById(`moveAfterR`);
 const moveAfterBBtn = selectElementById(`moveAfterB`);
 
 moveAfterLBtn.onclick = () => {
-    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'L'})");
+    csInterface.evalScript("Organizer.moveAfterItemUI('L')");
 }
 moveAfterTBtn.onclick = () => {
-    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'T'})");
+    csInterface.evalScript("Organizer.moveAfterItemUI('T')");
 }
 moveAfterRBtn.onclick = () => {
-    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'R'})");
+    csInterface.evalScript("Organizer.moveAfterItemUI('R')");
 }
 moveAfterBBtn.onclick = () => {
-    csInterface.evalScript("Organizer.moveAfterItemUI({direction:'B'})");
+    csInterface.evalScript("Organizer.moveAfterItemUI('B')");
 }
 
 /**

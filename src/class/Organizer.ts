@@ -3,6 +3,27 @@
  * Provides static methods for artboard manipulation and item alignment.
  */
 class Organizer {
+
+    /**
+     * Verifies that there is an active document and a valid selection.
+     *
+     * @returns {SelectionVerifyChainReturn} An object containing the active document and selection if valid; otherwise.
+     */
+    static selectionVerifyChain(): SelectionVerifyChainReturn {
+        const doc = app.activeDocument;
+        if (!doc) {
+            throw new Error("No open document found.");
+        }
+
+        const selection: Selection | undefined = doc.selection;
+
+        if (!selection || !selection.length) {
+            throw new Error("Please select objects.");
+        }
+
+        return { selection, doc }
+    };
+
     /**
      * Resizes an artboard in the document based on specified dimensions (in inches).
      * Converts inches to points (1 inch = 72 points) for internal processing.
@@ -227,29 +248,17 @@ class Organizer {
      * - No document open
      * - No selection
      * - Multiple items selected
-     *
-     * @param {KeyObjectHandlerParams} params - An object containing handler parameters.
-     * @param params.doc - The Illustrator document to operate on (defaults to `app.activeDocument`).
-     * @param params.dispatch - A boolean flag indicating whether to set (`true`) or remove (`false`) the `key` property on the selected object.
+     * @param {boolean} dispatch - A boolean flag indicating whether to set (`true`) or remove (`false`) the `key` property on the selected object.
      *
      * @throws Will show an alert dialog with an error message if:
      * - No document is open.
      * - No object is selected.
      * - More than one object is selected.
      */
-    static objectKeyHandler(params: KeyObjectHandlerParams): void {
+    static objectKeyHandler(dispatch: boolean): void {
         try {
-            const { doc = app.activeDocument, dispatch } = params;
 
-            const selection: Selection | undefined = doc.selection;
-
-            if (!doc) {
-                throw new Error("No opended document found");
-            }
-
-            if (!selection || !selection.length) {
-                throw new Error("Select a object");
-            }
+            const { selection } = this.selectionVerifyChain();
 
             if (selection.length > 1) {
                 throw new Error("Multiple key objects are not supported.");
@@ -273,17 +282,7 @@ class Organizer {
      */
     static selectTopClippingPath() {
         try {
-            const doc = app.activeDocument;
-            if (!doc) {
-                throw new Error("No open document found.");
-            }
-
-            const selection: Selection | undefined = doc.selection;
-
-            if (!selection || !selection.length) {
-                throw new Error("Please select objects.");
-            }
-
+            const { doc, selection } = this.selectionVerifyChain();
             const clippingPathObjects: PageItem[] = [];
 
             for (let i = 0; i < selection.length; i++) {
@@ -302,7 +301,7 @@ class Organizer {
             }
 
         } catch (error: any) {
-            alertDialogSA(error.message)
+            alertDialogSA(error.message);
         }
     };
 
@@ -312,16 +311,7 @@ class Organizer {
     static checkisOpacityMask() {
         try {
 
-            const doc = app.activeDocument;
-            if (!doc) {
-                throw new Error("No open document found.");
-            }
-
-            const selection: Selection | undefined = doc.selection;
-
-            if (!selection || !selection.length) {
-                throw new Error("Please select objects.");
-            }
+            const { selection } = this.selectionVerifyChain();
 
             const groupManager = new GroupManager(selection);
 
@@ -355,25 +345,14 @@ class Organizer {
      * - Key object not found in selection.
      * - Move target object not found.
      *
-     * @param {MoveAfterItemUIParams} params - An object containing move parameters.
-     * @param params.direction - The direction to move the non-key object relative to the key object (e.g. `"before"` or `"after"`).
-     * @param params.doc - The Illustrator document (defaults to `app.activeDocument`).
+     * @param { MoveAfterItemUiDirection } direction - The direction to move the non-key object relative to the key object (e.g. `"before"` or `"after"`).
      *
      * @throws Will show an alert dialog if any of the above errors occur.
      */
-    static moveAfterItemUI(params: MoveAfterItemUIParams) {
+    static moveAfterItemUI(direction: MoveAfterItemUiDirection) {
         try {
-            const { direction, doc = app.activeDocument } = params;
 
-            if (!doc) {
-                throw new Error("No open document found.");
-            }
-
-            const selection: Selection | undefined = doc.selection;
-
-            if (!selection || !selection.length) {
-                throw new Error("Please select two objects.");
-            }
+            const { selection } = this.selectionVerifyChain();
 
             if (selection.length < 2) {
                 throw new Error("Two objects must be selected.");
@@ -422,17 +401,14 @@ type ArtboardScaler = {
     height: number;
 };
 
-interface KeyObjectHandlerParams {
-    dispatch: boolean,
-    doc?: Document
-}
-
 interface GetBodyDimenstionParams {
     sizeContainer: string;
     targetSizeChr: ApparelSize;
 }
 
-interface MoveAfterItemUIParams {
-    direction: "L" | "R" | "T" | "B";
-    doc?: Document;
+type MoveAfterItemUiDirection = "L" | "R" | "T" | "B";
+
+interface SelectionVerifyChainReturn {
+    selection: Selection;
+    doc: Document
 }
