@@ -2,7 +2,7 @@ type findElementCb<T> = (element: T, index?: number) => boolean;
 
 interface JFTRapid_Config {
     readonly PAPER_MAX_SIZE:number;
-    readonly Size_Container:SizeContainer;
+    Persist_Config: PersistConfig;
     Items_Gap:number;
     kidsinV:boolean;
     sizeInc:number;
@@ -59,9 +59,15 @@ interface SizeCategory {
     "BABY": BabySizeCategory;
 }
 
-interface SizeContainer {
-    [key: string]: SizeCategory
+interface PersistConfig {
+    "config": {
+        "container":string
+    };
+    "sizes": {
+        [key: string]: SizeCategory;
+    };
 }
+
 
 type BoundsObject = { left: number; top: number; right: number; bottom: number }
 type DimensionObject = { width: number; height: number; }

@@ -136,8 +136,7 @@ class Organizer {
      */
     static getBodyDimenstion(params: GetBodyDimenstionParams): DimensionObject {
         const { sizeContainer, targetSizeChr } = params;
-        const sizeCategory =
-            CONFIG.Size_Container[sizeContainer as keyof typeof CONFIG.Size_Container];
+        const sizeCategory = CONFIG.Persist_Config.sizes[sizeContainer as keyof typeof CONFIG.Persist_Config.sizes];
         const isBaby = isBabySize(targetSizeChr, sizeCategory["BABY"]);
         return getDimensionGenderCategory(
             sizeCategory,

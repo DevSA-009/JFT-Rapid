@@ -3,15 +3,15 @@ const JFT_CONF_PRODUCTION_PATH = "C:\\Users\\Admin\\AppData\\Roaming\\Adobe\\CEP
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
-const sizeContainerFetch = new JSONFileHandler(JFT_CONF_DEV_PATH).read();
+const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_DEV_PATH);
 
 const CONFIG: JFTRapid_Config = {
     Items_Gap: 0.1,
     orientation: "Auto",
     sizeInc: 0,
     PAPER_MAX_SIZE: 63.25,
-    Size_Container: sizeContainerFetch as SizeContainer,
-    kidsinV:false,
+    Persist_Config: ((JFTPersistConfigFetch).read() as PersistConfig),
+    kidsinV: false,
     perDoc: 0
 };
 
@@ -20,7 +20,7 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
         const { mode, quantity, sizeContainer, targetSizeChr } = params;
 
         // ----------------- validation chaining ---------------\\
-        if(mode !== "PANT") {
+        if (mode !== "PANT") {
             ValidatorManager.checkBodyItems(app.activeDocument);
         }
         // ----------------- validation chaining ---------------\\
@@ -35,7 +35,13 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
             dimension,
             targetSizeChr,
             filesSeqIndex
-        })
+        });
+
+        const newPersist_Config = { ...CONFIG.Persist_Config };
+
+        newPersist_Config.config["container"] = sizeContainer;
+
+        JFTPersistConfigFetch.write(newPersist_Config);
 
     } catch (error: any) {
         alertDialogSA(error.message);
