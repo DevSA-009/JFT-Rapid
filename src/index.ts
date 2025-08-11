@@ -40,6 +40,7 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
         const newPersist_Config = { ...CONFIG.Persist_Config };
 
         newPersist_Config.config["container"] = sizeContainer;
+        newPersist_Config.config["mode"] = mode;
 
         JFTPersistConfigFetch.write(newPersist_Config);
 

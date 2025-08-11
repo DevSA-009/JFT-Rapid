@@ -73,7 +73,8 @@ const gridMenualInfoDialog = () => {
 
         const gridModeList_array = objectKeys(GridMode);
         const gridModeList = modeGrp.add("dropdownlist", undefined, undefined, { name: "gridModeList", items: gridModeList_array });
-        gridModeList.selection = 0;
+        const currentMode = CONFIG.Persist_Config.config["mode"];
+        gridModeList.selection = indexOf(gridModeList_array, currentMode);
         gridModeList.preferredSize.width = 70;
         gridModeList.preferredSize.height = 10;
         gridModeList.alignment = ["center", "center"];

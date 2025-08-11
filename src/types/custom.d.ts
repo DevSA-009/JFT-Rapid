@@ -1,12 +1,12 @@
 type findElementCb<T> = (element: T, index?: number) => boolean;
 
 interface JFTRapid_Config {
-    readonly PAPER_MAX_SIZE:number;
+    readonly PAPER_MAX_SIZE: number;
     Persist_Config: PersistConfig;
-    Items_Gap:number;
-    kidsinV:boolean;
-    sizeInc:number;
-    orientation:"Auto" | LayoutShapeConstants;
+    Items_Gap: number;
+    kidsinV: boolean;
+    sizeInc: number;
+    orientation: "Auto" | LayoutShapeConstants;
     perDoc: number;
 }
 
@@ -24,7 +24,7 @@ type ApparelSize = MensSize | BabySize;
 
 type Mode = keyof typeof GridMode;
 
-type PantItems = [PageItem,PageItem,PageItem,PageItem];
+type PantItems = [PageItem, PageItem, PageItem, PageItem];
 
 interface Person {
     readonly number: number;
@@ -61,7 +61,8 @@ interface SizeCategory {
 
 interface PersistConfig {
     "config": {
-        "container":string
+        "container": string;
+        "mode": Mode;
     };
     "sizes": {
         [key: string]: SizeCategory;
@@ -79,8 +80,8 @@ interface SelectItemsInDocParams {
 }
 
 interface OrgManuallyParams {
-    readonly mode:Mode;
-    readonly quantity:number;
-    readonly targetSizeChr:ApparelSize;
-    readonly sizeContainer:string;
+    readonly mode: Mode;
+    readonly quantity: number;
+    readonly targetSizeChr: ApparelSize;
+    readonly sizeContainer: string;
 }
