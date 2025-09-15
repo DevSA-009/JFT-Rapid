@@ -8,16 +8,17 @@ const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_DEV_PATH);
 const CONFIG: JFTRapid_Config = {
     Items_Gap: 0.1,
     orientation: "Auto",
-    sizeInc: 0,
+    outlineNANO: false,
     PAPER_MAX_SIZE: 63.25,
     Persist_Config: ((JFTPersistConfigFetch).read() as PersistConfig),
     kidsinV: false,
-    perDoc: 0
+    perDoc: 0,
+    sKeywords:[SearchingKeywords.NAME,SearchingKeywords.NO]
 };
 
 const gridMenuallyCB = (params: OrgManuallyParams) => {
     try {
-        const { mode, quantity, sizeContainer, targetSizeChr } = params;
+        const { mode, quantity, sizeContainer, targetSizeChr,data,process } = params;
 
         // ----------------- validation chaining ---------------\\
         if (mode !== "PANT") {
@@ -34,7 +35,9 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
             quantity,
             dimension,
             targetSizeChr,
-            filesSeqIndex
+            filesSeqIndex,
+            data,
+            process
         });
 
         const newPersist_Config = { ...CONFIG.Persist_Config };
@@ -58,9 +61,111 @@ const initiatePant = () => {
     }
 };
 
+const testData = {
+    S: [
+        {
+            NAME: "Sumon",
+            NO: 15
+        }
+    ],
+    M: [
+        {
+            NAME: "Safin",
+            NO: "99"
+        },
+        {
+            NAME: "Piyash",
+            NO: "7"
+        }
+    ],
+    L: [
+        {
+            NAME: "Atik Khan",
+            NO: "000"
+        },
+        {
+            NAME: "Romjan Rafi",
+            NO: "27"
+        }
+    ],
+    XL: [
+        {
+            NAME: "NIBIR",
+            NO: "16"
+        }
+    ],
+    "2XL": [
+        {
+            NAME: "Fahim",
+            NO: ""
+        }
+    ],
+    "3XL": [
+        {
+            NAME: "Sumon",
+            NO: "100"
+        }
+    ]
+};
+
+const automateNANO = (params: OrgAutoParams) => {
+    try {
+        const { mode, data, sizeContainer } = params;
+
+        const sizeList_array = objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["MENS"])
+            .concat(objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["BABY"]));
+
+        const parsedData = JSONSA.parse(data) as typeof data;
+
+        const filteredDataObj: Partial<typeof data> = {};
+
+        const missedTargetSizes:ApparelSize[] = [];
+
+        for (const size in parsedData) {
+            if (arrayIncludes(sizeList_array, size)) {
+                filteredDataObj[size as ApparelSize] = parsedData[size as ApparelSize];
+            } else {
+                missedTargetSizes.push(size as ApparelSize);
+            }
+        }
+
+        if(missedTargetSizes.length) {
+            alertDialogSA(`Missing Size = ${missedTargetSizes.toString()}`);
+        }
+
+        for (const size in filteredDataObj) {
+            const typedKey = size as keyof typeof data;
+             const element = data[typedKey];
+             const quantity = element.length;
+
+             if(!quantity) {
+                continue
+             }
+
+             gridMenuallyCB({
+                mode,
+                quantity,
+                sizeContainer,
+                targetSizeChr:size as ApparelSize,
+                process:"10",
+                data:element
+             })
+        }
+
+    } catch (error: any) {
+        alertDialogSA(error.message);
+    }
+};
+
+
 // gridMenuallyCB({
 //     mode:"B",
 //     quantity:4,
-//     sizeContainer:"JFT",
-//     targetSizeChr:"XL"
+//     sizeContainer:"SLV",
+//     targetSizeChr:"2XL",
+//     data:null,
+//     process:"01"
 // })
+
+
+automateInfoDialog()

@@ -15,7 +15,16 @@ enum SearchingKeywords {
     F_SLV = "F_SLV",
     H_SLV = "H_SLV",
     NO = "NO",
-    NAME = "NAME"
+    NAME = "NAME",
+    F_NO = "F_NO"
+}
+
+enum NANOBaseSize {
+    NAME = 9.7,
+    F_NO = 2.75,
+    NO = 9,
+    BASE_BODY = 19.5,
+    BASE_GAP = 0.5
 }
 
 enum SearchingKeywordsForPant {

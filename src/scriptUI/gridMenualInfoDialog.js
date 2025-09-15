@@ -308,7 +308,9 @@ const gridMenualInfoDialog = () => {
                 mode: gridModeList.selection.text,
                 quantity: quantityField.text ? parseInt(quantityField.text) : 0,
                 sizeContainer: sizeContainerList.selection.text,
-                targetSizeChr: sizeList.selection.text
+                targetSizeChr: sizeList.selection.text,
+                process:"01",
+                data:null
             });
         }
     } catch (error) {

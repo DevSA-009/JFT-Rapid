@@ -113,3 +113,24 @@ const endSlice = (
     }
     return originalVal.slice(0, originalVal.length - sliceValue);
 };
+
+/**
+ * Checks if a given value exists in an array using strict equality (===).
+ *
+ * @template T - The type of elements in the array.
+ * @param {T[]} arr - The array to search in.
+ * @param {T} value - The value to search for.
+ * @returns {boolean} - Returns `true` if the value is found, otherwise `false`.
+ *
+ * @example
+ * ```ts
+ * includes([1, 2, 3], 2); // true
+ * includes(['a', 'b', 'c'], 'd'); // false
+ * ```
+ */
+const arrayIncludes = <T>(arr: T[], value: T): boolean => {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === value) return true;
+    }
+    return false;
+};

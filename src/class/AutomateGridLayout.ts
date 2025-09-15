@@ -27,7 +27,8 @@ class AutomateGridLayout {
     private recommendedOrientation: LayoutShapeConstants;
     private filesSeqIndex: number;
     private itemIdx: number = 1; // that is next body item serial
-    private process: "01" | "10" = "01";
+    private process: Process;
+    private data: null | Person[] = null;
 
     /**
      * Creates a new AutomateGridLayout instance and initiates the grid layout process.
@@ -46,6 +47,9 @@ class AutomateGridLayout {
         this.quantity = params.quantity;
         this.mode = params.mode;
         this.setMainDocSelection();
+
+        this.process = params.process;
+        this.data = params.data;
         
         if(this.mode !== "PANT") {
             this.bodyItems = Organizer.getBodyItems(this.docItems!);
@@ -230,7 +234,7 @@ class AutomateGridLayout {
      */
     private getItemIndex(): string {
         const indexStr = this.itemIdx < 10 ? `0${this.itemIdx}` : `${this.itemIdx}`;
-        return `${this.mode}-${indexStr}`
+        return `${this.recommendedOrientation === "L" ? "FB-L" : this.mode}-${indexStr}`
     };
 
     /**
@@ -274,7 +278,92 @@ class AutomateGridLayout {
         }
     };
 
-    private writeDataInBody(data: any) { };
+    /**
+     * Applies dynamic nano text content and sizing to specific `TextFrame` items inside a given group,
+     * based on predefined keyword names and the current layout orientation.
+     * 
+     * It searches for text frames whose names match `CONFIG.sKeywords` inside specific nested group items.
+     * Matching text frames are updated with content from the first entry in `this.data` and resized
+     * using `fitNanoSize()` according to the current orientation and group name.
+     * 
+     * Scanning strategy:
+     * - If `mode` is "FB" or `recommendedOrientation` is "L", it scans both front and back groups.
+     * - Otherwise, only the back group is scanned.
+     * 
+     * @param item - The top-level GroupItem that contains the front and/or back groups.
+     */
+    private applyNano(item: GroupItem): void {
+        const nanoObj = this.data![0];
+
+        /**
+         * Helper function to extract and apply nano data to text frames within a group.
+         *
+         * @param group - The GroupItem to scan for matching text frames.
+         */
+        const extractNanoItems = (group: GroupItem): void => {
+            for (let i = 0; i < group.pageItems.length; i++) {
+                const child = group.pageItems[i];
+
+                if (
+                    arrayIncludes(CONFIG.sKeywords, child.name) &&
+                    child.typename === PageItemType.TextFrame
+                ) {
+                    const textFrame = child as TextFrame;
+
+                    // Update text content from nano object
+                    textFrame.contents = nanoObj[textFrame.name];
+
+                    // Determine whether to adjust width or height
+                    const isWide = !(this.recommendedOrientation === "H" || (this.recommendedOrientation === "L" && group.name === SearchingKeywords.BACK));
+
+                    // Apply resizing
+                    this.fitNanoSize({
+                        item: textFrame.name as keyof typeof NANOBaseSize,
+                        isWide,
+                        textFrame
+                    });
+                }
+            }
+        };
+
+        if (this.mode === "FB" || this.recommendedOrientation === "L") {
+            const front = item.pageItems[0] as GroupItem;
+            const back = item.pageItems[1] as GroupItem;
+
+            extractNanoItems(front);
+            extractNanoItems(back);
+        } else {
+            const back = item.pageItems[0] as GroupItem;
+            extractNanoItems(back);
+        }
+    }
+
+    /**
+     * Resizes a `TextFrame` to fit the calculated nano size based on the given item type and current orientation.
+     * 
+     * The width (or height) is calculated using a base size and a dynamic gap value derived from the current
+     * document's width. The result is scaled by 72 (Illustrator points per inch).
+     * 
+     * If `isWide` is true, the text frame's width is adjusted; otherwise, the height is adjusted.
+     *
+     * @param {FitNanoParams} params - The parameters used to fit the nano size.
+     */
+    private fitNanoSize = (params:FitNanoParams) => {
+
+        const fitWidth = NANOBaseSize[params.item] + (this.dimension.width-NANOBaseSize.BASE_BODY) * NANOBaseSize.BASE_GAP;
+
+        if(params.isWide) {
+            params.textFrame.width = fitWidth * 72;
+        } else {
+            params.textFrame.height = fitWidth * 72;
+        }
+    };
+
+    private writeDataInBody(item:GroupItem) {
+        // if(this.recommendedOrientation === "L") {
+
+        // }
+    };
 
     /**
      * Creates and arranges items in a grid layout pattern within the specified document.
@@ -302,7 +391,7 @@ class AutomateGridLayout {
         for (let col = 1; col <= cols; col++) {
             for (let row = 1; row < rows; row++) {
                 if (this.itemIdx > this.quantity) {
-                    this.writeDataInBody(prevBody);
+                    this.writeDataInBody(prevBody as GroupItem);
                     break;
                 }
 
@@ -320,7 +409,7 @@ class AutomateGridLayout {
                     gap,
                 });
 
-                this.writeDataInBody(prevBody);
+                this.writeDataInBody(prevBody as GroupItem);
 
                 prevBody = copiedBody;
 
@@ -333,7 +422,7 @@ class AutomateGridLayout {
 
             if (cols > 1 && col < cols) {
                 if (this.itemIdx > this.quantity) {
-                    this.writeDataInBody(prevBody);
+                    this.writeDataInBody(prevBody as GroupItem);
                     break;
                 }
 
@@ -353,7 +442,7 @@ class AutomateGridLayout {
                     gap,
                 });
 
-                this.writeDataInBody(prevBody);
+                this.writeDataInBody(prevBody as GroupItem);
 
                 prevBody = copiedBody;
 
@@ -445,6 +534,8 @@ interface AutomateGridLayoutConst {
     dimension: DimensionObject;
     targetSizeChr: ApparelSize;
     filesSeqIndex: number;
+    process:Process;
+    data:null | Person[]
 }
 
 interface DocumentCreatorParams {
@@ -488,4 +579,10 @@ interface ProcessGridLayoutParams {
     readonly cols: number;
     readonly rows: number;
     readonly isLastDoc: boolean;
+}
+
+interface FitNanoParams {
+    textFrame: TextFrame;
+    item: keyof typeof NANOBaseSize;
+    isWide:boolean;
 }

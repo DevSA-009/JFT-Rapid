@@ -128,7 +128,13 @@ class ItemsInitiater {
             gap: this.gap
         });
 
-        const groupManager = new GroupManager([...this.bodyItems, ...duplicated]);
+        const groupingSeg1 = new GroupManager(this.bodyItems);
+        groupingSeg1.group();
+
+        const groupingSeg2 = new GroupManager(duplicated);
+        groupingSeg2.group();
+
+        const groupManager = new GroupManager([groupingSeg1.tempGroup!,groupingSeg2.tempGroup!]);
         groupManager.group();
 
         return groupManager.tempGroup!;

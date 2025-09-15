@@ -50,6 +50,8 @@ const alertDialogSA = (msg) => {
 
     alertDialogSA.show();
 
+    app.beep()
+
     return alertDialogSA;
 
 };

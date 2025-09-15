@@ -5,9 +5,10 @@ interface JFTRapid_Config {
     Persist_Config: PersistConfig;
     Items_Gap: number;
     kidsinV: boolean;
-    sizeInc: number;
     orientation: "Auto" | LayoutShapeConstants;
     perDoc: number;
+    outlineNANO:boolean;
+    sKeywords:string[]
 }
 
 type Selection = PageItem[];
@@ -26,10 +27,12 @@ type Mode = keyof typeof GridMode;
 
 type PantItems = [PageItem, PageItem, PageItem, PageItem];
 
-interface Person {
-    readonly number: number;
-    readonly name: string;
-}
+type Person = {
+    readonly NO: number;
+    readonly NAME: string;
+} & {
+    readonly [key: string]: string;
+};
 
 type BasePositions = "L" | "R" | "T" | "B";
 
@@ -79,9 +82,19 @@ interface SelectItemsInDocParams {
     clear?: boolean;
 }
 
+type Process = "01" | "10";
+
 interface OrgManuallyParams {
     readonly mode: Mode;
     readonly quantity: number;
     readonly targetSizeChr: ApparelSize;
     readonly sizeContainer: string;
+    readonly process: Process;
+    data:null | Person[]
+}
+
+interface OrgAutoParams {
+    readonly mode: Mode;
+    readonly sizeContainer: string;
+    data:{[key in ApparelSize]: Person[]}
 }
