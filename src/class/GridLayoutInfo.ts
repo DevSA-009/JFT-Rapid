@@ -84,8 +84,8 @@ class GridLayoutInfo {
         const inLBasedOnMode = inL ? Math.ceil(this.quantity / 2) : inL;
 
         return {
-            inH: inH ? Math.ceil(this.quantity / inH) : inH,
-            inV: inV ? Math.ceil(this.quantity / inV) : inV,
+            inH: inH ? (this.quantity > 1 ? Math.ceil(this.quantity  / inH) : inH) : inH,
+            inV: inV ? (this.quantity > 1 ? Math.ceil(this.quantity  / inV) : inV) : inV,
             inL: inLBasedOnMode
         }
     };
@@ -170,7 +170,7 @@ class GridLayoutInfo {
 
         let totalHeightInL = (inL ? lShapeDimension.height * inL + ((inL - 1) * CONFIG.Items_Gap) : inL);
 
-        if (this.mode === "B" && inL) {
+        if (this.mode === "B" && inL && this.quantity > 1) {
             totalHeightInL = totalHeightInL / 2;
         }
 

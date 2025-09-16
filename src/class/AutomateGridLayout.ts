@@ -29,6 +29,7 @@ class AutomateGridLayout {
     private itemIdx: number = 1; // that is next body item serial
     private process: Process;
     private data: null | Person[] = null;
+    private folderPath:string
 
     /**
      * Creates a new AutomateGridLayout instance and initiates the grid layout process.
@@ -47,6 +48,7 @@ class AutomateGridLayout {
         this.quantity = params.quantity;
         this.mode = params.mode;
         this.setMainDocSelection();
+        this.folderPath = params.folderPath;
 
         this.process = params.process;
         this.data = params.data;
@@ -216,6 +218,9 @@ class AutomateGridLayout {
             });
 
             this.alignCenterDocsItems(docsIns.doc);
+
+            docsIns.ilstDocHandler.save(this.folderPath);
+
         }
 
         if (this.lShapeQuantityOdd) {
@@ -360,9 +365,18 @@ class AutomateGridLayout {
     };
 
     private writeDataInBody(item:GroupItem) {
-        // if(this.recommendedOrientation === "L") {
 
-        // }
+        if(this.process === "01" && !this.data) {
+            return
+        }
+
+        if(this.recommendedOrientation === "L") {
+            this.applyNano(item.pageItems[0] as GroupItem);
+        } else {
+            this.applyNano(item);
+        }
+
+        this.data!.shift()
     };
 
     /**
@@ -535,7 +549,8 @@ interface AutomateGridLayoutConst {
     targetSizeChr: ApparelSize;
     filesSeqIndex: number;
     process:Process;
-    data:null | Person[]
+    data:null | Person[];
+    folderPath:string;
 }
 
 interface DocumentCreatorParams {

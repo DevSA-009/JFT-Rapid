@@ -37,7 +37,8 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
             targetSizeChr,
             filesSeqIndex,
             data,
-            process
+            process,
+            folderPath:app.activeDocument.path.fsName
         });
 
         const newPersist_Config = { ...CONFIG.Persist_Config };
@@ -115,15 +116,15 @@ const automateNANO = (params: OrgAutoParams) => {
         const sizeList_array = objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["MENS"])
             .concat(objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["BABY"]));
 
-        const parsedData = JSONSA.parse(data) as typeof data;
+        const validData = JSONSA.parse(data) as typeof data;
 
-        const filteredDataObj: Partial<typeof data> = {};
+        const filteredDataObj: Partial<typeof validData> = {};
 
         const missedTargetSizes:ApparelSize[] = [];
 
-        for (const size in parsedData) {
+        for (const size in validData) {
             if (arrayIncludes(sizeList_array, size)) {
-                filteredDataObj[size as ApparelSize] = parsedData[size as ApparelSize];
+                filteredDataObj[size as ApparelSize] = validData[size as ApparelSize];
             } else {
                 missedTargetSizes.push(size as ApparelSize);
             }
@@ -135,7 +136,7 @@ const automateNANO = (params: OrgAutoParams) => {
 
         for (const size in filteredDataObj) {
             const typedKey = size as keyof typeof data;
-             const element = data[typedKey];
+             const element = validData[typedKey];
              const quantity = element.length;
 
              if(!quantity) {
@@ -158,14 +159,14 @@ const automateNANO = (params: OrgAutoParams) => {
 };
 
 
-// gridMenuallyCB({
-//     mode:"B",
-//     quantity:4,
-//     sizeContainer:"SLV",
-//     targetSizeChr:"2XL",
-//     data:null,
-//     process:"01"
-// })
+gridMenuallyCB({
+    mode:"B",
+    quantity:1,
+    sizeContainer:"JFT",
+    targetSizeChr:"2XL",
+    data:null,
+    process:"01"
+})
 
 
-automateInfoDialog()
+// automateInfoDialog()
