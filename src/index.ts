@@ -143,8 +143,10 @@ const automateNANO = (params: OrgAutoParams) => {
                 continue
              }
 
+             const finalMode:Mode = quantity > 1 ? mode : "FB";
+
              gridMenuallyCB({
-                mode,
+                mode:finalMode,
                 quantity,
                 sizeContainer,
                 targetSizeChr:size as ApparelSize,
@@ -159,14 +161,14 @@ const automateNANO = (params: OrgAutoParams) => {
 };
 
 
-gridMenuallyCB({
-    mode:"B",
-    quantity:1,
-    sizeContainer:"JFT",
-    targetSizeChr:"2XL",
-    data:null,
-    process:"01"
-})
+// gridMenuallyCB({
+//     mode:"B",
+//     quantity:1,
+//     sizeContainer:"JFT",
+//     targetSizeChr:"2XL",
+//     data:null,
+//     process:"01"
+// })
 
 
-// automateInfoDialog()
+automateInfoDialog()
