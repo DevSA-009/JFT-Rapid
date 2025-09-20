@@ -29,7 +29,8 @@ class AutomateGridLayout {
     private itemIdx: number = 1; // that is next body item serial
     private process: Process;
     private data: null | Person[] = null;
-    private folderPath:string
+    private folderPath: string;
+    private rootBodyDimenstion: DimensionObject | null = null; //dimension before initiating body items.
 
     /**
      * Creates a new AutomateGridLayout instance and initiates the grid layout process.
@@ -52,9 +53,10 @@ class AutomateGridLayout {
 
         this.process = params.process;
         this.data = params.data;
-        
-        if(this.mode !== "PANT") {
+
+        if (this.mode !== "PANT") {
             this.bodyItems = Organizer.getBodyItems(this.docItems!);
+            this.rootBodyDimenstion = getWHDimension(getSelectionBounds(this.bodyItems[0]))
         }
         this.dimension = params.dimension;
         this.filesSeqIndex = params.filesSeqIndex;
@@ -219,7 +221,10 @@ class AutomateGridLayout {
 
             this.alignCenterDocsItems(docsIns.doc);
 
-            docsIns.ilstDocHandler.save(this.folderPath);
+            if (this.process === "10") {
+                docsIns.ilstDocHandler.save(this.folderPath);
+                docsIns.ilstDocHandler.close();
+            }
 
         }
 
@@ -255,10 +260,8 @@ class AutomateGridLayout {
     private removeSingleItemFromLShape(item: PageItem) {
 
         if (this.lShapeQuantityOdd) {
-            const front = item.pageItems[0];
-            const back = item.pageItems[1];
-            front.remove();
-            back.remove();
+            const lShapeGroup = item.pageItems[0];
+            lShapeGroup.remove();
         }
     };
 
@@ -315,23 +318,40 @@ class AutomateGridLayout {
                 ) {
                     const textFrame = child as TextFrame;
 
+                    const initTextDimension = { width: textFrame.width / 72, height: textFrame.height / 72 };
+
                     // Update text content from nano object
                     textFrame.contents = nanoObj[textFrame.name];
+
+                    const modifiedTextDimension = { width: textFrame.width / 72, height: textFrame.height / 72 };
 
                     // Determine whether to adjust width or height
                     const isWide = !(this.recommendedOrientation === "H" || (this.recommendedOrientation === "L" && group.name === SearchingKeywords.BACK));
 
-                    // Apply resizing
-                    this.fitNanoSize({
-                        item: textFrame.name as keyof typeof NANOBaseSize,
-                        isWide,
-                        textFrame
-                    });
+                    if (
+                        (isWide && modifiedTextDimension.width > initTextDimension.width)
+                        ||
+                        (!isWide && modifiedTextDimension.height > initTextDimension.height)
+                    ) {
+                        // Apply resizing
+                        this.fitNanoSize({
+                            item: textFrame.name as keyof typeof NANOBaseSize,
+                            isWide,
+                            textFrame,
+                            initTextDimension
+                        });
+                    }
+
+                    if (CONFIG.outlineNANO) {
+                        textFrame.createOutline();
+                    }
                 }
             }
         };
 
-        if (this.mode === "FB" || this.recommendedOrientation === "L") {
+        if(this.mode === "PANT") {
+            extractNanoItems(item);
+        } else if (this.mode === "FB" || this.recommendedOrientation === "L") {
             const front = item.pageItems[0] as GroupItem;
             const back = item.pageItems[1] as GroupItem;
 
@@ -341,6 +361,8 @@ class AutomateGridLayout {
             const back = item.pageItems[0] as GroupItem;
             extractNanoItems(back);
         }
+
+        this.data!.shift();
     }
 
     /**
@@ -353,30 +375,46 @@ class AutomateGridLayout {
      *
      * @param {FitNanoParams} params - The parameters used to fit the nano size.
      */
-    private fitNanoSize = (params:FitNanoParams) => {
+    private fitNanoSize = (params: FitNanoParams) => {
 
-        const fitWidth = NANOBaseSize[params.item] + (this.dimension.width-NANOBaseSize.BASE_BODY) * NANOBaseSize.BASE_GAP;
+        // Get width from initiated item
+        const initWide = params.isWide ? params.initTextDimension.width : params.initTextDimension.height;
 
-        if(params.isWide) {
-            params.textFrame.width = fitWidth * 72;
+        const distance = this.dimension.width / this.rootBodyDimenstion!.width;
+
+        const fitWidth = initWide + distance;
+
+        const scaleFactor = fitWidth * 72;
+
+        const tf = params.textFrame;
+
+        // Calculate current dimensions
+        const originalWidth = tf.width;
+        const originalHeight = tf.height;
+
+        if (params.isWide) {
+            const horizontalScale = scaleFactor / originalWidth;
+            tf.resize(horizontalScale * 100, 100); // Scale X, keep Y
         } else {
-            params.textFrame.height = fitWidth * 72;
+            const verticalScale = scaleFactor / originalHeight;
+            tf.resize(100, verticalScale * 100); // Keep X, scale Y
         }
     };
 
-    private writeDataInBody(item:GroupItem) {
+    private writeDataInBody(item: GroupItem) {
 
-        if(this.process === "01" && !this.data) {
+        if (this.process === "01" && !this.data) {
             return
         }
 
-        if(this.recommendedOrientation === "L") {
-            this.applyNano(item.pageItems[0] as GroupItem);
+        if (this.recommendedOrientation === "L") {
+            this.applyNano(item.pageItems[1] as GroupItem);
+            if (this.data!.length) {
+                this.applyNano(item.pageItems[0] as GroupItem);
+            }
         } else {
             this.applyNano(item);
         }
-
-        this.data!.shift()
     };
 
     /**
@@ -394,7 +432,7 @@ class AutomateGridLayout {
      * @param params.initItem - Initial item to use as the grid template
      */
     private processGridLayout(params: ProcessGridLayoutParams) {
-        const { rows, cols, doc, isLastDoc, initItem } = params;
+        const { rows, cols, isLastDoc, initItem } = params;
 
         const gap = CONFIG.Items_Gap * 72;
 
@@ -434,7 +472,7 @@ class AutomateGridLayout {
                 this.itemIdx++;
             }
 
-            if (cols > 1 && col < cols) {
+            if (col <= cols) {
                 if (this.itemIdx > this.quantity) {
                     this.writeDataInBody(prevBody as GroupItem);
                     break;
@@ -470,7 +508,7 @@ class AutomateGridLayout {
             }
         }
 
-        if (isLastDoc) {
+        if (isLastDoc && this.recommendedOrientation === "L") {
             this.removeSingleItemFromLShape(prevBody);
         }
     };
@@ -506,6 +544,11 @@ class AutomateGridLayout {
         Organizer.smallArtboard(docsIns.doc);
 
         alignPageItemsToArtboard(front, docsIns.doc);
+
+        if (this.process === "10") {
+            docsIns.ilstDocHandler.save(this.folderPath);
+            docsIns.ilstDocHandler.close();
+        }
     };
 
     /**
@@ -548,9 +591,9 @@ interface AutomateGridLayoutConst {
     dimension: DimensionObject;
     targetSizeChr: ApparelSize;
     filesSeqIndex: number;
-    process:Process;
-    data:null | Person[];
-    folderPath:string;
+    process: Process;
+    data: null | Person[];
+    folderPath: string;
 }
 
 interface DocumentCreatorParams {
@@ -599,5 +642,6 @@ interface ProcessGridLayoutParams {
 interface FitNanoParams {
     textFrame: TextFrame;
     item: keyof typeof NANOBaseSize;
-    isWide:boolean;
+    isWide: boolean;
+    initTextDimension: DimensionObject;
 }

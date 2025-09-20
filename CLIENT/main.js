@@ -10,13 +10,18 @@ const selectElementById = (id) => {
     return document.getElementById(id);
 }
 
+// ---------- patch Automate NANO Button --------- \\
+const autoNANOBtn = selectElementById("autoNANOBtn");
+autoNANOBtn.onclick = () => {
+    csInterface.evalScript("automateInfoDialog()")
+}
+
 // ---------- patch Grid Layout Button --------- \\
 const gridLayoutBtn = selectElementById("gridLayoutBtn");
 
 gridLayoutBtn.onclick = () => {
     csInterface.evalScript("gridMenualInfoDialog()");
 }
-
 
 // ---------- patch Initiate Pant Button Layout Button --------- \\
 const pantInitBtn = selectElementById("pantInit");

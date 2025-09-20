@@ -13,12 +13,12 @@ const CONFIG: JFTRapid_Config = {
     Persist_Config: ((JFTPersistConfigFetch).read() as PersistConfig),
     kidsinV: false,
     perDoc: 0,
-    sKeywords:[SearchingKeywords.NAME,SearchingKeywords.NO]
+    sKeywords: [SearchingKeywords.NAME, SearchingKeywords.NO]
 };
 
 const gridMenuallyCB = (params: OrgManuallyParams) => {
     try {
-        const { mode, quantity, sizeContainer, targetSizeChr,data,process } = params;
+        const { mode, quantity, sizeContainer, targetSizeChr, data, process } = params;
 
         // ----------------- validation chaining ---------------\\
         if (mode !== "PANT") {
@@ -38,7 +38,7 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
             filesSeqIndex,
             data,
             process,
-            folderPath:app.activeDocument.path.fsName
+            folderPath: app.activeDocument.path.fsName
         });
 
         const newPersist_Config = { ...CONFIG.Persist_Config };
@@ -62,53 +62,6 @@ const initiatePant = () => {
     }
 };
 
-const testData = {
-    S: [
-        {
-            NAME: "Sumon",
-            NO: 15
-        }
-    ],
-    M: [
-        {
-            NAME: "Safin",
-            NO: "99"
-        },
-        {
-            NAME: "Piyash",
-            NO: "7"
-        }
-    ],
-    L: [
-        {
-            NAME: "Atik Khan",
-            NO: "000"
-        },
-        {
-            NAME: "Romjan Rafi",
-            NO: "27"
-        }
-    ],
-    XL: [
-        {
-            NAME: "NIBIR",
-            NO: "16"
-        }
-    ],
-    "2XL": [
-        {
-            NAME: "Fahim",
-            NO: ""
-        }
-    ],
-    "3XL": [
-        {
-            NAME: "Sumon",
-            NO: "100"
-        }
-    ]
-};
-
 const automateNANO = (params: OrgAutoParams) => {
     try {
         const { mode, data, sizeContainer } = params;
@@ -120,7 +73,7 @@ const automateNANO = (params: OrgAutoParams) => {
 
         const filteredDataObj: Partial<typeof validData> = {};
 
-        const missedTargetSizes:ApparelSize[] = [];
+        const missedTargetSizes: ApparelSize[] = [];
 
         for (const size in validData) {
             if (arrayIncludes(sizeList_array, size)) {
@@ -130,29 +83,29 @@ const automateNANO = (params: OrgAutoParams) => {
             }
         }
 
-        if(missedTargetSizes.length) {
+        if (missedTargetSizes.length) {
             alertDialogSA(`Missing Size = ${missedTargetSizes.toString()}`);
         }
 
         for (const size in filteredDataObj) {
             const typedKey = size as keyof typeof data;
-             const element = validData[typedKey];
-             const quantity = element.length;
+            const element = validData[typedKey];
+            const quantity = element.length;
 
-             if(!quantity) {
+            if (!quantity) {
                 continue
-             }
+            }
 
-             const finalMode:Mode = quantity > 1 ? mode : "FB";
+            const finalMode: Mode = quantity > 1 ? mode : "FB";
 
-             gridMenuallyCB({
-                mode:finalMode,
+            gridMenuallyCB({
+                mode: finalMode,
                 quantity,
                 sizeContainer,
-                targetSizeChr:size as ApparelSize,
-                process:"10",
-                data:element
-             })
+                targetSizeChr: size as ApparelSize,
+                process: "10",
+                data: element
+            })
         }
 
     } catch (error: any) {
@@ -171,4 +124,4 @@ const automateNANO = (params: OrgAutoParams) => {
 // })
 
 
-automateInfoDialog()
+// automateInfoDialog()

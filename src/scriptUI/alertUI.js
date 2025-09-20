@@ -7,7 +7,7 @@ const alertDialogSA = (msg) => {
     alertDialogSA.orientation = "column";
     alertDialogSA.alignChildren = ["center", "center"];
     alertDialogSA.spacing = 10;
-    alertDialogSA.margins = 10; 
+    alertDialogSA.margins = 10;
 
     // ALERTPANEL
     // ==========
@@ -48,9 +48,10 @@ const alertDialogSA = (msg) => {
     alertBtn.active = true;
     alertBtn.preferredSize.width = 70;
 
+    app.beep();
+
     alertDialogSA.show();
 
-    app.beep()
 
     return alertDialogSA;
 
