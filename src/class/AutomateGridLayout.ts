@@ -31,6 +31,7 @@ class AutomateGridLayout {
     private data: null | Person[] = null;
     private folderPath: string;
     private rootBodyDimenstion: DimensionObject | null = null; //dimension before initiating body items.
+    private reachedEnd: boolean = false;
 
     /**
      * Creates a new AutomateGridLayout instance and initiates the grid layout process.
@@ -349,7 +350,7 @@ class AutomateGridLayout {
             }
         };
 
-        if(this.mode === "PANT") {
+        if (this.mode === "PANT") {
             extractNanoItems(item);
         } else if (this.mode === "FB" || this.recommendedOrientation === "L") {
             const front = item.pageItems[0] as GroupItem;
@@ -442,8 +443,9 @@ class AutomateGridLayout {
 
         for (let col = 1; col <= cols; col++) {
             for (let row = 1; row < rows; row++) {
-                if (this.itemIdx > this.quantity) {
+                if (this.itemIdx > this.quantity && !this.reachedEnd) {
                     this.writeDataInBody(prevBody as GroupItem);
+                    this.reachedEnd = true;
                     break;
                 }
 
@@ -472,39 +474,47 @@ class AutomateGridLayout {
                 this.itemIdx++;
             }
 
-            if (col <= cols) {
-                if (this.itemIdx > this.quantity) {
+            if (col < cols) {
+
+                if (!this.reachedEnd) {
+                    const copiedBody = prevBody.duplicate(
+                        prevBody.parent,
+                        ElementPlacement.PLACEATEND
+                    );
+
+                    copiedBody.name = this.getItemIndex();
+
+                    alignItems(curColFirstRow, copiedBody, "L");
+
+                    moveItemAfter({
+                        base: prevBody,
+                        moving: copiedBody,
+                        position: "B",
+                        gap,
+                    });
+
                     this.writeDataInBody(prevBody as GroupItem);
-                    break;
-                }
 
-                const copiedBody = prevBody.duplicate(
-                    prevBody.parent,
-                    ElementPlacement.PLACEATEND
-                );
+                    prevBody = copiedBody;
 
-                copiedBody.name = this.getItemIndex();
+                    curColFirstRow = prevBody;
 
-                alignItems(curColFirstRow, copiedBody, "L");
+                    if (this.recommendedOrientation === "L") {
+                        this.itemIdx++;
+                    }
 
-                moveItemAfter({
-                    base: prevBody,
-                    moving: copiedBody,
-                    position: "B",
-                    gap,
-                });
-
-                this.writeDataInBody(prevBody as GroupItem);
-
-                prevBody = copiedBody;
-
-                curColFirstRow = prevBody;
-
-                if (this.recommendedOrientation === "L") {
                     this.itemIdx++;
                 }
+            }
 
-                this.itemIdx++;
+            if(col === cols) {
+                if (this.itemIdx > this.quantity) {
+                    if (!this.reachedEnd) {
+                        this.writeDataInBody(prevBody as GroupItem);
+                    }
+                } else {
+                    this.writeDataInBody(prevBody as GroupItem);
+                }
             }
         }
 
