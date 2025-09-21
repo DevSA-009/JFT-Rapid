@@ -31,6 +31,7 @@ class AutomateGridLayout {
     private data: null | Person[] = null;
     private folderPath: string;
     private rootBodyDimenstion: DimensionObject | null = null; //dimension before initiating body items.
+    private reachedEnd: boolean = false;
 
     /**
      * Creates a new AutomateGridLayout instance and initiates the grid layout process.
@@ -349,7 +350,7 @@ class AutomateGridLayout {
             }
         };
 
-        if(this.mode === "PANT") {
+        if (this.mode === "PANT") {
             extractNanoItems(item);
         } else if (this.mode === "FB" || this.recommendedOrientation === "L") {
             const front = item.pageItems[0] as GroupItem;
@@ -416,7 +417,7 @@ class AutomateGridLayout {
             this.applyNano(item);
         }
     };
-
+    
     /**
      * Creates and arranges items in a grid layout pattern within the specified document.
      * 
@@ -432,61 +433,54 @@ class AutomateGridLayout {
      * @param params.initItem - Initial item to use as the grid template
      */
     private processGridLayout(params: ProcessGridLayoutParams) {
+        // Extract parameters from the input object for easier access
         const { rows, cols, isLastDoc, initItem } = params;
 
+        // Calculate gap distance in points (72 points = 1 inch) for item spacing
         const gap = CONFIG.Items_Gap * 72;
 
+        // Track the previous item created for positioning reference
         let prevBody: PageItem = initItem;
 
+        // Track the first item of current column for vertical alignment
         let curColFirstRow = initItem;
 
+        // Flag to ensure initial item data is processed only once
+        let processedInitialItem = false;
+
+        // Main loop: iterate through each column of the grid
         for (let col = 1; col <= cols; col++) {
-            for (let row = 1; row < rows; row++) {
-                if (this.itemIdx > this.quantity) {
-                    this.writeDataInBody(prevBody as GroupItem);
-                    break;
-                }
 
-                const copiedBody = prevBody.duplicate(
-                    prevBody.parent,
-                    ElementPlacement.PLACEATEND
-                );
-
-                copiedBody.name = this.getItemIndex();
-
-                moveItemAfter({
-                    base: prevBody,
-                    moving: copiedBody,
-                    position: "R",
-                    gap,
-                });
-
+            // COLUMN INITIALIZATION: Handle the first row of each column
+            if (col === 1 && !processedInitialItem) {
+                // FIRST COLUMN, FIRST ROW: Process the pre-existing initial item
+                // Apply data (names, text, etc.) to the initial item that was passed in
                 this.writeDataInBody(prevBody as GroupItem);
 
-                prevBody = copiedBody;
+                // Mark that we've processed the initial item to prevent double-processing
+                processedInitialItem = true;
 
-                if (this.recommendedOrientation === "L") {
-                    this.itemIdx++;
-                }
+            } else if (col > 1) {
+                // SUBSEQUENT COLUMNS: Create first item of new column
 
-                this.itemIdx++;
-            }
-
-            if (col <= cols) {
+                // Check if we've reached our quantity limit before creating more items
                 if (this.itemIdx > this.quantity) {
-                    this.writeDataInBody(prevBody as GroupItem);
+                    // Set end flag and exit the column loop
+                    this.reachedEnd = true;
                     break;
                 }
 
+                // Create a duplicate of the previous item for the new column
                 const copiedBody = prevBody.duplicate(
                     prevBody.parent,
                     ElementPlacement.PLACEATEND
                 );
 
+                // Assign a sequential name to the new item based on current index
                 copiedBody.name = this.getItemIndex();
 
+                // Position the new item: align left with first column, move down by gap
                 alignItems(curColFirstRow, copiedBody, "L");
-
                 moveItemAfter({
                     base: prevBody,
                     moving: copiedBody,
@@ -494,21 +488,69 @@ class AutomateGridLayout {
                     gap,
                 });
 
-                this.writeDataInBody(prevBody as GroupItem);
+                // Apply data content to the newly created and positioned item
+                this.writeDataInBody(copiedBody as GroupItem);
 
+                // Update tracking variables for next iteration
                 prevBody = copiedBody;
+                curColFirstRow = prevBody; // This becomes the reference for this column
 
-                curColFirstRow = prevBody;
-
+                // Increment item counter(s) based on layout orientation
                 if (this.recommendedOrientation === "L") {
-                    this.itemIdx++;
+                    this.itemIdx++; // Extra increment for L-shape layout
+                }
+                this.itemIdx++; // Standard increment for all layouts
+            }
+
+            // ROW PROCESSING: Fill remaining rows in current column (rows 2, 3, 4, etc.)
+            for (let row = 2; row <= rows; row++) {
+
+                // Check quantity limit before creating each new item
+                if (this.itemIdx > this.quantity) {
+                    // Mark end state and break out of row loop
+                    this.reachedEnd = true;
+                    break;
                 }
 
-                this.itemIdx++;
+                // Create duplicate item for current row position
+                const copiedBody = prevBody.duplicate(
+                    prevBody.parent,
+                    ElementPlacement.PLACEATEND
+                );
+
+                // Generate and assign sequential name to new item
+                copiedBody.name = this.getItemIndex();
+
+                // Position item to the right of previous item with specified gap
+                moveItemAfter({
+                    base: prevBody,
+                    moving: copiedBody,
+                    position: "R",
+                    gap,
+                });
+
+                // Apply data content to the newly positioned item
+                this.writeDataInBody(copiedBody as GroupItem);
+
+                // Update reference to newly created item for next iteration
+                prevBody = copiedBody;
+
+                // Update item counter(s) based on orientation requirements
+                if (this.recommendedOrientation === "L") {
+                    this.itemIdx++; // L-shape requires extra indexing
+                }
+                this.itemIdx++; // Standard increment for item tracking
+            }
+
+            // Exit column loop early if we've reached the quantity limit
+            if (this.reachedEnd) {
+                break;
             }
         }
 
+        // POST-PROCESSING: Handle special cases for the final document
         if (isLastDoc && this.recommendedOrientation === "L") {
+            // Remove specific items from L-shape layout when it's the last document
             this.removeSingleItemFromLShape(prevBody);
         }
     };
