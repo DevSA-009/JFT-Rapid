@@ -32,6 +32,7 @@ class AutomateGridLayout {
     private folderPath: string;
     private rootBodyDimenstion: DimensionObject | null = null; //dimension before initiating body items.
     private reachedEnd: boolean = false;
+    private initTextFramesDimension: { [groupName: string]: { [childName: string]: any } } = {};
 
     /**
      * Creates a new AutomateGridLayout instance and initiates the grid layout process.
@@ -319,7 +320,19 @@ class AutomateGridLayout {
                 ) {
                     const textFrame = child as TextFrame;
 
-                    const initTextDimension = { width: textFrame.width / 72, height: textFrame.height / 72 };
+                    let initTextDimension = { width: textFrame.width / 72, height: textFrame.height / 72 };
+
+                    if (!(this.initTextFramesDimension[group.name]?.[textFrame.name])) {
+                        // Ensure the group exists
+                        if (!this.initTextFramesDimension[group.name]) {
+                            this.initTextFramesDimension[group.name] = {};
+                        }
+
+                        // Now it's safe to assign
+                        this.initTextFramesDimension[group.name][textFrame.name] = initTextDimension;
+                    }
+                    initTextDimension = this.initTextFramesDimension[group.name][textFrame.name];
+
 
                     // Update text content from nano object
                     textFrame.contents = nanoObj[textFrame.name];
@@ -364,7 +377,7 @@ class AutomateGridLayout {
         }
 
         this.data!.shift();
-    }
+    };
 
     /**
      * Resizes a `TextFrame` to fit the calculated nano size based on the given item type and current orientation.
@@ -417,7 +430,7 @@ class AutomateGridLayout {
             this.applyNano(item);
         }
     };
-    
+
     /**
      * Creates and arranges items in a grid layout pattern within the specified document.
      * 
