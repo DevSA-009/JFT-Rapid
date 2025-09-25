@@ -19,7 +19,7 @@ type PrevNextItems = {
     next: PageItem | null;
 };
 
-type MensSize = "S" | "M" | "L" | "XL" | "2XL";
+type MensSize = "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL";
 type BabySize = "2" | "4" | "6" | "8" | "10" | "12" | "14" | "16";
 type ApparelSize = MensSize | BabySize;
 
@@ -30,6 +30,7 @@ type PantItems = [PageItem, PageItem, PageItem, PageItem];
 type Person = {
     readonly NO: number;
     readonly NAME: string;
+    readonly PANT:boolean
 } & {
     readonly [key: string]: string;
 };
@@ -96,5 +97,9 @@ interface OrgManuallyParams {
 interface OrgAutoParams {
     readonly mode: Mode;
     readonly sizeContainer: string;
-    data:{[key in ApparelSize]: Person[]}
+    data: {
+        [key in ApparelSize]?: Person[]; // Apparel sizes can be optional too
+    } & {
+        GK?: Person[]; // now optional, so 'delete' is allowed
+    };
 }

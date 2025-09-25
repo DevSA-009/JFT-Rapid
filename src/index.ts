@@ -66,35 +66,79 @@ const automateNANO = (params: OrgAutoParams) => {
     try {
         const { mode, data, sizeContainer } = params;
 
+        let outputInfo = "----- Output Result -----";
+
         const sizeList_array = objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["MENS"])
             .concat(objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["BABY"]));
 
         const validData = JSONSA.parse(data) as typeof data;
 
-        const filteredDataObj: Partial<typeof validData> = {};
+        // deep copy goalkeepers object
+        const gkItems = JSONSA.parse(JSONSA.stringify(validData["GK"]));
+
+        // remove goalkeepers object from original object
+        if (validData["GK"]) {
+            delete validData["GK"];
+        }
+
+        const validItems: Partial<typeof validData> = {};
 
         const missedTargetSizes: ApparelSize[] = [];
 
+        const selectedOrientaion = CONFIG.orientation;
+
+        // removed missed size or unknown size data and store valid size (which exist in container) data
         for (const size in validData) {
             if (arrayIncludes(sizeList_array, size)) {
-                filteredDataObj[size as ApparelSize] = validData[size as ApparelSize];
+                validItems[size as ApparelSize] = validData[size as ApparelSize];
             } else {
                 missedTargetSizes.push(size as ApparelSize);
             }
         }
 
-        if (missedTargetSizes.length) {
-            alertDialogSA(`Missing Size = ${missedTargetSizes.toString()}`);
+        const pantItems = [];
+
+        // filter pant items
+        for (const size in validItems) {
+            const typedKey = size as keyof typeof data;
+            const persons = validData[typedKey]!;
+            for (let i = 0; i < persons.length; i++) {
+                const person = persons[i];
+                if (person.PANT) {
+                    pantItems.push(person);
+                }
+            }
         }
 
-        for (const size in filteredDataObj) {
+        if (missedTargetSizes.length) {
+            alertDialogSA(`Missed Size = ${missedTargetSizes.toString()}`);
+        }
+
+        // process body
+        for (const size in validItems) {
             const typedKey = size as keyof typeof data;
             const element = validData[typedKey];
-            const quantity = element.length;
+            const quantity = element?.length;
 
             if (!quantity) {
                 continue
             }
+
+            const tempOrientation = CONFIG.orientation;
+
+            const sizeCategory = CONFIG.Persist_Config.sizes[sizeContainer as keyof typeof CONFIG.Persist_Config.sizes];
+
+            const isBaby = isBabySize(typedKey as ApparelSize, sizeCategory["BABY"]);
+
+            if (isBaby && CONFIG.kidsinV && tempOrientation !== "V") {
+                CONFIG.orientation = "V";
+            } else {
+                if (selectedOrientaion !== CONFIG.orientation) {
+                    CONFIG.orientation = selectedOrientaion;
+                }
+            }
+
+            outputInfo = `${outputInfo}\n${typedKey}=${quantity}`
 
             const finalMode: Mode = quantity > 1 ? mode : "FB";
 
@@ -105,6 +149,17 @@ const automateNANO = (params: OrgAutoParams) => {
                 targetSizeChr: size as ApparelSize,
                 process: "10",
                 data: element
+            })
+        }
+
+        if (pantItems.length) {
+            gridMenuallyCB({
+                mode: "PANT",
+                quantity: pantItems.length,
+                sizeContainer,
+                targetSizeChr: "3XL",
+                process: "10",
+                data: pantItems
             })
         }
 

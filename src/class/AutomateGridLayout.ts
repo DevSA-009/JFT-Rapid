@@ -55,12 +55,18 @@ class AutomateGridLayout {
 
         this.process = params.process;
         this.data = params.data;
+        this.dimension = params.dimension;
 
         if (this.mode !== "PANT") {
             this.bodyItems = Organizer.getBodyItems(this.docItems!);
-            this.rootBodyDimenstion = getWHDimension(getSelectionBounds(this.bodyItems[0]))
+            this.rootBodyDimenstion = getWHDimension(getSelectionBounds(this.bodyItems[1]));
+        } else {
+            const pant = Organizer.getPant();
+            const [F_L] = Organizer.getPantItems(pant.pageItems);
+            this.rootBodyDimenstion = getWHDimension(getSelectionBounds(F_L));
+            this.dimension = this.rootBodyDimenstion;
         }
-        this.dimension = params.dimension;
+
         this.filesSeqIndex = params.filesSeqIndex;
         this.targetSizeChr = params.targetSizeChr;
 
@@ -315,7 +321,6 @@ class AutomateGridLayout {
                 const child = group.pageItems[i];
 
                 if (
-                    arrayIncludes(CONFIG.sKeywords, child.name) &&
                     child.typename === PageItemType.TextFrame
                 ) {
                     const textFrame = child as TextFrame;
@@ -331,11 +336,13 @@ class AutomateGridLayout {
                         // Now it's safe to assign
                         this.initTextFramesDimension[group.name][textFrame.name] = initTextDimension;
                     }
+
                     initTextDimension = this.initTextFramesDimension[group.name][textFrame.name];
 
-
-                    // Update text content from nano object
-                    textFrame.contents = nanoObj[textFrame.name];
+                    if (nanoObj[textFrame.name] !== undefined) {
+                        // Update text content from nano object
+                        textFrame.contents = nanoObj[textFrame.name];
+                    }
 
                     const modifiedTextDimension = { width: textFrame.width / 72, height: textFrame.height / 72 };
 

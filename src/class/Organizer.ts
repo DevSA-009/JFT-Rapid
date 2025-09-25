@@ -198,8 +198,8 @@ class Organizer {
      * @returns {PantItems} An array of pant-related items tuple.
      * @throws {Error} If any pant items are missing.
      */
-    static getPantItems(doc: Document): PantItems {
-        const pageItems = arrayFrom(doc.activeLayer.pageItems);
+    static getPantItems(container: PageItem[]): PantItems {
+        const pageItems = container;
 
         const F_L = findElement(pageItems, item => item.name === SearchingKeywordsForPant.PANT_F_L);
         const F_R = findElement(pageItems, item => item.name === SearchingKeywordsForPant.PANT_F_R);
@@ -232,6 +232,11 @@ class Organizer {
 
         if (!item) {
             throw new Error(`Can't find PANT`);
+        }
+        const [F_L] = Organizer.getPantItems((item as GroupItem).pageItems);
+
+        if (!F_L) {
+            throw new Error(`PANT Front MISSING`);
         }
 
         return item as GroupItem;

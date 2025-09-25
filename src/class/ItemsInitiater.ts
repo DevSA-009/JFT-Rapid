@@ -134,7 +134,7 @@ class ItemsInitiater {
         const groupingSeg2 = new GroupManager(duplicated);
         groupingSeg2.group();
 
-        const groupManager = new GroupManager([groupingSeg1.tempGroup!,groupingSeg2.tempGroup!]);
+        const groupManager = new GroupManager([groupingSeg1.tempGroup!, groupingSeg2.tempGroup!]);
         groupManager.group();
 
         return groupManager.tempGroup!;
@@ -147,7 +147,7 @@ class ItemsInitiater {
      */
     static initPant(doc: Document): GroupItem {
 
-        const pantItems = Organizer.getPantItems(doc);
+        const pantItems = Organizer.getPantItems(arrayFrom(doc.activeLayer.pageItems));
 
         const [F_L, F_R, B_L, B_R] = pantItems;
 
