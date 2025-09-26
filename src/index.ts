@@ -68,9 +68,6 @@ const automateNANO = (params: OrgAutoParams) => {
 
         let outputInfo = "----- Output Result -----";
 
-        const sizeList_array = objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["MENS"])
-            .concat(objectKeys(CONFIG.Persist_Config.sizes[sizeContainer]["BABY"]));
-
         const validData = JSONSA.parse(data) as typeof data;
 
         // deep copy goalkeepers object
@@ -87,12 +84,31 @@ const automateNANO = (params: OrgAutoParams) => {
 
         const selectedOrientaion = CONFIG.orientation;
 
+        const sizeCategory = CONFIG.Persist_Config.sizes[sizeContainer as keyof typeof CONFIG.Persist_Config.sizes];
+
         // removed missed size or unknown size data and store valid size (which exist in container) data
         for (const size in validData) {
-            if (arrayIncludes(sizeList_array, size)) {
-                validItems[size as ApparelSize] = validData[size as ApparelSize];
+            const isBaby = isBabySize(size as ApparelSize, sizeCategory["BABY"]);
+            if (isBaby) {
+                const babyKey = size as BabySize;
+                const sizeField = babyKey in sizeCategory["BABY"];
+                if (sizeField) {
+                    if (validData[size as ApparelSize]?.length) {
+                        validItems[size as ApparelSize] = validData[size as ApparelSize];
+                    }
+                } else {
+                    missedTargetSizes.push(size as ApparelSize);
+                }
             } else {
-                missedTargetSizes.push(size as ApparelSize);
+                const mensKey = size as MensSize;
+                const sizeField = mensKey in sizeCategory["MENS"];
+                if (sizeField) {
+                    if (validData[size as ApparelSize]?.length) {
+                        validItems[size as ApparelSize] = validData[size as ApparelSize];
+                    }
+                } else {
+                    missedTargetSizes.push(size as ApparelSize);
+                }
             }
         }
 
@@ -126,8 +142,6 @@ const automateNANO = (params: OrgAutoParams) => {
 
             const tempOrientation = CONFIG.orientation;
 
-            const sizeCategory = CONFIG.Persist_Config.sizes[sizeContainer as keyof typeof CONFIG.Persist_Config.sizes];
-
             const isBaby = isBabySize(typedKey as ApparelSize, sizeCategory["BABY"]);
 
             if (isBaby && CONFIG.kidsinV && tempOrientation !== "V") {
@@ -138,7 +152,7 @@ const automateNANO = (params: OrgAutoParams) => {
                 }
             }
 
-            outputInfo = `${outputInfo}\n${typedKey}=${quantity}`
+            outputInfo = `${outputInfo}\n${typedKey}=${quantity}`;
 
             const finalMode: Mode = quantity > 1 ? mode : "FB";
 
@@ -161,7 +175,10 @@ const automateNANO = (params: OrgAutoParams) => {
                 process: "10",
                 data: pantItems
             })
+            outputInfo = `${outputInfo}\n${"PANT"}=${pantItems.length}`
         }
+
+        alertDialogSA(outputInfo);
 
     } catch (error: any) {
         alertDialogSA(error.message);

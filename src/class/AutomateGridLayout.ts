@@ -192,6 +192,7 @@ class AutomateGridLayout {
 
         if (this.mode === "B" && this.recommendedOrientation !== "L") {
             this.createFrontDoc();
+            this.filesSeqIndex++;
         }
 
         for (let i = 1; i <= docsNeeded; i++) {
