@@ -26,13 +26,11 @@ class AutomateGridLayout {
     private lShapeQuantityOdd: boolean = false;
     private recommendedOrientation: LayoutShapeConstants;
     private filesSeqIndex: number;
-    private itemIdx: number = 1; // that is next body item serial
+    private itemIdx: number = 0;
     private process: Process;
     private data: null | Person[] = null;
     private folderPath: string;
     private rootBodyDimenstion: DimensionObject | null = null; //dimension before initiating body items.
-    private reachedEnd: boolean = false;
-    private initTextFramesDimension: { [groupName: string]: { [childName: string]: any } } = {};
 
     /**
      * Creates a new AutomateGridLayout instance and initiates the grid layout process.
@@ -164,13 +162,7 @@ class AutomateGridLayout {
             front.remove();
         }
 
-        item.name = this.getItemIndex();
-
-        if (this.recommendedOrientation === "L") {
-            this.itemIdx++;
-        }
-
-        this.itemIdx++;
+        item.name = this.getItemIndex(0);
 
         Organizer.smallArtboard(doc);
     };
@@ -200,7 +192,6 @@ class AutomateGridLayout {
 
         if (this.mode === "B" && this.recommendedOrientation !== "L") {
             this.createFrontDoc();
-            this.filesSeqIndex++
         }
 
         for (let i = 1; i <= docsNeeded; i++) {
@@ -209,7 +200,7 @@ class AutomateGridLayout {
 
             const isLastDoc = i === docsNeeded;
 
-            const title = `${fileIndex}-${this.mode}${this.mode !== "PANT" ? `-${this.targetSizeChr}` : ``}`;
+            const title = `${fileIndex}-${this.recommendedOrientation === "L" ? "FB-L" : this.mode}${this.mode !== "PANT" ? `-${this.targetSizeChr}` : ``}`;
 
             const itemForNewDoc = this.mode === "PANT" ? [initiatedPant!] : this.bodyItems as Selection;
 
@@ -227,7 +218,9 @@ class AutomateGridLayout {
                 isLastDoc
             });
 
-            this.alignCenterDocsItems(docsIns.doc);
+            if (this.recommendedOrientation !== "L") {
+                this.alignCenterDocsItems(docsIns.doc);
+            }
 
             if (this.process === "10") {
                 docsIns.ilstDocHandler.save(this.folderPath);
@@ -250,8 +243,9 @@ class AutomateGridLayout {
      * @private
      * @returns Formatted index string in the format "{mode}-{paddedIndex}"
      */
-    private getItemIndex(): string {
-        const indexStr = this.itemIdx < 10 ? `0${this.itemIdx}` : `${this.itemIdx}`;
+    private getItemIndex(idx?: number): string {
+        const index = idx ?? this.itemIdx;
+        const indexStr = index < 10 ? `0${index}` : `${index}`;
         return `${this.recommendedOrientation === "L" ? "FB-L" : this.mode}-${indexStr}`
     };
 
@@ -286,8 +280,6 @@ class AutomateGridLayout {
 
         if (this.recommendedOrientation === "L") {
 
-            this.itemIdx = 2;
-
             if (this.quantity % 2) {
                 this.lShapeQuantityOdd = true
             }
@@ -318,8 +310,6 @@ class AutomateGridLayout {
          */
         const extractNanoItems = (group: GroupItem): void => {
 
-            const groupName = this.mode === "PANT" ? "PANT" : group.name;
-
             // Determine whether to adjust width or height
             const isWide = !(this.recommendedOrientation === "H" || (this.recommendedOrientation === "L" && group.name === SearchingKeywords.BACK));
 
@@ -328,53 +318,44 @@ class AutomateGridLayout {
 
                 if (
                     child.typename === PageItemType.TextFrame
+                    &&
+                    nanoObj[child.name] !== undefined
                 ) {
                     const textFrame = child as TextFrame;
 
-                    let initTextDimension = {
-                        width: isWide ? textFrame.width / 72 : textFrame.height / 72,
-                        height: isWide ? textFrame.height / 72 : textFrame.width / 72
+                    const ininTfBound = getWHDimension({
+                        left: child.geometricBounds[0],
+                        top: child.geometricBounds[1],
+                        right: child.geometricBounds[2],
+                        bottom: child.geometricBounds[3],
+                    });
+
+                    const initTextDimension = {
+                        width: isWide ? ininTfBound.width / 72 : ininTfBound.height / 72,
+                        height: isWide ? ininTfBound.height / 72 : ininTfBound.width / 72
                     };
+                    // Update text content from nano object
+                    textFrame.contents = nanoObj[textFrame.name];
 
-                    if (!(this.initTextFramesDimension[groupName]?.[textFrame.name])) {
-                        // Ensure the group exists
-                        if (!this.initTextFramesDimension[groupName]) {
-                            this.initTextFramesDimension[groupName] = {};
-                        }
-
-                        // Now it's safe to assign
-                        this.initTextFramesDimension[groupName][textFrame.name] = initTextDimension;
-                    }
-
-                    initTextDimension = this.initTextFramesDimension[groupName][textFrame.name];
-
-                    const width = textFrame.width / 72;
-                    const height = textFrame.height / 72;
-                    if (initTextDimension.width !== (isWide ? width : height)) {
-                        if (isWide) {
-                            textFrame.resize((initTextDimension.width / width) * 100, 100); // Scale X, keep Y
-                        } else {
-                            textFrame.resize(100, (initTextDimension.width / height) * 100); // Keep X, scale Y
-                        }
-                    }
-
-                    if (nanoObj[textFrame.name] !== undefined) {
-                        // Update text content from nano object
-                        textFrame.contents = nanoObj[textFrame.name];
-                    }
+                    const modifiedTfBound = getWHDimension({
+                        left: child.geometricBounds[0],
+                        top: child.geometricBounds[1],
+                        right: child.geometricBounds[2],
+                        bottom: child.geometricBounds[3],
+                    });
 
                     const modifiedTextDimension = {
-                        width: isWide ? textFrame.width / 72 : textFrame.height / 72,
-                        height: isWide ? textFrame.height / 72 : textFrame.width / 72
+                        width: isWide ? modifiedTfBound.width / 72 : modifiedTfBound.height / 72,
+                        height: isWide ? modifiedTfBound.height / 72 : modifiedTfBound.width / 72
                     };
 
-                    if (modifiedTextDimension.width > initTextDimension.width) {
+                    if (modifiedTextDimension.width > (initTextDimension.width)) {
                         // Apply resizing
                         this.fitNanoSize({
                             isWide,
                             textFrame,
                             initTextDimension,
-                            currentDimension: modifiedTextDimension
+                            modifiedTextDimension
                         });
                     }
 
@@ -415,11 +396,11 @@ class AutomateGridLayout {
 
         const distance = this.dimension.width / this.rootBodyDimenstion!.width;
 
-        const fitWidth = params.initTextDimension.width * (distance !== 1 ? (distance) : 0);
+        const fitWidth = params.initTextDimension.width * (distance);
 
         const tf = params.textFrame;
 
-        const scaleFactor = fitWidth / params.currentDimension.width;
+        const scaleFactor = fitWidth / params.modifiedTextDimension.width;
         if (params.isWide) {
             tf.resize(scaleFactor * 100, 100); // Scale X, keep Y
         } else {
@@ -458,125 +439,92 @@ class AutomateGridLayout {
      * @param params.initItem - Initial item to use as the grid template
      */
     private processGridLayout(params: ProcessGridLayoutParams) {
+
+        /*
+        rows = 3
+        cols = 3
+        mode = FB
+        */
+
         // Extract parameters from the input object for easier access
         const { rows, cols, isLastDoc, initItem } = params;
+
+        const referenceItem = initItem;
 
         // Calculate gap distance in points (72 points = 1 inch) for item spacing
         const gap = CONFIG.Items_Gap * 72;
 
-        // Track the previous item created for positioning reference
-        let prevBody: PageItem = initItem;
+        let prevItem: PageItem = referenceItem;
 
         // Track the first item of current column for vertical alignment
-        let curColFirstRow = initItem;
-
-        // Flag to ensure initial item data is processed only once
-        let processedInitialItem = false;
+        let curColFirstRow = prevItem;
 
         // Main loop: iterate through each column of the grid
         for (let col = 1; col <= cols; col++) {
 
-            // COLUMN INITIALIZATION: Handle the first row of each column
-            if (col === 1 && !processedInitialItem) {
-                // FIRST COLUMN, FIRST ROW: Process the pre-existing initial item
-                // Apply data (names, text, etc.) to the initial item that was passed in
-                this.writeDataInBody(prevBody as GroupItem);
+            if (this.itemIdx >= this.quantity) {
+                referenceItem.remove();
+                break
+            }
 
-                // Mark that we've processed the initial item to prevent double-processing
-                processedInitialItem = true;
+            for (let row = 1; row <= rows; row++) {
 
-            } else if (col > 1) {
-                // SUBSEQUENT COLUMNS: Create first item of new column
+                const copyItem = referenceItem.duplicate(referenceItem.parent, ElementPlacement.PLACEATEND);
 
-                // Check if we've reached our quantity limit before creating more items
-                if (this.itemIdx > this.quantity) {
-                    // Set end flag and exit the column loop
-                    this.reachedEnd = true;
-                    break;
-                }
+                this.itemIdx++;
 
-                // Create a duplicate of the previous item for the new column
-                const copiedBody = prevBody.duplicate(
-                    prevBody.parent,
-                    ElementPlacement.PLACEATEND
-                );
-
-                // Assign a sequential name to the new item based on current index
-                copiedBody.name = this.getItemIndex();
-
-                // Position the new item: align left with first column, move down by gap
-                alignItems(curColFirstRow, copiedBody, "L");
-                moveItemAfter({
-                    base: prevBody,
-                    moving: copiedBody,
-                    position: "B",
-                    gap,
-                });
-
-                // Apply data content to the newly created and positioned item
-                this.writeDataInBody(copiedBody as GroupItem);
-
-                // Update tracking variables for next iteration
-                prevBody = copiedBody;
-                curColFirstRow = prevBody; // This becomes the reference for this column
-
-                // Increment item counter(s) based on layout orientation
                 if (this.recommendedOrientation === "L") {
-                    this.itemIdx++; // Extra increment for L-shape layout
+                    this.itemIdx++;
                 }
-                this.itemIdx++; // Standard increment for all layouts
+
+                copyItem.name = this.getItemIndex();
+
+
+                if (row === 1) {
+                    prevItem = copyItem;
+                    curColFirstRow = copyItem;
+                } else {
+                    moveItemAfter({
+                        base: prevItem,
+                        moving: copyItem,
+                        gap,
+                        position: "R"
+                    })
+
+                    prevItem = copyItem;
+
+
+                }
+
+                this.writeDataInBody(prevItem as GroupItem);
+
+                if (this.itemIdx >= this.quantity) {
+                    break
+                }
             }
 
-            // ROW PROCESSING: Fill remaining rows in current column (rows 2, 3, 4, etc.)
-            for (let row = 2; row <= rows; row++) {
+            if (this.itemIdx >= this.quantity) {
+                referenceItem.remove();
+                break
+            }
 
-                // Check quantity limit before creating each new item
-                if (this.itemIdx > this.quantity) {
-                    // Mark end state and break out of row loop
-                    this.reachedEnd = true;
-                    break;
-                }
+            prevItem = curColFirstRow;
 
-                // Create duplicate item for current row position
-                const copiedBody = prevBody.duplicate(
-                    prevBody.parent,
-                    ElementPlacement.PLACEATEND
-                );
-
-                // Generate and assign sequential name to new item
-                copiedBody.name = this.getItemIndex();
-
-                // Position item to the right of previous item with specified gap
+            if (col === cols) {
+                referenceItem.remove();
+            } else {
                 moveItemAfter({
-                    base: prevBody,
-                    moving: copiedBody,
-                    position: "R",
+                    base: prevItem,
+                    moving: referenceItem,
                     gap,
-                });
-
-                // Apply data content to the newly positioned item
-                this.writeDataInBody(copiedBody as GroupItem);
-
-                // Update reference to newly created item for next iteration
-                prevBody = copiedBody;
-
-                // Update item counter(s) based on orientation requirements
-                if (this.recommendedOrientation === "L") {
-                    this.itemIdx++; // L-shape requires extra indexing
-                }
-                this.itemIdx++; // Standard increment for item tracking
+                    position: "B"
+                })
             }
 
-            // Exit column loop early if we've reached the quantity limit
-            if (this.reachedEnd) {
-                break;
-            }
-        }
+        };
 
-        // POST-PROCESSING: Handle special cases for the final document
-        if (isLastDoc && this.recommendedOrientation === "L") {
-            // Remove specific items from L-shape layout when it's the last document
-            this.removeSingleItemFromLShape(prevBody);
+        if (isLastDoc) {
+            this.removeSingleItemFromLShape(prevItem);
         }
     };
 
@@ -710,5 +658,5 @@ interface FitNanoParams {
     textFrame: TextFrame;
     isWide: boolean;
     initTextDimension: DimensionObject;
-    currentDimension: DimensionObject;
+    modifiedTextDimension: DimensionObject;
 }

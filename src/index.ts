@@ -169,13 +169,15 @@ const automateNANO = (params: OrgAutoParams) => {
 };
 
 
+// CONFIG.orientation = "V"
+
 // gridMenuallyCB({
-//     mode:"B",
-//     quantity:1,
-//     sizeContainer:"JFT",
-//     targetSizeChr:"2XL",
-//     data:null,
-//     process:"01"
+//     mode: "FB",
+//     quantity: 5,
+//     sizeContainer: "JFT",
+//     targetSizeChr: "M",
+//     data: null,
+//     process: "01"
 // })
 
 
