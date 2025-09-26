@@ -317,6 +317,12 @@ class AutomateGridLayout {
          * @param group - The GroupItem to scan for matching text frames.
          */
         const extractNanoItems = (group: GroupItem): void => {
+
+            const groupName = this.mode === "PANT" ? "PANT" : group.name;
+
+            // Determine whether to adjust width or height
+            const isWide = !(this.recommendedOrientation === "H" || (this.recommendedOrientation === "L" && group.name === SearchingKeywords.BACK));
+
             for (let i = 0; i < group.pageItems.length; i++) {
                 const child = group.pageItems[i];
 
@@ -325,41 +331,50 @@ class AutomateGridLayout {
                 ) {
                     const textFrame = child as TextFrame;
 
-                    let initTextDimension = { width: textFrame.width / 72, height: textFrame.height / 72 };
+                    let initTextDimension = {
+                        width: isWide ? textFrame.width / 72 : textFrame.height / 72,
+                        height: isWide ? textFrame.height / 72 : textFrame.width / 72
+                    };
 
-                    if (!(this.initTextFramesDimension[group.name]?.[textFrame.name])) {
+                    if (!(this.initTextFramesDimension[groupName]?.[textFrame.name])) {
                         // Ensure the group exists
-                        if (!this.initTextFramesDimension[group.name]) {
-                            this.initTextFramesDimension[group.name] = {};
+                        if (!this.initTextFramesDimension[groupName]) {
+                            this.initTextFramesDimension[groupName] = {};
                         }
 
                         // Now it's safe to assign
-                        this.initTextFramesDimension[group.name][textFrame.name] = initTextDimension;
+                        this.initTextFramesDimension[groupName][textFrame.name] = initTextDimension;
                     }
 
-                    initTextDimension = this.initTextFramesDimension[group.name][textFrame.name];
+                    initTextDimension = this.initTextFramesDimension[groupName][textFrame.name];
+
+                    const width = textFrame.width / 72;
+                    const height = textFrame.height / 72;
+                    if (initTextDimension.width !== (isWide ? width : height)) {
+                        if (isWide) {
+                            textFrame.resize((initTextDimension.width / width) * 100, 100); // Scale X, keep Y
+                        } else {
+                            textFrame.resize(100, (initTextDimension.width / height) * 100); // Keep X, scale Y
+                        }
+                    }
 
                     if (nanoObj[textFrame.name] !== undefined) {
                         // Update text content from nano object
                         textFrame.contents = nanoObj[textFrame.name];
                     }
 
-                    const modifiedTextDimension = { width: textFrame.width / 72, height: textFrame.height / 72 };
+                    const modifiedTextDimension = {
+                        width: isWide ? textFrame.width / 72 : textFrame.height / 72,
+                        height: isWide ? textFrame.height / 72 : textFrame.width / 72
+                    };
 
-                    // Determine whether to adjust width or height
-                    const isWide = !(this.recommendedOrientation === "H" || (this.recommendedOrientation === "L" && group.name === SearchingKeywords.BACK));
-
-                    if (
-                        (isWide && modifiedTextDimension.width > initTextDimension.width)
-                        ||
-                        (!isWide && modifiedTextDimension.height > initTextDimension.height)
-                    ) {
+                    if (modifiedTextDimension.width > initTextDimension.width) {
                         // Apply resizing
                         this.fitNanoSize({
-                            item: textFrame.name as keyof typeof NANOBaseSize,
                             isWide,
                             textFrame,
-                            initTextDimension
+                            initTextDimension,
+                            currentDimension: modifiedTextDimension
                         });
                     }
 
@@ -398,27 +413,17 @@ class AutomateGridLayout {
      */
     private fitNanoSize = (params: FitNanoParams) => {
 
-        // Get width from initiated item
-        const initWide = params.isWide ? params.initTextDimension.width : params.initTextDimension.height;
-
         const distance = this.dimension.width / this.rootBodyDimenstion!.width;
 
-        const fitWidth = initWide + distance;
-
-        const scaleFactor = fitWidth * 72;
+        const fitWidth = params.initTextDimension.width * (distance !== 1 ? (distance) : 0);
 
         const tf = params.textFrame;
 
-        // Calculate current dimensions
-        const originalWidth = tf.width;
-        const originalHeight = tf.height;
-
+        const scaleFactor = fitWidth / params.currentDimension.width;
         if (params.isWide) {
-            const horizontalScale = scaleFactor / originalWidth;
-            tf.resize(horizontalScale * 100, 100); // Scale X, keep Y
+            tf.resize(scaleFactor * 100, 100); // Scale X, keep Y
         } else {
-            const verticalScale = scaleFactor / originalHeight;
-            tf.resize(100, verticalScale * 100); // Keep X, scale Y
+            tf.resize(100, scaleFactor * 100,); // Scale X, keep Y
         }
     };
 
@@ -703,7 +708,7 @@ interface ProcessGridLayoutParams {
 
 interface FitNanoParams {
     textFrame: TextFrame;
-    item: keyof typeof NANOBaseSize;
     isWide: boolean;
     initTextDimension: DimensionObject;
+    currentDimension: DimensionObject;
 }
