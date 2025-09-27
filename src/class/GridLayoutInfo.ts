@@ -22,11 +22,13 @@ class GridLayoutInfo {
     private dimension: DimensionObject;
     private mode: Mode;
     private quantity: number;
+    private process: Process;
 
     constructor(params: GridLayoutInfoCons) {
         this.dimension = params.dimension;
         this.quantity = params.quantity;
         this.mode = params.mode;
+        this.process = params.process;
     };
 
     /**
@@ -324,7 +326,7 @@ class GridLayoutInfo {
      */
     private requiredDocs(): RequiredDocReturn {
         const CANVAS_MAX_HEIGHT = 207;
-        const colsPerDocConfig = CONFIG.perDoc;
+        let colsPerDocConfig = CONFIG.perDoc;
         const { cols, dimensions } = this.getLayoutSpecification();
 
         let docsNeeded: number;
@@ -344,7 +346,11 @@ class GridLayoutInfo {
 
         if (colsPerDocConfig) {
             if (colsPerDocConfig > colsPerDoc) {
-                throw new Error(`per docs cols exceeded Canva height`)
+                if(this.process === "01") {
+                    throw new Error(`per docs cols exceeded Canva height`);
+                } else {
+                    colsPerDocConfig = colsPerDoc
+                }
             }
             colsPerDoc = colsPerDocConfig;
             docsNeeded = Math.ceil(cols / colsPerDoc);
@@ -392,6 +398,7 @@ interface GridLayoutInfoCons {
     dimension: DimensionObject;
     mode: Mode;
     quantity: number;
+    process: Process;
 }
 
 interface ItemsPerRow {

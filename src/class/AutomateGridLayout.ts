@@ -71,7 +71,8 @@ class AutomateGridLayout {
         this.gridLayoutInfo = new GridLayoutInfo({
             dimension: this.dimension,
             mode: this.mode,
-            quantity: this.quantity
+            quantity: this.quantity,
+            process: this.process
         }).getLayoutInfo();
         this.recommendedOrientation = this.gridLayoutInfo.orientation;
 
