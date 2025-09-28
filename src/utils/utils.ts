@@ -415,7 +415,7 @@ const getTopClippingPath = (item: PageItem): PageItem | null => {
  * @param {Selection | PageItem} items
  * @param {90 | -90 | 180 | 0 | -180} deg
  */
-const rotateItems = (items: Selection | PageItem, deg: RotateDegrees) => {
+const rotateItems = (items: Selection | PageItem, deg: RotateDegrees | number) => {
 
     let groupManager: GroupManager | null = null;
 
@@ -599,6 +599,12 @@ const alignItems = (baseGroupItem: PageItem, movingGroupItem: PageItem, position
         case "C": // Center in both directions
             deltaX = baseCenterX - moveCenterX;
             deltaY = baseCenterY - moveCenterY;
+            break;
+        case "CY": // Center in Y directions
+            deltaY = baseCenterY - moveCenterY;
+            break;
+        case "CX": // Center in X directions
+            deltaX = baseCenterX - moveCenterX;
             break;
         default:
             throw new Error("Invalid position parameter: " + position +
