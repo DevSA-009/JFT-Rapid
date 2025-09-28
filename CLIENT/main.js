@@ -35,6 +35,7 @@ const makeObjKeyBtn = selectElementById("makeObjectKey");
 const destroyObjKeyBtn = selectElementById("destroyObjectKey");
 const selectClipPathBtn = selectElementById("selectClipPath");
 const checkOpacityMaskBtn = selectElementById("checkOpacityMask");
+const $2SetFSlv = selectElementById("2SetFSlv");
 
 selectClipPathBtn.onclick = () => {
     csInterface.evalScript("Organizer.selectTopClippingPath()");
@@ -42,6 +43,10 @@ selectClipPathBtn.onclick = () => {
 
 checkOpacityMaskBtn.onclick = () => {
     csInterface.evalScript("Organizer.checkisOpacityMask()");
+}
+
+$2SetFSlv.onclick = () => {
+    csInterface.evalScript("Organizer.fSlv2SetInit()");
 }
 
 makeObjKeyBtn.onclick = () => {

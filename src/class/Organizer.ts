@@ -391,6 +391,126 @@ class Organizer {
         }
     };
 
+    /**
+     * Initializes the preparation of a sleeve set using two selected Illustrator objects.
+     *
+     * ### Workflow Summary:
+     * 1. Verifies exactly 2 objects are selected.
+     * 2. Duplicates both and ensures they are the same dimensions.
+     * 3. Rotates, aligns, and arranges them into a 1-set sleeve layout.
+     * 4. Duplicates the 1-set to make a 2-set layout.
+     * 5. Validates if final layout fits within maximum paper size.
+     * 6. Resizes if necessary and removes the original selection.
+     *
+     * @throws {Error} If:
+     * - Selection count is not 2.
+     * - Duplicated items do not have equal dimensions.
+     * - Sleeve set exceeds the allowed paper size.
+     */
+    static fSlv2SetInit() {
+        try {
+            const { selection } = this.selectionVerifyChain();
+
+            // Validate exactly two objects are selected
+            if (selection.length !== 2) {
+                throw new Error("You must select exactly two objects.");
+            }
+
+            const [obj1, obj2] = selection;
+
+            // Duplicate both objects
+            const dupObj1 = obj1.duplicate(obj1.parent);
+            const dupObj2 = obj2.duplicate(obj2.parent);
+
+            // Get dimensions of duplicated objects
+            const dupObj1Dim = getWHDimension(getSelectionBounds(dupObj1));
+            const dupObj2Dim = getWHDimension(getSelectionBounds(dupObj2));
+
+            // Check if duplicated objects have the same dimensions
+            if (!(dupObj1Dim.width === dupObj2Dim.width && dupObj1Dim.height === dupObj2Dim.height)) {
+                dupObj1.remove();
+                dupObj2.remove();
+                throw new Error("Both objects must have equal dimensions.");
+            }
+
+            // Define initial translation values (in points)
+            const firstXTrans = -2.2 * 72;
+            const secondXTrans = 0.4 * 72;
+
+            // Create a group manager instance for both duplicated items
+            const illsGrpManager = new GroupManager([dupObj1, dupObj2]);
+
+            // Align duplicated items to center (both horizontal and vertical)
+            alignItems(dupObj1, dupObj2, "C");
+
+            // Move second object to the right of the first
+            moveItemAfter({
+                base: dupObj1,
+                moving: dupObj2,
+                position: "R"
+            });
+
+            // Rotate the second object by 180 degrees
+            rotateItems(dupObj2, 180);
+
+            // Move the second object left by 2.2 inches
+            dupObj2.translate(firstXTrans, 0);
+
+            // Rotate both objects by -7.5 degrees
+            rotateItems([dupObj1, dupObj2], -7.5);
+
+            // Align both again to vertical center
+            alignItems(dupObj1, dupObj2, "CY");
+
+            // Move the second object slightly right (0.4 inches)
+            dupObj2.translate(secondXTrans, 0);
+
+            // Group the arranged sleeve set
+            illsGrpManager.group();
+
+            // Get the grouped set
+            const tempGroup = illsGrpManager.tempGroup!;
+
+            // Get dimensions of the grouped sleeve set
+            const groupedItemDim = getWHDimension(getSelectionBounds(tempGroup));
+
+            // Calculate half of the max allowed paper size
+            const halfOfPaperSize = Math.ceil(CONFIG.PAPER_MAX_SIZE / 2);
+
+            // If the 1-set width exceeds half the paper size, abort
+            if (groupedItemDim.width >= halfOfPaperSize) {
+                tempGroup.remove();
+                throw new Error(`Sleeve width exceeds half of the allowed paper size (${CONFIG.PAPER_MAX_SIZE}").`);
+            }
+
+            // Duplicate the group to make a 2-set layout
+            const dupGroupedItem = tempGroup.duplicate(obj1);
+
+            // Place the duplicated group to the right of the original
+            moveItemAfter({
+                base: tempGroup,
+                moving: dupGroupedItem,
+                position: "R"
+            });
+
+            // Get combined dimension of both sleeve sets
+            const finalDim = getWHDimension(getSelectionBounds([tempGroup, dupGroupedItem]));
+
+            // Resize if the combined width exceeds the paper limit
+            if (finalDim.width > CONFIG.PAPER_MAX_SIZE) {
+                resizeSelection([tempGroup, dupGroupedItem], CONFIG.PAPER_MAX_SIZE);
+            }
+
+            // Clean up original selected objects
+            obj1.remove();
+            obj2.remove();
+
+        } catch (error: any) {
+            // Show error message via custom alert
+            alertDialogSA(error.message);
+        }
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
