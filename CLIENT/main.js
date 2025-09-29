@@ -30,12 +30,14 @@ pantInitBtn.onclick = () => {
     csInterface.evalScript("initiatePant()");
 }
 
-// ---------- patch Object Key Handler Button --------- \\
-const makeObjKeyBtn = selectElementById("makeObjectKey");
-const destroyObjKeyBtn = selectElementById("destroyObjectKey");
+// ---------- patch Tweak Buttons --------- \\
 const selectClipPathBtn = selectElementById("selectClipPath");
 const checkOpacityMaskBtn = selectElementById("checkOpacityMask");
 const $2SetFSlv = selectElementById("2SetFSlv");
+
+// ---------- patch Object Key Handler Button --------- \\
+const makeObjKeyBtn = selectElementById("makeObjectKey");
+const destroyObjKeyBtn = selectElementById("destroyObjectKey");
 
 selectClipPathBtn.onclick = () => {
     csInterface.evalScript("Organizer.selectTopClippingPath()");
@@ -74,6 +76,45 @@ moveAfterRBtn.onclick = () => {
 }
 moveAfterBBtn.onclick = () => {
     csInterface.evalScript("Organizer.moveAfterItemUI('B')");
+}
+
+// ---------- patch Mark Buttons --------- \\
+const markFrontBtn = selectElementById(`markFront`);
+const markBackBtn = selectElementById(`markBack`);
+const markNABtn = selectElementById(`markNA`);
+const markNOBtn = selectElementById(`markNO`);
+const markGKBtn = selectElementById(`markGK`);
+const markPantFrontRBtn = selectElementById(`markPantFrontR`);
+const markPantFrontLBtn = selectElementById(`markPantFrontL`);
+const markPantBackRBtn = selectElementById(`markPantBackR`);
+const markPantBackLBtn = selectElementById(`markPantBackL`);
+
+markFrontBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('FRONT')");
+}
+markBackBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('BACK')");
+}
+markNABtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('NAME')");
+}
+markNOBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('NO')");
+}
+markGKBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('GK')");
+}
+markPantFrontRBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('PANT_F_R')");
+}
+markPantFrontLBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('PANT_F_L')");
+}
+markPantBackRBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('PANT_B_R')");
+}
+markPantBackLBtn.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('PANT_B_L')");
 }
 
 /**

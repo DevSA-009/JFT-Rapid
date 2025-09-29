@@ -511,6 +511,32 @@ class Organizer {
         }
     };
 
+    /**
+     * Assigns a custom name (mark) to all selected Illustrator objects.
+     *
+     * This method is useful for tagging or identifying specific elements
+     * within a document by applying a shared name to the currently selected items.
+     *
+     * ### Workflow:
+     * 1. Verifies that a document is open and there is a valid selection.
+     * 2. Iterates over the selected items.
+     * 3. Sets the `.name` property of each item to the provided `mark` string.
+     *
+     * @param {string} mark - The name or identifier to assign to each selected object.
+     *
+     * @throws Will throw an error if:
+     * - No document is open.
+     * - No items are selected.
+     */
+    static objectMarkByName(mark: string) {
+        const selectionVerifyChain = this.selectionVerifyChain();
+        const selection = selectionVerifyChain.selection;
+
+        for (const element of selection) {
+            element.name = mark;
+        }
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
