@@ -1,5 +1,6 @@
 type findElementCb<T> = (element: T, index?: number) => boolean;
 
+
 interface JFTRapid_Config {
     readonly PAPER_MAX_SIZE: number;
     Persist_Config: PersistConfig;
@@ -7,8 +8,8 @@ interface JFTRapid_Config {
     kidsinV: boolean;
     orientation: "Auto" | LayoutShapeConstants;
     perDoc: number;
-    outlineNANO:boolean;
-    sKeywords:string[]
+    outlineNANO: boolean;
+    opacityMask: boolean;
 }
 
 type Selection = PageItem[];
@@ -30,7 +31,7 @@ type PantItems = [PageItem, PageItem, PageItem, PageItem];
 type Person = {
     readonly NO: number;
     readonly NAME: string;
-    readonly PANT:boolean
+    readonly PANT: boolean
 } & {
     readonly [key: string]: string;
 };
@@ -91,7 +92,7 @@ interface OrgManuallyParams {
     readonly targetSizeChr: ApparelSize;
     readonly sizeContainer: string;
     readonly process: Process;
-    data:null | Person[]
+    data: null | Person[]
 }
 
 interface OrgAutoParams {
@@ -100,6 +101,6 @@ interface OrgAutoParams {
     data: {
         [key in ApparelSize]?: Person[]; // Apparel sizes can be optional too
     } & {
-        GK?: Person[]; // now optional, so 'delete' is allowed
+        GK?: { [key in ApparelSize]?: Person[] };
     };
 }

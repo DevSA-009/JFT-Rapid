@@ -13,7 +13,7 @@ const CONFIG: JFTRapid_Config = {
     Persist_Config: ((JFTPersistConfigFetch).read() as PersistConfig),
     kidsinV: false,
     perDoc: 0,
-    sKeywords: [SearchingKeywords.NAME, SearchingKeywords.NO]
+    opacityMask: false
 };
 
 const gridMenuallyCB = (params: OrgManuallyParams) => {
@@ -78,7 +78,7 @@ const automateNANO = (params: OrgAutoParams) => {
             delete validData["GK"];
         }
 
-        const validItems: Partial<typeof validData> = {};
+        const validItems: typeof validData = {};
 
         const missedTargetSizes: ApparelSize[] = [];
 
@@ -117,9 +117,8 @@ const automateNANO = (params: OrgAutoParams) => {
         // filter pant items
         for (const size in validItems) {
             const typedKey = size as keyof typeof data;
-            const persons = validData[typedKey]!;
-            for (let i = 0; i < persons.length; i++) {
-                const person = persons[i];
+            const persons = validItems[typedKey]! as Person[];
+            for (const person of persons) {
                 if (person.PANT) {
                     pantItems.push(person);
                 }
@@ -133,7 +132,7 @@ const automateNANO = (params: OrgAutoParams) => {
         // process body
         for (const size in validItems) {
             const typedKey = size as keyof typeof data;
-            const element = validData[typedKey];
+            const element = validData[typedKey] as Person[];
             const quantity = element?.length;
 
             if (!quantity) {
@@ -185,8 +184,6 @@ const automateNANO = (params: OrgAutoParams) => {
     }
 };
 
-
-// CONFIG.orientation = "V"
 
 // gridMenuallyCB({
 //     mode: "FB",
