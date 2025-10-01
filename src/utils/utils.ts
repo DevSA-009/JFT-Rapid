@@ -235,7 +235,7 @@ const getSelectionBounds = (selection: Selection | PageItem): BoundsObject => {
                 // Find the clipping path within the clipped group
                 for (let i = 0; i < item.pageItems.length; i++) {
                     const child = item.pageItems[i];
-                    if (child.clipping) {
+                    if (child.clipping || child.typename === PageItemType.CompoundPathItem) {
                         updateBounds(child.geometricBounds);
                         break; // Stop iterating within this GroupItem
                     }
