@@ -153,7 +153,7 @@ const automateNANO = (params: OrgAutoParams) => {
 
             outputInfo = `${outputInfo}\n${typedKey}=${quantity}`;
 
-            const finalMode: Mode = quantity > 1 ? mode : "FB";
+            const finalMode: Mode = quantity % 3 === 1 ? "FB" : mode;
 
             gridMenuallyCB({
                 mode: finalMode,
@@ -162,7 +162,7 @@ const automateNANO = (params: OrgAutoParams) => {
                 targetSizeChr: size as ApparelSize,
                 process: "10",
                 data: element
-            })
+            });
         }
 
         if (pantItems.length) {
@@ -177,7 +177,7 @@ const automateNANO = (params: OrgAutoParams) => {
             outputInfo = `${outputInfo}\n${"PANT"}=${pantItems.length}`
         }
 
-        alertDialogSA(outputInfo);
+        alertDialogSA(outputInfo, true);
 
     } catch (error: any) {
         alertDialogSA(error.message);

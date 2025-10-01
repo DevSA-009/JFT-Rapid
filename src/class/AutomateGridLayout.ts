@@ -398,7 +398,7 @@ class AutomateGridLayout {
 
         const distance = this.dimension.width / this.rootBodyDimenstion!.width;
 
-        const fitWidth = params.initTextDimension.width * (distance);
+        const fitWidth = params.initTextDimension.width * (distance*1.15);
 
         const tf = params.textFrame;
 
