@@ -625,8 +625,8 @@ const alignItems = (baseGroupItem: PageItem, movingGroupItem: PageItem, position
  */
 const getWHDimension = (bounds: BoundsObject): DimensionObject => {
     const { left, top, right, bottom } = bounds;
-    const width = (right - left) / 72;
-    const height = (top - bottom) / 72;
+    const width = parseFloat(((right - left) / 72).toFixed(4));
+    const height = parseFloat(((top - bottom) / 72).toFixed(4));
     return { width, height };
 };
 
