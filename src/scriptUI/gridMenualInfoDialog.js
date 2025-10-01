@@ -1,7 +1,7 @@
 /*
 Code for Import https://scriptui.joonas.me — (Triple click to select): 
-{"activeId":10,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Grid Layout Body","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"orgBody","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"orientationGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"varName":"orgOrientation","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Orientation:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"varName":"orientations","text":"DropDownList","listItems":"Auto, Vertical, Horizontal","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-6":{"id":6,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"sizeContGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-7":{"id":7,"type":"StaticText","parentId":6,"style":{"enabled":true,"varName":"sizeContainer","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Container","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-8":{"id":8,"type":"DropDownList","parentId":6,"style":{"enabled":true,"varName":"sizeContainerList","text":"DropDownList","listItems":"JFT,SLCV,PLS","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"perDocGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"varName":"perDoc","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Doc Row","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"varName":"perDocField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-12":{"id":12,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"targetSizeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-13":{"id":13,"type":"StaticText","parentId":12,"style":{"enabled":true,"varName":"targetSize","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Target Size","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-14":{"id":14,"type":"DropDownList","parentId":12,"style":{"enabled":true,"varName":"sizeList","text":"DropDownList","listItems":"S,M,L,XL,2XL,3XL","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"itemsGap","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"varName":"itemsGap","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"varName":"itemsGapField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Size & Required","preferredSize":[200,0],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-20":{"id":20,"type":"Group","parentId":18,"style":{"enabled":false,"varName":"sizeIncGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-21":{"id":21,"type":"StaticText","parentId":20,"style":{"enabled":true,"varName":"sizeInc","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size++","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-22":{"id":22,"type":"EditText","parentId":20,"style":{"enabled":true,"varName":"sizeincField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"varName":"enterBn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}},"item-26":{"id":26,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"modeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-27":{"id":27,"type":"StaticText","parentId":26,"style":{"enabled":true,"varName":"orgMode","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Mode:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-28":{"id":28,"type":"DropDownList","parentId":26,"style":{"enabled":true,"varName":"orgModeList","text":"DropDownList","listItems":"A,B","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-29":{"id":29,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"quantityGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-30":{"id":30,"type":"StaticText","parentId":29,"style":{"enabled":true,"varName":"quantity","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Quantity","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-31":{"id":31,"type":"EditText","parentId":29,"style":{"enabled":true,"varName":"quantityField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"2","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}}},"order":[0,23,2,26,27,28,3,4,5,9,10,11,15,16,17,18,6,7,8,12,13,14,29,30,31,20,21,22,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"none"}}
-*/
+{"activeId":33,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Grid Layout Body","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"orgBody","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"orientationGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"varName":"orgOrientation","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Orientation:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"varName":"orientations","text":"DropDownList","listItems":"Auto, Vertical, Horizontal","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-6":{"id":6,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"sizeContGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-7":{"id":7,"type":"StaticText","parentId":6,"style":{"enabled":true,"varName":"sizeContainer","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Container","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-8":{"id":8,"type":"DropDownList","parentId":6,"style":{"enabled":true,"varName":"sizeContainerList","text":"DropDownList","listItems":"JFT,SLCV,PLS","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"perDocGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"varName":"perDoc","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Doc Row","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"varName":"perDocField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-12":{"id":12,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"targetSizeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-13":{"id":13,"type":"StaticText","parentId":12,"style":{"enabled":true,"varName":"targetSize","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Target Size","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-14":{"id":14,"type":"DropDownList","parentId":12,"style":{"enabled":true,"varName":"sizeList","text":"DropDownList","listItems":"S,M,L,XL,2XL,3XL","preferredSize":[70,0],"alignment":"center","selection":0,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"itemsGap","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"varName":"itemsGap","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"varName":"itemsGapField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Size & Required","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"varName":"enterBn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}},"item-26":{"id":26,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"modeGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-27":{"id":27,"type":"StaticText","parentId":26,"style":{"enabled":true,"varName":"orgMode","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Mode:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-28":{"id":28,"type":"DropDownList","parentId":26,"style":{"enabled":true,"varName":"orgModeList","text":"DropDownList","listItems":"A,B","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-29":{"id":29,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"quantityGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-30":{"id":30,"type":"StaticText","parentId":29,"style":{"enabled":true,"varName":"quantity","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Quantity","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-31":{"id":31,"type":"EditText","parentId":29,"style":{"enabled":true,"varName":"quantityField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"2","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-32":{"id":32,"type":"Checkbox","parentId":33,"style":{"enabled":true,"varName":"opacityMaskCheckBox","text":"Opacity Mask","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-33":{"id":33,"type":"Group","parentId":18,"style":{"enabled":false,"varName":"opacityMaskGrp","preferredSize":[0,0],"margins":[15,0,0,0],"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}}},"order":[0,23,2,26,27,28,3,4,5,9,10,11,15,16,17,18,6,7,8,12,13,14,29,30,31,33,32,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"none"}}
+*/ 
 
 // DIALOGROOT
 // ==========
@@ -47,19 +47,20 @@ const gridMenualInfoDialog = () => {
         panelContGrp.spacing = 10;
         panelContGrp.margins = [0, 0, 0, 10];
 
-        // gridBODY
+        // orgBody
         // =======
-        const gridBody = panelContGrp.add("panel", undefined, undefined, { name: "gridBody" });
-        gridBody.text = "Basic";
-        gridBody.preferredSize.width = 200;
-        gridBody.orientation = "column";
-        gridBody.alignChildren = ["center", "top"];
-        gridBody.spacing = 10;
-        gridBody.margins = 10;
+        const orgBody = panelContGrp.add("panel", undefined, undefined, { name: "orgBody" });
+        orgBody.text = "Basic";
+        orgBody.preferredSize.width = 200;
+        orgBody.preferredSize.height = 250;
+        orgBody.orientation = "column";
+        orgBody.alignChildren = ["center", "top"];
+        orgBody.spacing = 10;
+        orgBody.margins = 10;
 
         // MODEGRP
         // =======
-        const modeGrp = gridBody.add("group", undefined, { name: "modeGrp" });
+        const modeGrp = orgBody.add("group", undefined, { name: "modeGrp" });
         modeGrp.preferredSize.width = 100;
         modeGrp.orientation = "column";
         modeGrp.alignChildren = ["center", "center"];
@@ -81,7 +82,7 @@ const gridMenualInfoDialog = () => {
 
         // ORIENTATIONGRP
         // ==============
-        const orientationGrp = gridBody.add("group", undefined, { name: "orientationGrp" });
+        const orientationGrp = orgBody.add("group", undefined, { name: "orientationGrp" });
         orientationGrp.preferredSize.width = 100;
         orientationGrp.orientation = "column";
         orientationGrp.alignChildren = ["center", "center"];
@@ -102,7 +103,7 @@ const gridMenualInfoDialog = () => {
 
         // PERDOCGRP
         // =========
-        const perDocGrp = gridBody.add("group", undefined, { name: "perDocGrp" });
+        const perDocGrp = orgBody.add("group", undefined, { name: "perDocGrp" });
         perDocGrp.preferredSize.width = 100;
         perDocGrp.orientation = "column";
         perDocGrp.alignChildren = ["center", "center"];
@@ -121,7 +122,7 @@ const gridMenualInfoDialog = () => {
 
         // ITEMSGAP
         // ========
-        const itemsGap = gridBody.add("group", undefined, { name: "itemsGap" });
+        const itemsGap = orgBody.add("group", undefined, { name: "itemsGap" });
         itemsGap.preferredSize.width = 100;
         itemsGap.orientation = "column";
         itemsGap.alignChildren = ["center", "center"];
@@ -165,6 +166,7 @@ const gridMenualInfoDialog = () => {
         const requiredPanel = panelContGrp.add("panel", undefined, undefined, { name: "requiredPanel" });
         requiredPanel.text = "Sizes Info";
         requiredPanel.preferredSize.width = 200;
+        requiredPanel.preferredSize.height = 250;
         requiredPanel.orientation = "column";
         requiredPanel.alignChildren = ["center", "top"];
         requiredPanel.spacing = 10;
@@ -246,23 +248,18 @@ const gridMenualInfoDialog = () => {
 
         quantityField.addEventListener("keydown", digitValidateCb);
 
-        // SIZEINCGRP
-        // ==========
-        const sizeIncGrp = requiredPanel.add("group", undefined, { name: "sizeIncGrp" });
-        sizeIncGrp.enabled = false;
-        sizeIncGrp.preferredSize.width = 100;
-        sizeIncGrp.orientation = "column";
-        sizeIncGrp.alignChildren = ["center", "center"];
-        sizeIncGrp.spacing = 5;
-        sizeIncGrp.margins = 0;
+        // OPACITYMASKGRP
+        // ==============
+        const opacityMaskGrp = requiredPanel.add("group", undefined, { name: "opacityMaskGrp" });
+        opacityMaskGrp.enabled = false;
+        opacityMaskGrp.orientation = "row";
+        opacityMaskGrp.alignChildren = ["left", "center"];
+        opacityMaskGrp.spacing = 10;
+        opacityMaskGrp.margins = [0, 15, 0, 0];
 
-        const sizeInc = sizeIncGrp.add("statictext", undefined, undefined, { name: "sizeInc" });
-        sizeInc.text = "Size++";
-        sizeInc.justify = "center";
-
-        const sizeincField = sizeIncGrp.add('edittext {justify: "center", properties: {name: "sizeincField"}}');
-        sizeincField.text = "0";
-        sizeincField.preferredSize.width = 70;
+        const opacityMaskCheckBox = opacityMaskGrp.add("checkbox", undefined, undefined, { name: "opacityMaskCheckBox" });
+        opacityMaskCheckBox.helpTip = "handle properly transform opacity mask item";
+        opacityMaskCheckBox.text = "Opacity Mask";
 
         // ENTERBTNGRP
         // ===========
@@ -309,8 +306,8 @@ const gridMenualInfoDialog = () => {
                 quantity: quantityField.text ? parseInt(quantityField.text) : 0,
                 sizeContainer: sizeContainerList.selection.text,
                 targetSizeChr: sizeList.selection.text,
-                process:"01",
-                data:null
+                process: "01",
+                data: null
             });
         }
     } catch (error) {

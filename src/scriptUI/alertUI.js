@@ -1,4 +1,4 @@
-const alertDialogSA = (msg) => {
+const alertDialogSA = (msg, multiline = false) => {
 
     // ALERTDIALOGSA
     // =============
@@ -33,7 +33,9 @@ const alertDialogSA = (msg) => {
     alertMsgText.alignChildren = ["left", "center"];
     alertMsgText.spacing = 0;
 
-    alertMsgText.add("statictext", undefined, msg);
+    const textField = alertMsgText.add(multiline ? "edittext" : "statictext", undefined, msg, { multiline: multiline, scrolling: multiline, readonly: true });
+
+    textField.preferredSize = [480, multiline ? 200 : 50];
 
     // ALERTMSGBTNGRP
     // ==============
