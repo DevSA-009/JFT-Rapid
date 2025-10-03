@@ -634,6 +634,65 @@ class Organizer {
         // groupItem.remove(); // Uncomment if you want to delete the group after ungrouping
     };
 
+    /**
+     * Manages the document's selection by either adding or removing items.
+     *
+     * ### Behavior:
+     * - If `type` is `true` (default): items are added to the document’s selection.
+     * - If `type` is `false`: items are removed from the selection.
+     *
+     * The `remaingExistSelection` flag determines whether to preserve the current selection or replace it.
+     *
+     * @param params - The configuration object.
+     * @param params.doc - The target Illustrator document.
+     * @param params.items - The PageItems to add or remove.
+     * @param params.remaingExistSelection - If true, merges with/removes from existing selection. Default is false.
+     * @param params.type - Whether to add (true) or remove (false) the items. Default is true.
+     */
+    static docSelectionHandler(params: DocSelectionHandler): void {
+        const {
+            doc,                              // Target document
+            items,                            // Items to modify selection with
+            remaingExistSelection = false,    // Whether to keep existing selection
+            type = true                       // true = add, false = remove
+        } = params;
+
+        // ========================
+        // ADD ITEMS TO SELECTION
+        // ========================
+        if (type) {
+            if (!remaingExistSelection) {
+                // Replace selection entirely
+                doc.selection = undefined;
+                doc.selection = items;
+            } else {
+                // Merge with existing selection
+                if (doc.selection?.length) {
+                    doc.selection = [...doc.selection, ...items];
+                } else {
+                    doc.selection = items;
+                }
+            }
+        }
+
+        // ========================
+        // REMOVE ITEMS FROM SELECTION
+        // ========================
+        if (!type && doc.selection?.length) {
+            if (!remaingExistSelection) {
+                // Clear all selection
+                doc.selection = undefined;
+            } else {
+                // Filter out the specified items from the current selection
+                const filteredItems = arrayFilter(
+                    doc.selection,
+                    item => !arrayIncludes(items, item)
+                );
+                doc.selection = filteredItems;
+            }
+        }
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
@@ -665,3 +724,10 @@ type GetSiblingItemsReturn = {
     nextItem: PageItem | null;
     itemIndex: number;
 };
+
+interface DocSelectionHandler {
+    readonly doc: Document;
+    readonly items: PageItem[],
+    readonly type?: boolean,
+    readonly remaingExistSelection?: boolean
+}
