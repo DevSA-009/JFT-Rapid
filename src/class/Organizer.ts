@@ -693,6 +693,62 @@ class Organizer {
         }
     };
 
+    /**
+     * Recursively searches through a list of `PageItem`s and returns all items
+     * whose names match any value in the given name array.
+     *
+     * This is useful for finding objects by name within deeply nested Illustrator
+     * document structures (e.g., groups, layers).
+     *
+     * The search can optionally exclude items that are hidden or locked.
+     *
+     * @param items - The top-level array of PageItems to begin the recursive search from.
+     * @param name - An array of strings to match against each PageItem’s `.name` property.
+     * @param onlyVisibleAndUnlocked - If `true`, ignores hidden or locked items. Defaults to `true`.
+     * 
+     * @returns An array of PageItems whose `.name` matches any string in the `name` array.
+     */
+    static getItemsByNames(
+        items: PageItem[],
+        name: string[],
+        onlyVisibleAndUnlocked: boolean = true
+    ): PageItem[] {
+
+        // Holds all matching PageItems found during the recursive search
+        const foundItems: PageItem[] = [];
+
+        /**
+         * Internal recursive function to walk through the PageItem tree.
+         * @param _items - A batch of PageItems at the current recursion depth.
+         */
+        const recursivelyFind = (_items: PageItem[]) => {
+            // Iterate through the current level of items
+            for (const item of _items) {
+
+                // Check if item name matches one of the names in the array
+                // Also check if visibility and lock filtering is enabled and passed
+                const nameMatches = arrayIncludes(name, item.name);
+                const passesVisibilityCheck = !onlyVisibleAndUnlocked || (!item.hidden && !item.locked);
+
+                if (nameMatches && passesVisibilityCheck) {
+                    // If both conditions pass, add the item to the result
+                    foundItems.push(item);
+                }
+
+                // If item has nested PageItems (e.g., GroupItem), search recursively
+                if ("pageItems" in item && item.pageItems.length > 0) {
+                    recursivelyFind(item.pageItems);
+                }
+            }
+        };
+
+        // Begin the recursive search from the root list
+        recursivelyFind(items);
+
+        // Return the complete list of found PageItems
+        return foundItems;
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
