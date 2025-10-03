@@ -783,6 +783,70 @@ class Organizer {
         throw new Error("Could not find Document from the given item.");
     };
 
+    /**
+     * Applies an opacity mask to a set of Illustrator items.
+     * 
+     * This method looks for specific named items (defined in `SearchingKeywords.OpacityMask` and `OpacityMaskInvert`),
+     * ungroups them if needed, and executes a named action script (`doScript`) on each item individually.
+     * 
+     * This is typically used to apply standard masking operations as part of an automated Illustrator workflow.
+     *
+     * ### Workflow:
+     * 1. Finds all items matching mask-related names.
+     * 2. Validates that at least one mask item exists.
+     * 3. Retrieves the document from one of the found items.
+     * 4. Iterates over each found item:
+     *    - Selects it
+     *    - Ungroups it
+     *    - Runs the script named after the item
+     *    - Deselects it
+     *
+     * @param items - An array of `PageItem` objects to search through for opacity mask candidates.
+     *
+     * @throws Will throw an error if no matching opacity mask items are found.
+     */
+    static makeOpacityMask(items: PageItem[]) {
+        // Search for items named "OpacityMask" or "OpacityMaskInvert" within the provided items
+        const maskItems = this.getItemsByNames(
+            items,
+            [SearchingKeywords.OpacityMask, SearchingKeywords.OpacityMaskInvert]
+        );
+
+        // If no mask-related items found, throw an error and stop execution
+        if (!(maskItems?.length)) {
+            throw new Error(`${SearchingKeywords.OpacityMask} or ${SearchingKeywords.OpacityMaskInvert} not found`);
+        }
+
+        // Retrieve the Illustrator Document reference from the first found item
+        const doc = this.getDocumentFromItem(maskItems[0]);
+
+        // Loop through each found mask item
+        for (const item of maskItems) {
+
+            // Select the current item in the document
+            this.docSelectionHandler({
+                doc,
+                items: [item],
+                type: true
+            });
+
+            // If the item is a group, ungroup it to access its children
+            this.unGroupItem(item as GroupItem);
+
+            // Run the action script associated with the item's name
+            // The action set is "JFT-Rapid", and dialogs are suppressed (false)
+            app.doScript(item.name, "JFT-Rapid", false);
+
+            // Deselect the current item after processing
+            this.docSelectionHandler({
+                doc,
+                items: [item],
+                type: false
+            });
+        }
+    }
+
+
 }
 
 interface GetDirectoryFileInfoReturn {

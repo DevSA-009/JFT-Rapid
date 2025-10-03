@@ -16,7 +16,9 @@ enum SearchingKeywords {
     H_SLV = "H_SLV",
     NO = "NO",
     NAME = "NAME",
-    F_NO = "F_NO"
+    F_NO = "F_NO",
+    OpacityMask = "OM-SA",
+    OpacityMaskInvert = "OMI-SA",
 }
 
 enum NANOBaseSize {
