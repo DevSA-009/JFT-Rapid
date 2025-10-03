@@ -224,12 +224,13 @@ class AutomateGridLayout {
                 this.alignCenterDocsItems(docsIns.doc);
             }
 
+            this.makeOpacityMask(docsIns.doc);
+
             if (this.process === "10") {
                 docsIns.ilstDocHandler.save(this.folderPath);
                 docsIns.ilstDocHandler.close();
             }
-
-        }
+        };
 
         if (this.lShapeQuantityOdd) {
             this.quantity--
@@ -398,7 +399,7 @@ class AutomateGridLayout {
 
         const distance = this.dimension.width / this.rootBodyDimenstion!.width;
 
-        const fitWidth = params.initTextDimension.width * (distance*1.15);
+        const fitWidth = params.initTextDimension.width * (distance * 1.15);
 
         const tf = params.textFrame;
 
@@ -562,6 +563,8 @@ class AutomateGridLayout {
 
         alignPageItemsToArtboard(front, docsIns.doc);
 
+        this.makeOpacityMask(docsIns.doc);
+
         if (this.process === "10") {
             docsIns.ilstDocHandler.save(this.folderPath);
             docsIns.ilstDocHandler.close();
@@ -577,6 +580,33 @@ class AutomateGridLayout {
         this.flipBackToX(pagesItems);
         alignPageItemsToArtboard(pagesItems, doc);
     };
+
+    /**
+     * Applies an opacity mask to the current active layer of a given document.
+     * 
+     * This method searches for page items with names matching `OpacityMask` or `OpacityMaskInvert`,
+     * ungroups them if necessary, and then applies the associated action via `doScript`.
+     * 
+     * The masking logic is defined externally (in the Illustrator action set "JFT-Rapid"), and
+     * this method acts as a controller to automate that process for relevant page items.
+     * 
+     * The method is only executed if the global `CONFIG.opacityMask` flag is enabled.
+     *
+     * @private
+     * @param doc - The target Illustrator `Document` whose active layer will be searched for mask items.
+     * @throws {Error} If no opacity mask items are found in the active layer.
+     */
+    private makeOpacityMask(doc: Document) {
+        // Exit early if opacity masking is disabled via configuration
+        if (!CONFIG.opacityMask) {
+            return
+        }
+        // Get all page items from the active layer of the provided document
+        const pageItems = doc.activeLayer.pageItems;
+
+        // Call Organizer's method to find and apply the mask logic to those page items
+        Organizer.makeOpacityMask(pageItems);
+    }
 
     /**
      * Flips items back to the correct orientation based on their position (row index),
