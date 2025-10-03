@@ -75,6 +75,8 @@ const automateInfoDialog = () => {
 
         const gridModeList_array = objectKeys(GridMode);
         const gridModeList = modeGrp.add("dropdownlist", undefined, undefined, { name: "gridModeList", items: gridModeList_array });
+        const currentMode = CONFIG.Persist_Config.config["mode"];
+        gridModeList.selection = indexOf(gridModeList_array, currentMode);
         gridModeList.selection = 0;
         gridModeList.preferredSize.width = 70;
         gridModeList.preferredSize.height = 10;
@@ -239,7 +241,6 @@ const automateInfoDialog = () => {
         // OPACITYMASKGRP
         // ==============
         const opacityMaskGrp = requiredPanel.add("group", undefined, { name: "opacityMaskGrp" });
-        opacityMaskGrp.enabled = false;
         opacityMaskGrp.orientation = "row";
         opacityMaskGrp.alignChildren = ["left", "center"];
         opacityMaskGrp.spacing = 10;
@@ -280,6 +281,7 @@ const automateInfoDialog = () => {
             CONFIG.orientation = orientations.selection.text;
             CONFIG.kidsinV = kidsInVCheckBox.value;
             CONFIG.outlineNANO = outlineNANOCheckBox.value;
+            CONFIG.opacityMask = opacityMaskCheckBox.value;
             dialogRoot.close(1); // success signal
         }
 
