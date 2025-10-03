@@ -77,7 +77,6 @@ const automateInfoDialog = () => {
         const gridModeList = modeGrp.add("dropdownlist", undefined, undefined, { name: "gridModeList", items: gridModeList_array });
         const currentMode = CONFIG.Persist_Config.config["mode"];
         gridModeList.selection = indexOf(gridModeList_array, currentMode);
-        gridModeList.selection = 0;
         gridModeList.preferredSize.width = 70;
         gridModeList.preferredSize.height = 10;
         gridModeList.alignment = ["center", "center"];
