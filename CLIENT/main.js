@@ -88,6 +88,8 @@ const markPantFrontRBtn = selectElementById(`markPantFrontR`);
 const markPantFrontLBtn = selectElementById(`markPantFrontL`);
 const markPantBackRBtn = selectElementById(`markPantBackR`);
 const markPantBackLBtn = selectElementById(`markPantBackL`);
+const markOpacityMask = selectElementById(`markOpacityMask`);
+const markOpacityMaskInvert = selectElementById(`markOpacityMaskInvert`);
 
 markFrontBtn.onclick = () => {
     csInterface.evalScript("Organizer.objectMarkByName('FRONT')");
@@ -115,6 +117,12 @@ markPantBackRBtn.onclick = () => {
 }
 markPantBackLBtn.onclick = () => {
     csInterface.evalScript("Organizer.objectMarkByName('PANT_B_L')");
+}
+markOpacityMask.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('OM-SA')");
+}
+markOpacityMaskInvert.onclick = () => {
+    csInterface.evalScript("Organizer.objectMarkByName('OMI-SA')");
 }
 
 /**
