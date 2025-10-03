@@ -749,6 +749,40 @@ class Organizer {
         return foundItems;
     };
 
+    /**
+     * Retrieves the parent Illustrator `Document` from a given PageItem.
+     *
+     * This method is useful when dealing with nested selections (e.g., inside Groups, Layers),
+     * where the document reference is not directly accessible from the selected object.
+     *
+     * It traverses the `.parent` chain recursively until it finds an object
+     * that is an instance of `Document`.
+     *
+     * @param item - The Illustrator PageItem (e.g., PathItem, GroupItem, etc.) to start from.
+     * @returns The `Document` object the item belongs to.
+     *
+     * @throws Will throw an error if the traversal reaches a null parent
+     *         or no document is found (which shouldn't happen if the input is valid).
+     */
+    static getDocumentFromItem(item: PageItem): Document {
+        // Start traversal from the given item
+        let current: any = item;
+
+        // Traverse upward through the item's parent hierarchy
+        while (current && !(current instanceof Document)) {
+            // Move up to the parent container (GroupItem, Layer, etc.)
+            current = current.parent;
+        }
+
+        // Return the found Document, or throw if none found
+        if (current instanceof Document) {
+            return current;
+        }
+
+        // If the loop ended without finding a Document, something went wrong
+        throw new Error("Could not find Document from the given item.");
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
