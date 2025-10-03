@@ -537,6 +537,103 @@ class Organizer {
         }
     };
 
+    /**
+     * Returns the previous and next sibling items of a given page item,
+     * as well as its index within the parent container's pageItems array.
+     *
+     * @param item - The PageItem (e.g., GroupItem, PathItem) to find siblings for.
+     * @returns An object containing:
+     *  - `prevItem`: the previous sibling (or `null` if first)
+     *  - `nextItem`: the next sibling (or `null` if last)
+     *  - `itemIndex`: the index of the current item in its parent’s pageItems
+     *
+     * @throws Error if the item is not found in its parent’s pageItems collection.
+     */
+    static getSiblingItems(item: PageItem): GetSiblingItemsReturn {
+        // Get the parent container (Layer, GroupItem, or Document) of the given item
+        const parent = item.parent as Layer | GroupItem | Document;
+
+        // Get all page items under the parent — includes all types (GroupItem, PathItem, etc.)
+        const siblings = parent.pageItems;
+
+        // Initialize index to -1 (not found)
+        let index = -1;
+
+        // Loop through siblings to find the index of the current item
+        for (let i = 0; i < siblings.length; i++) {
+            if (siblings[i] === item) {
+                index = i;
+                break; // Exit the loop once the item is found
+            }
+        }
+
+        // If the item wasn't found, throw an error
+        if (index === -1) {
+            throw new Error("Item not found in parent's pageItems.");
+        }
+
+        // Get the previous item, or null if this is the first item
+        const prevItem = index > 0 ? siblings[index - 1] : null;
+
+        // Get the next item, or null if this is the last item
+        const nextItem = index < siblings.length - 1 ? siblings[index + 1] : null;
+
+        // Return the previous and next siblings, and the current item index
+        return { prevItem, nextItem, itemIndex: index };
+    };
+
+    /**
+     * Ungroups a given GroupItem by moving all its child items out into the parent container,
+     * preserving their stacking order relative to the group's position in the parent.
+     *
+     * This method determines the correct `ElementPlacement` by checking sibling items:
+     * - If there is a previous sibling, new items are placed **after** it.
+     * - If there is no previous sibling but a next sibling exists, items are placed **at the beginning**.
+     * - If neither exist, items are placed **inside** the parent (default to beginning).
+     *
+     * @param groupItem - The GroupItem to ungroup.
+     * 
+     * @throws Error if the item is not a valid GroupItem or has no children.
+     */
+    static unGroupItem(groupItem: GroupItem): void {
+        // Validate that the item is a GroupItem and has child items
+        if (groupItem.typename !== PageItemType.GroupItem || !groupItem.pageItems.length) {
+            throw new Error("Item is not a Group object or is empty.");
+        }
+
+        // Get previous and next sibling items (used to determine insertion point)
+        const { nextItem, prevItem } = this.getSiblingItems(groupItem);
+
+        // Default to placing items in the same parent as the group
+        let parent = groupItem.parent;
+
+        // Default placement is at the beginning
+        let place = ElementPlacement.PLACEATBEGINNING;
+
+        // If there's a previous item, place ungrouped items after it
+        if (prevItem) {
+            place = ElementPlacement.PLACEAFTER;
+            parent = prevItem; // Place after this item
+        }
+
+        // If there's no previous item but a next item exists,
+        // keep placement at beginning (before the next item)
+        if (!prevItem && nextItem) {
+            place = ElementPlacement.PLACEATBEGINNING;
+            // parent remains the original parent
+        }
+
+        // Move each child of the group to the determined parent/position
+        // Iterate in reverse to preserve stacking order
+        for (let index = groupItem.pageItems.length - 1; index >= 0; index--) {
+            const item = groupItem.pageItems[index];
+            item.move(parent, place);
+        }
+
+        // Optionally remove the now-empty group
+        // groupItem.remove(); // Uncomment if you want to delete the group after ungrouping
+    };
+
 }
 
 interface GetDirectoryFileInfoReturn {
@@ -562,3 +659,9 @@ interface SelectionVerifyChainReturn {
     selection: Selection;
     doc: Document
 }
+
+type GetSiblingItemsReturn = {
+    prevItem: PageItem | null;
+    nextItem: PageItem | null;
+    itemIndex: number;
+};
