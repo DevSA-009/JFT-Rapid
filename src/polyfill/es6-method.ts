@@ -134,3 +134,28 @@ const arrayIncludes = <T>(arr: T[], value: T): boolean => {
     }
     return false;
 };
+
+/**
+ * A custom implementation of Array.prototype.filter that works in ES3 environments.
+ *
+ * @template T - The type of elements in the input array.
+ * @param array - The array to filter.
+ * @param callback - A function that is called for each item in the array.
+ *                   Should return `true` to keep the item, or `false` to exclude it.
+ *                   Receives three arguments: (item, index, array)
+ * @returns A new array containing only the items for which callback returned true.
+ */
+const arrayFilter = <T>(
+    array: T[],
+    callback: (item: T, index: number, array: T[]) => boolean
+): T[] => {
+    var result: T[] = []; // Create an empty array to store filtered results
+
+    for (var i = 0; i < array.length; i++) { // Iterate over each element of the input array
+        if (callback(array[i], i, array)) {   // Call the callback with (item, index, array)
+            result[result.length] = array[i];   // If callback returns true, add the item to result
+        }
+    }
+
+    return result; // Return the new filtered array
+};
