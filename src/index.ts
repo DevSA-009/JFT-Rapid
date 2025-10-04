@@ -3,7 +3,10 @@ const JFT_CONF_PRODUCTION_PATH = "C:\\Users\\Admin\\AppData\\Roaming\\Adobe\\CEP
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
-const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_DEV_PATH);
+const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH);
+
+// for globally handler progressbar
+// const progressWindow = createProgressWindow();
 
 const CONFIG: JFTRapid_Config = {
     Items_Gap: 0.1,
@@ -44,7 +47,9 @@ const gridMenuallyCB = (params: OrgManuallyParams) => {
         const newPersist_Config = { ...CONFIG.Persist_Config };
 
         newPersist_Config.config["container"] = sizeContainer;
-        newPersist_Config.config["mode"] = mode;
+        if (mode !== "PANT") {
+            newPersist_Config.config["mode"] = mode;
+        }
 
         JFTPersistConfigFetch.write(newPersist_Config);
 
@@ -86,6 +91,8 @@ const automateNANO = (params: OrgAutoParams) => {
 
         const sizeCategory = CONFIG.Persist_Config.sizes[sizeContainer as keyof typeof CONFIG.Persist_Config.sizes];
 
+        let totalBodyQuantity = 0;
+
         // removed missed size or unknown size data and store valid size (which exist in container) data
         for (const size in validData) {
             const isBaby = isBabySize(size as ApparelSize, sizeCategory["BABY"]);
@@ -95,6 +102,7 @@ const automateNANO = (params: OrgAutoParams) => {
                 if (sizeField) {
                     if (validData[size as ApparelSize]?.length) {
                         validItems[size as ApparelSize] = validData[size as ApparelSize];
+                        totalBodyQuantity += validData[size as ApparelSize]!.length;
                     }
                 } else {
                     missedTargetSizes.push(size as ApparelSize);
@@ -105,6 +113,7 @@ const automateNANO = (params: OrgAutoParams) => {
                 if (sizeField) {
                     if (validData[size as ApparelSize]?.length) {
                         validItems[size as ApparelSize] = validData[size as ApparelSize];
+                        totalBodyQuantity += validData[size as ApparelSize]!.length;
                     }
                 } else {
                     missedTargetSizes.push(size as ApparelSize);
@@ -130,7 +139,7 @@ const automateNANO = (params: OrgAutoParams) => {
         }
 
         // process body
-        for (const size in validItems) {
+        for (let size in validItems) {
             const typedKey = size as keyof typeof data;
             const element = validData[typedKey] as Person[];
             const quantity = element?.length;
@@ -151,7 +160,7 @@ const automateNANO = (params: OrgAutoParams) => {
                 }
             }
 
-            outputInfo = `${outputInfo}\n${typedKey}=${quantity}`;
+            outputInfo = `${outputInfo}\n${typedKey}=${quantity} Set`;
 
             const finalMode: Mode = quantity % 3 === 1 ? "FB" : mode;
 
@@ -165,6 +174,8 @@ const automateNANO = (params: OrgAutoParams) => {
             });
         }
 
+        outputInfo = `${outputInfo}\n${"Total Body"}=${totalBodyQuantity} Set`
+
         if (pantItems.length) {
             gridMenuallyCB({
                 mode: "PANT",
@@ -174,8 +185,9 @@ const automateNANO = (params: OrgAutoParams) => {
                 process: "10",
                 data: pantItems
             })
-            outputInfo = `${outputInfo}\n${"PANT"}=${pantItems.length}`
         }
+
+        outputInfo = `${outputInfo}\n${"PANT"}=${pantItems.length} Set`
 
         alertDialogSA(outputInfo, true);
 
@@ -183,7 +195,6 @@ const automateNANO = (params: OrgAutoParams) => {
         alertDialogSA(error.message);
     }
 };
-
 
 // gridMenuallyCB({
 //     mode: "FB",
@@ -194,5 +205,4 @@ const automateNANO = (params: OrgAutoParams) => {
 //     process: "01"
 // })
 
-
-// automateInfoDialog()
+// automateNANO()
