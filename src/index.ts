@@ -183,7 +183,7 @@ const automateNANO = (params: OrgAutoParams) => {
                 sizeContainer,
                 targetSizeChr: "3XL",
                 process: "10",
-                data: pantItems
+                data: [...pantItems]
             })
         }
 
