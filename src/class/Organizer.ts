@@ -321,16 +321,22 @@ class Organizer {
 
             groupManager.group();
 
-            const gorupItem = groupManager.tempGroup;
+            const groupItem = groupManager.tempGroup;
 
-            if (!gorupItem) {
+            if (!groupItem) {
                 throw new Error(`Can't grouping`);
             }
 
-            rotateItems(gorupItem, -90);
+            const dupItem = groupItem.duplicate();
 
-            moveItemToCanvas(gorupItem, "T");
-            moveItemToCanvas(gorupItem, "L");
+            moveItemAfter({
+                base:groupItem,
+                moving:dupItem,
+                gap:1,
+                position:"T"
+            });
+
+            groupManager.ungroup();
 
         } catch (error: any) {
             alertDialogSA(error.message)
