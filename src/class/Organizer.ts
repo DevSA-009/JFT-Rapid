@@ -330,10 +330,10 @@ class Organizer {
             const dupItem = groupItem.duplicate();
 
             moveItemAfter({
-                base:groupItem,
-                moving:dupItem,
-                gap:1,
-                position:"T"
+                base: groupItem,
+                moving: dupItem,
+                gap: 1,
+                position: "T"
             });
 
             groupManager.ungroup();
@@ -850,8 +850,23 @@ class Organizer {
                 type: false
             });
         }
-    }
+    };
 
+    /**
+     * repairing document by copying active layer objects to created new document and save
+     */
+    static repairDocumentError() {
+        const actDoc = app.activeDocument;
+        if (!actDoc) {
+            throw new Error("No open document found.");
+        }
+        const fileNameWithoutExt = actDoc.name.replace(/\.[^.]+$/, "");
+        const fileName = `${fileNameWithoutExt} Fixed`;
+        const newDocHandler = new IllustratorDocument(fileName);
+        const fixedDoc = newDocHandler.create(actDoc.activeLayer.pageItems);
+        this.smallArtboard(fixedDoc);
+        newDocHandler.save(`${actDoc.path.fsName}`, fileName);
+    };
 
 }
 

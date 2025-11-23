@@ -33,6 +33,7 @@ pantInitBtn.onclick = () => {
 // ---------- patch Tweak Buttons --------- \\
 const selectClipPathBtn = selectElementById("selectClipPath");
 const checkOpacityMaskBtn = selectElementById("checkOpacityMask");
+const repairDocBtn = selectElementById("repairDocument");
 const $2SetFSlv = selectElementById("2SetFSlv");
 
 // ---------- patch Object Key Handler Button --------- \\
@@ -41,6 +42,10 @@ const destroyObjKeyBtn = selectElementById("destroyObjectKey");
 
 selectClipPathBtn.onclick = () => {
     csInterface.evalScript("Organizer.selectTopClippingPath()");
+}
+
+repairDocBtn.onclick = () => {
+    csInterface.evalScript("Organizer.repairDocumentError()");
 }
 
 checkOpacityMaskBtn.onclick = () => {
