@@ -100,7 +100,5 @@ interface OrgAutoParams {
     readonly sizeContainer: string;
     data: {
         [key in ApparelSize]?: Person[]; // Apparel sizes can be optional too
-    } & {
-        GK?: { [key in ApparelSize]?: Person[] };
     };
 }

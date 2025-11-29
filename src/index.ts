@@ -75,14 +75,6 @@ const automateNANO = (params: OrgAutoParams) => {
 
         const validData = JSONSA.parse(data) as typeof data;
 
-        // deep copy goalkeepers object
-        const gkItems = JSONSA.parse(JSONSA.stringify(validData["GK"]));
-
-        // remove goalkeepers object from original object
-        if (validData["GK"]) {
-            delete validData["GK"];
-        }
-
         const validItems: typeof validData = {};
 
         const missedTargetSizes: ApparelSize[] = [];
@@ -162,7 +154,13 @@ const automateNANO = (params: OrgAutoParams) => {
 
             outputInfo = `${outputInfo}\n${typedKey}=${quantity} Set`;
 
-            const finalMode: Mode = quantity % 3 === 1 ? "FB" : mode;
+            let finalMode: Mode = mode;
+
+            if(mode === "B") {
+                if (quantity % 2 && quantity <= 10) {
+                    finalMode = "FB";
+                }
+            }
 
             gridMenuallyCB({
                 mode: finalMode,
