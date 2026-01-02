@@ -159,3 +159,30 @@ const arrayFilter = <T>(
 
     return result; // Return the new filtered array
 };
+
+/**
+ * Custom implementation of the `forEach` function for arrays.
+ * 
+ * This function loops through each item in the provided array and executes the provided callback
+ * function for each element.
+ * 
+ * @param array - The array to iterate over.
+ * @param callback - A function that is executed for each element in the array.
+ * It takes three arguments:
+ *  - item: The current element in the array.
+ *  - index: The index of the current element.
+ *  - array: The original array that `myForEach` is iterating over.
+ * 
+ * @example
+ * const numbers = [1, 2, 3, 4];
+ * myForEach(numbers, (item, index) => {
+ *   console.log(`Item at index ${index}: ${item}`);
+ * });
+ */
+function arrayForEach<T>(array: T[], callback: (item: T, index: number, array: T[]) => void): void {
+    // Loop through each item in the array
+    for (let i = 0; i < array.length; i++) {
+        // Call the provided callback function with the current element, index, and the entire array
+        callback(array[i], i, array);
+    }
+};
