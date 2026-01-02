@@ -8,17 +8,35 @@ enum PageItemType {
     Layer = "Layer"
 }
 
+enum JerseyType {
+    POLO = "POLO",
+    TSHIRT = "TSHIRT"
+}
+
+enum SleeveType {
+    SHORT = "SHORT",
+    LONG = "LONG",
+    Both = "BOTH"
+}
+
+enum HamType {
+    None = "NONE",
+    RIB = "RIB",
+    CUFF = "CUFF"
+}
+
+
 enum SearchingKeywords {
     SIZE_TKN = "SIZE_TKN",
     FRONT = "FRONT",
     BACK = "BACK",
-    F_SLV = "F_SLV",
-    H_SLV = "H_SLV",
+    LONG_SLV = "L_SLV",
+    SHORT_SLV = "S_SLV",
     SOLID = "SLD",
     COLLAR = "CLR",
     PLACKET = "PLC",
-    H_SLV_RIB = "H_RIB",
-    F_SLV_RIB = "F_RIB",
+    S_SLV_RIB = "S_RIB",
+    L_SLV_RIB = "L_RIB",
     NO = "NO",
     NAME = "NAME",
     OpacityMask = "OM-SA",
