@@ -105,6 +105,11 @@ interface OrgAutoParams {
 
 // All New Types
 
+/* ==== TS Built in Utils ==== */
+type ReturnType<T extends (...args: any) => any> = T extends (...args: any) => infer R ? R : any;
+
+type PropertyKey = string | number | symbol;
+
 /**
  * Represents width and height dimensions.
  */
@@ -113,25 +118,17 @@ interface Size {
     height: number;
 }
 
+/**
+ * Keys of Stack Type.
+ */
+type StackType = "HH" | "VV" | "RHH" | "RVV";
 
 /**
  * Possible stacking configurations.
  */
-interface StackSizes {
-    HH: Size;
-    VV: Size;
-    RHH: Size;
-    RVV: Size;
-}
+type StackSizes = Record<StackType,DimensionObject>;
 
-/**
- * Keys of StackSizes.
- */
-type StackType = keyof StackSizes;
-
-/**
- * Recommended stacking configuration.
- */
+/** Recommended stack type with its width */
 type RecommendedStack = {
     type: StackType;
     width: number;
