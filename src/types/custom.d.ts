@@ -102,3 +102,42 @@ interface OrgAutoParams {
         [key in ApparelSize]?: Person[]; // Apparel sizes can be optional too
     };
 }
+
+// All New Types
+
+/**
+ * Represents width and height dimensions.
+ */
+interface Size {
+    width: number;
+    height: number;
+}
+
+
+/**
+ * Possible stacking configurations.
+ */
+interface StackSizes {
+    HH: Size;
+    VV: Size;
+    RHH: Size;
+    RVV: Size;
+}
+
+/**
+ * Keys of StackSizes.
+ */
+type StackType = keyof StackSizes;
+
+/**
+ * Recommended stacking configuration.
+ */
+type RecommendedStack = {
+    type: StackType;
+    width: number;
+}
+
+/**
+ * Supported length units.
+ */
+type LengthUnit = "mm" | "cm" | "inch" | "pt";

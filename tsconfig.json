@@ -14,6 +14,8 @@
     "src/polyfill/**/*.js",
     "src/polyfill/**/*.ts",
     "src/utils/**/*.ts",
+    "src/class/Utils.ts",
+    "src/class/GridCalculator.ts",
     "src/class/JSONFileHandler.ts",
     "src/class/ValidatorManager.ts",
     "src/class/GroupManager.ts",
