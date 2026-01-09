@@ -43,6 +43,24 @@ class Utils {
         // Convert inches to "to" unit
         return valueInInches / toInches[to];
     };
+
+    /**
+    * Slices a string or array from the end based on the specified slice value.
+    *
+    * @param originalVal - The input string or array to be sliced.
+    * @param sliceValue - The number of elements to remove from the end.
+    * @returns The sliced value.
+    * @throws {Error} Throws an error if sliceValue is negative.
+    */
+    static endSlice = (
+        originalVal: string | unknown[],
+        sliceValue: number,
+    ): string | unknown[] => {
+        if (sliceValue < 0) {
+            throw new Error("sliceValue must be non-negative");
+        }
+        return originalVal.slice(0, originalVal.length - sliceValue);
+    };
 }
 
 interface ConvertParams {
