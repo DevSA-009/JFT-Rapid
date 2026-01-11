@@ -108,6 +108,16 @@ interface OrgAutoParams {
 /* ==== TS Built in Utils ==== */
 type ReturnType<T extends (...args: any) => any> = T extends (...args: any) => infer R ? R : any;
 
+// Basic version (most common use-case)
+type Omit<T, K extends keyof any> = {
+    [P in keyof T as P extends K ? never : P]: T[P]
+}
+
+// Even stricter (prevents passing invalid keys - very safe)
+type StrictOmit<T, K extends keyof T> = {
+    [P in keyof T as P extends K ? never : P]: T[P]
+}
+
 type PropertyKey = string | number | symbol;
 
 /**
@@ -127,6 +137,13 @@ type StackType = "HH" | "VV" | "RHH" | "RVV";
  * Possible stacking configurations.
  */
 type StackSizes = Record<StackType,DimensionObject>;
+
+/**
+ * stack configurations.
+ */
+type StackSize = {
+    [K in StackType]:Record<K,DimensionObject>
+}[StackType];
 
 /** Recommended stack type with its width */
 type RecommendedStack = {

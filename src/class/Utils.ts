@@ -61,10 +61,43 @@ class Utils {
         }
         return originalVal.slice(0, originalVal.length - sliceValue);
     };
+
+    /**
+     * Calculates the total size of repeated items with gaps applied
+     * only between items (no trailing gap).
+     *
+     * Formula:
+     *   (itemSize * count) + (gap * (count - 1))
+     *
+     * @param params - Calculation parameters
+     * @returns Total size including gaps
+     */
+    static calculateTotalWithGap(params: CalculateTotalWithGapParams): number {
+        const { value, count, gap, } = params;
+        if (count <= 0) return 0;
+        if (count === 1) return value;
+        return value * count + gap * (count - 1);
+    };
+
 }
 
 interface ConvertParams {
     value: number;
     from?: LengthUnit; // default = "pt"
     to?: LengthUnit;   // default = "inch"
+}
+
+/**
+ * Parameters for calculating total size with gaps between items.
+ */
+interface CalculateTotalWithGapParams {
+
+    /** Base value */
+    value: number;
+
+    /** Number of counts */
+    count: number;
+
+    /** Gap between consecutive items */
+    gap: number;
 }
