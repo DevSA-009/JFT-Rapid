@@ -85,6 +85,39 @@ class GridCalculator {
 
         return 0;
     };
+
+    /**
+     * Calculates the number of full rows required for a given stack type
+     * and determines how many items remain after filling complete rows.
+     *
+     * @param params - Row calculation parameters
+     * @param params.quantity - Total number of items to place (default: 1)
+     * @param params.stack - Stack size definitions (not used directly but kept for API consistency)
+     * @param params.fitRowCount - Maximum number of items that fit in a single row
+     *
+     * @returns Object containing:
+     * - `rows`: Number of rows required to place the items
+     * - `remainder`: Items left after filling full rows
+     */
+    static getRowsByStack(params: RowByStack) {
+        const { fitRowCount, quantity = 1 } = params;
+
+        const remainder =
+            quantity >= fitRowCount ? quantity % fitRowCount : 0;
+
+        const usableQuantity = quantity - remainder;
+
+        const rowsNeed = Math.max(
+            1,
+            Math.floor(usableQuantity / fitRowCount)
+        );
+
+        return {
+            rows: rowsNeed,
+            remainder,
+        };
+    };
+
 }
 
 /** Input parameters for stack size calculation */
@@ -97,16 +130,11 @@ interface StackParams {
     gap?: number;
 }
 
-/** Individual stack dimensions */
-interface StackDimensions {
-    width: number;
-    height: number;
-}
-
 /** Result from getStackSizes() */
 interface StackSizesResult extends StackSizes {
     /** The stack type that gives the maximum width */
     recommended: StackType;
+
 }
 
 /** Number of items that fit in one row for each orientation */
@@ -115,4 +143,10 @@ interface RowFitCounts {
     VV: number;
     RHH: number;
     RVV: number;
+}
+
+interface RowByStack {
+    quantity?: number;
+    stack: StackSizes;
+    fitRowCount: number;
 }
