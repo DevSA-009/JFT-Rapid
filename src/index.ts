@@ -204,3 +204,16 @@ const automateNANO = (params: OrgAutoParams) => {
 // })
 
 // automateNANO()
+// automateInfoDialog()
+
+
+const res = GridCalculator.getRecommendedStacks({
+    gap:0.1,
+    heightPreference:"Less",
+    pair:true,
+    quantity:4,
+    size:{height:10.5,width:19},
+    stackOrientation:"auto"
+})
+
+logMessage(JSONSA.stringify(res));

@@ -113,20 +113,34 @@ type Omit<T, K extends keyof any> = {
     [P in keyof T as P extends K ? never : P]: T[P]
 }
 
+/**
+ * Exclude from `T` those types that are assignable to `U`.
+ *
+ * @example
+ * type A = "a" | "b" | "c";
+ * type B = Exclude<A, "b">;
+ * //   ^? "a" | "c"
+ */
+type Exclude<T, U> = T extends U ? never : T;
+
+
+/**
+ * Extract from `T` those types that are assignable to `U`.
+ *
+ * @example
+ * type A = "a" | "b" | "c";
+ * type B = Extract<A, "a" | "c">;
+ * //   ^? "a" | "c"
+ */
+type Extract<T, U> = T extends U ? T : never;
+
+
 // Even stricter (prevents passing invalid keys - very safe)
 type StrictOmit<T, K extends keyof T> = {
     [P in keyof T as P extends K ? never : P]: T[P]
 }
 
 type PropertyKey = string | number | symbol;
-
-/**
- * Represents width and height dimensions.
- */
-interface Size {
-    width: number;
-    height: number;
-}
 
 /**
  * Keys of Stack Type.
@@ -151,7 +165,13 @@ type RecommendedStack = {
     width: number;
 }
 
+/** Stack orientation type */
+type StackOrientation = `${StackOrientations}`;
+
 /**
  * Supported length units.
  */
 type LengthUnit = "mm" | "cm" | "inch" | "pt";
+
+type HeightPreference = "Less" | "More";
+type DimensionType = "width" | "height";

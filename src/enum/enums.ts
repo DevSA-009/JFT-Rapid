@@ -19,12 +19,18 @@ enum SleeveType {
     Both = "BOTH"
 }
 
+enum StackOrientations {
+    "Auto" = "auto",
+    "Horizontal" = "horizontal",
+    "Vertical" = "vertical"
+}
+
 enum HamType {
     None = "NONE",
     RIB = "RIB",
     CUFF = "CUFF"
 }
-
+const stackTypes: StackType[] = ["HH", "VV", "RHH", "RVV"];
 
 enum SearchingKeywords {
     SIZE_TKN = "SIZE_TKN",
