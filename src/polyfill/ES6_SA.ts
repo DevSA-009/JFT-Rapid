@@ -42,7 +42,7 @@ class ES6_SA {
 
         return -1;
     }
-    
+
     /**
        * Iterates over an object's own enumerable properties.
        * @param obj - Object to iterate
@@ -127,6 +127,43 @@ class ES6_SA {
                 ];
             }
         }
+        return result;
+    };
+
+    /**
+     * Returns an array of an object's own enumerable property values.
+     *
+     * This function is a polyfill-style utility intended for environments
+     * targeting ES3, where `Object.values` is not available.
+     *
+     * ⚠️ Notes:
+     * - Only iterates over **own** enumerable properties
+     * - Prototype properties are ignored
+     * - Property enumeration order follows ES3 behavior (not guaranteed)
+     *
+     * @typeParam T - The object value type
+     * @param obj - The source object
+     * @returns An array containing the object's own enumerable values
+     *
+     * @example
+     * ```ts
+     * const user = { id: 1, name: "Safin" };
+     * const values = objectValues(user);
+     * // values is inferred as (number | string)[]
+     * ```
+     */
+    static objectValues<T>(
+        obj: { [key: string]: T }
+    ): T[] {
+        var result: T[] = [];
+        var key: string;
+
+        for (key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                result[result.length] = obj[key];
+            }
+        }
+
         return result;
     };
 
