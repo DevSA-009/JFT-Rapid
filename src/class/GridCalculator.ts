@@ -9,7 +9,7 @@ class GridCalculator {
      * @param params - Configuration for stacking calculation
      * @returns Object containing all stack dimensions and the recommended stack type
      */
-    static getStackSizes(params: StackParams): StackSizesResult {
+    static getStackSizes(params: StackSizeParams): StackSizesResult {
         const { size, pair = true, gap = 0 } = params;
         const horizontalMultiplier = pair ? 2 : 1;
 
@@ -40,22 +40,19 @@ class GridCalculator {
     };
 
     /**
-     * Calculates how many items of each stack type can fit in a single row,
-     * accounting for gaps between items.
+     * Returns how many times the given stack width fits into the paper width,
+     * including gaps between items.
      *
-     * @param params - Stack dimensions and recommended type from getStackSizes()
-     * @returns Object with the maximum fitting count for each stack orientation
+     * @param params - Configuration object
+     * @param params.stackWidth - Width of one stack (chosen orientation)
+     * @param params.gap - Gap between stacks
+     * @returns Maximum number of stacks per row
      */
-    static getRowFitCount(params: RowFitCounts): RowFitCountsReturn {
-        const { HH, RHH, VV, RVV, gap = 0 } = params;
+    static getRowFitCount(params: RowFitCounts): number {
+        const { stackWidth, gap = 0 } = params;
         const maxPaperWidth = CONFIG.PAPER_MAX_SIZE;
 
-        const fitCounts = {
-            HH: this.calculateMaxFit(HH.width, gap, maxPaperWidth),
-            VV: this.calculateMaxFit(VV.width, gap, maxPaperWidth),
-            RHH: this.calculateMaxFit(RHH.width, gap, maxPaperWidth),
-            RVV: this.calculateMaxFit(RVV.width, gap, maxPaperWidth),
-        };
+        const fitCounts = this.calculateMaxFit(stackWidth, gap, maxPaperWidth);
 
         return fitCounts;
     };
@@ -118,33 +115,39 @@ class GridCalculator {
     };
 
     /**
-     * Calculates the total height occupied by a given number of rows,
-     * including gaps between each row.
-     *
-     * This method is typically used after determining how many rows
-     * are required to place stacked items on a fixed paper size.
+     * Computes total height for a given number of rows, including gaps between them.
      *
      * @param params - Height calculation parameters
-     * @param params.rows - Number of rows to be placed
-     * @param params.height - Height of a single row (stack height)
-     * @param params.gap - Vertical gap between rows
+     * @param params.count - Number of rows
+     * @param params.height - Single row height
+     * @param params.gap - Gap between rows
      *
-     * @returns The total height consumed by all rows including gaps
+     * @returns Heights for main rows group and a single remainder row
      */
     static getHeightByRows(params: HeightByRows) {
-        const { rows, height, gap = 0 } = params;
+        const { count, height, gap, } = params;
 
-        return Utils.calculateTotalWithGap({
-            value: height,
-            count: rows,
-            gap,
-        });
+
+        return {
+            mainStack: Utils.calculateTotalWithGap({
+                value: height,
+                count,
+                gap,
+            }),
+            remainderStack: Utils.calculateTotalWithGap({
+                value: height,
+                count: 1,
+                gap,
+            })
+        };
     };
+
+
 
 }
 
 /** Input parameters for stack size calculation */
-interface StackParams {
+interface StackSizeParams {
     /** Dimensions of a single item */
     size: Size;
     /** Whether to allow pairing two items horizontally (default: true) */
@@ -163,7 +166,8 @@ interface StackSizesResult extends StackSizes {
 /** Number of items that fit in one row for each orientation */
 type RowFitCountsReturn = Record<StackType, number>;
 
-interface RowFitCounts extends StackSizesResult {
+interface RowFitCounts {
+    stackWidth: number;
     gap?: number;
 };
 
@@ -173,6 +177,15 @@ interface RowByStack {
     fitRowCount: number;
 }
 
-interface HeightByRows extends StrictOmit<ReturnType<typeof GridCalculator.getRowsByStack>, "remainder">, StrictOmit<DimensionObject, "width"> {
+interface HeightByRows extends StrictOmit<DimensionObject, "width"> {
     gap: number;
+    count: number;
+}
+
+interface LayoutObjectInfo {
+    gap: number;
+    stackType: "auto" | StackType;
+    size: Size;
+    quantity: number;
+    pair?: boolean;
 }
