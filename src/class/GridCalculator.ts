@@ -96,16 +96,16 @@ class GridCalculator {
      * - `remainder`: Items left after filling full rows
      */
     static getRowsByStack(params: RowByStack) {
-        const { fitRowCount, quantity = 1 } = params;
+        const { fitRow, quantity = 1 } = params;
 
         const remainder =
-            quantity >= fitRowCount ? quantity % fitRowCount : 0;
+            quantity >= fitRow ? quantity % fitRow : 0;
 
         const usableQuantity = quantity - remainder;
 
         const rowsNeed = Math.max(
             1,
-            Math.floor(usableQuantity / fitRowCount)
+            Math.floor(usableQuantity / fitRow)
         );
 
         return {
@@ -142,8 +142,36 @@ class GridCalculator {
         };
     };
 
+    /**
+    * Main layout calculation method - supports both single stack type and 'auto' (all types)
+    */
+    static getLayoutInfo(params: LayoutObjectInfo) {
+        const { gap, size, stackType, quantity, pairGap = 0, pair } = params;
 
+        const stackTypes: StackType[] = ["HH", "VV", "RHH", "RVV"];
+        const stacksInfo = {} as StackInfo;
 
+        const stackSizes = this.getStackSizes({ size, pair, gap: pairGap });
+
+        for (const type of stackTypes) {
+            const stackSize = stackSizes[type];
+
+            const fitRow = this.getRowFitCount({ stackWidth: stackSize.width, gap });
+
+            const neededRows = this.getRowsByStack({ fitRow, quantity });
+
+            const heightByRows = this.getHeightByRows({
+                count: neededRows.rows,
+                height: stackSize.height,
+                gap,
+            });
+
+            stacksInfo[type] = { fitRow, neededRows, heightByRows };
+        }
+
+        return stackType === "auto" ? stacksInfo : stacksInfo[stackType];
+
+    };
 }
 
 /** Input parameters for stack size calculation */
@@ -173,8 +201,7 @@ interface RowFitCounts {
 
 interface RowByStack {
     quantity?: number;
-    stack: StackSizes;
-    fitRowCount: number;
+    fitRow: number;
 }
 
 interface HeightByRows extends StrictOmit<DimensionObject, "width"> {
@@ -182,8 +209,15 @@ interface HeightByRows extends StrictOmit<DimensionObject, "width"> {
     count: number;
 }
 
+type StackInfo = Record<StackType, {
+    fitRow: number;
+    neededRows: ReturnType<typeof GridCalculator.getRowsByStack>;
+    heightByRows: ReturnType<typeof GridCalculator.getHeightByRows>;
+}>
+
 interface LayoutObjectInfo {
     gap: number;
+    pairGap?: number;
     stackType: "auto" | StackType;
     size: Size;
     quantity: number;
