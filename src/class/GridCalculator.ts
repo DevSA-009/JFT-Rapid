@@ -281,6 +281,9 @@ class GridCalculator {
                     remainderItems: 0,
                     mainHeight: mainInfo.heightByRows.mainStack,
                     remainderHeight: 0,
+                    mainFitRow: mainInfo.fitRow,
+                    remainderFitRow: mainInfo.fitRow,
+                    remainderRows: 0,
                 });
                 continue;
             }
@@ -306,6 +309,9 @@ class GridCalculator {
                     remainderItems: mainInfo.neededRows.remainder,
                     mainHeight,
                     remainderHeight,
+                    mainFitRow: mainInfo.fitRow,
+                    remainderFitRow: remInfo.fitRow,
+                    remainderRows: mainInfo.neededRows.remainder > 0 ? 1 : 0,
                 });
             }
         }
@@ -322,6 +328,9 @@ class GridCalculator {
             hasRemainder: false,
             mainRows: 0,
             remainderItems: 0,
+            mainFitRow: 0,
+            remainderFitRow: 0,
+            remainderRows: 0,
             allCombinations: []
         };
 
@@ -332,6 +341,9 @@ class GridCalculator {
             hasRemainder: best.hasRemainder,
             mainRows: best.mainRows,
             remainderItems: best.remainderItems,
+            mainFitRow: best.mainFitRow,
+            remainderFitRow: best.remainderFitRow,
+            remainderRows: best.remainderRows,
             // allCombinations: validCombinations,
         };
     };
@@ -407,6 +419,9 @@ interface CombinationScore {
     remainderItems: number;
     mainHeight: number;
     remainderHeight: number;
+    mainFitRow: number;
+    remainderFitRow: number;
+    remainderRows: number;
 }
 
 /** Result from getRecommendedStacks */
@@ -423,6 +438,12 @@ interface RecommendedStacksResult {
     mainRows: number;
     /** Number of remainder items */
     remainderItems: number;
+    /** Number of items that fit per row in main stack */
+    mainFitRow: number;
+    /** Number of items that fit per row in remainder stack */
+    remainderFitRow: number;
+    /** Number of remainder rows (always 0 or 1) */
+    remainderRows: number;
     /** All valid combinations (sorted by score) */
     // allCombinations: CombinationScore[];
 }
