@@ -26,8 +26,14 @@ class GridCalculator {
             height: rotatedH
         } = Utils.swapDimensions(size);
 
+        const widthOfVRH = itemW + gap + itemH;
+
         // All possible stacking variants
         const stacks: StackSizes = {
+            VRH: {
+                width: widthOfVRH,
+                height: widthOfVRH
+            },
             HH: {
                 width: itemW * horizontalMultiplier + gap,
                 height: itemH
@@ -43,7 +49,7 @@ class GridCalculator {
             RVV: {
                 width: rotatedW,
                 height: rotatedH * 2 + gap
-            },
+            }
         };
 
         // Determine the stack with maximum width
@@ -129,7 +135,7 @@ class GridCalculator {
             quantity = 1
         } = params;
 
-        // যদি fit না হয় তাহলে সব items remainder
+        // if can't fit items then all are remainder
         if (fitRow === 0) return {
             rows: 0,
             remainder: quantity
@@ -184,7 +190,7 @@ class GridCalculator {
             pair
         } = params;
 
-        const stackTypes: StackType[] = ["HH", "VV", "RHH", "RVV"];
+        const stackTypes: StackType[] = stackTypesTuple;
         const stacksInfo = {} as StackInfo;
 
         const stackSizes = this.getStackSizes({
@@ -203,7 +209,7 @@ class GridCalculator {
 
             const neededRows = this.getRowsByStack({
                 fitRow,
-                quantity
+                quantity: (type !== "VRH" ? quantity : Math.max(1, Math.ceil(quantity / 2)))
             });
 
             const heightByRows = this.getHeightByRows({
@@ -249,14 +255,12 @@ class GridCalculator {
         }) as StackInfo;
 
         // Determine which stack types to consider based on orientation
-        let stackTypes: StackType[];
+        let stackTypes: StackType[] = stackTypesTuple;
 
         if (stackOrientation === "vertical") {
             stackTypes = ["HH", "VV"]; // Normal orientations only
         } else if (stackOrientation === "horizontal") {
             stackTypes = ["RHH", "RVV"]; // Rotated orientations only
-        } else {
-            stackTypes = ["HH", "VV", "RHH", "RVV"]; // All orientations
         }
 
         const validCombinations: CombinationScore[] = [];
@@ -289,7 +293,7 @@ class GridCalculator {
             }
 
             // If remainder exists, check each remainder stack type
-            for (const remType of stackTypes) {
+            for (const remType of stackTypesTuple) {
                 const remInfo = allStacksInfo[remType];
 
                 // Check: remainder stack must fit at least the remainder items

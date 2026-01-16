@@ -145,7 +145,7 @@ type PropertyKey = string | number | symbol;
 /**
  * Keys of Stack Type.
  */
-type StackType = "HH" | "VV" | "RHH" | "RVV";
+type StackType = "HH" | "VV" | "RHH" | "RVV" | "VRH";
 
 /**
  * Possible stacking configurations.

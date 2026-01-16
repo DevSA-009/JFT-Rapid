@@ -30,7 +30,7 @@ enum HamType {
     RIB = "RIB",
     CUFF = "CUFF"
 }
-const stackTypes: StackType[] = ["HH", "VV", "RHH", "RVV"];
+const stackTypesTuple: StackType[] = ["HH", "VV", "RHH", "RVV","VRH"];
 
 enum SearchingKeywords {
     SIZE_TKN = "SIZE_TKN",
