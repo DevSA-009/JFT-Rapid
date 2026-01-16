@@ -76,6 +76,16 @@ class Utils {
 		if (count === 1) return value;
 		return value * count + gap * (count - 1);
 	}
+
+	/**
+	 * Determines whether a given number is odd.
+	 *
+	 * @param value - The number to evaluate.
+	 * @returns `true` if the number is odd, otherwise `false`.
+	 */
+	static isOdd(value: number) {
+		return !!(value % 2);
+	}
 }
 
 interface ConvertParams {
