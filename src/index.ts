@@ -208,12 +208,14 @@ const automateNANO = (params: OrgAutoParams) => {
 
 
 const res = GridCalculator.getRecommendedStacks({
-    gap:0.1,
-    heightPreference:"Less",
-    pair:true,
-    quantity:4,
-    size:{height:10.5,width:19},
-    stackOrientation:"auto"
-})
+	gap: 0.1,
+	heightPreference: "Less",
+	pair: true,
+	quantity: 16,
+    pairGap:CONFIG.Items_Gap,
+	size: { height: 30, width: 20.5 },
+	stackOrientation: "horizontal",
+	maxColsInDoc: CONFIG.perDoc
+});
 
 logMessage(JSONSA.stringify(res));

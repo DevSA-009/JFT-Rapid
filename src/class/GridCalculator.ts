@@ -125,7 +125,7 @@ class GridCalculator {
 		// if can't fit items then all are remainder
 		if (fitRow === 0 || fitRow === 1)
 			return {
-				rows: quantity,
+				cols: quantity,
 				remainder: 0,
 			};
 
@@ -133,7 +133,7 @@ class GridCalculator {
 		const rowsNeed = Math.floor(quantity / fitRow);
 
 		return {
-			rows: rowsNeed,
+			cols: rowsNeed,
 			remainder,
 		};
 	}
@@ -168,7 +168,7 @@ class GridCalculator {
 	 * @returns Layout information for specified stack type or all stack types
 	 */
 	static getLayoutInfo(params: LayoutObjectInfo) {
-		const { gap, size, quantity, pairGap = 0, pair } = params;
+		const { gap, size, quantity, pairGap = 0, pair, maxColsInDoc } = params;
 
 		const stackTypes: StackType[] = stackTypesTuple;
 		const stacksInfo = {} as StackInfo;
@@ -194,9 +194,19 @@ class GridCalculator {
 			});
 
 			const heightByCols = this.getHeightByCols({
-				count: neededCols.rows,
+				count: neededCols.cols,
 				height: stackSize.height,
 				gap,
+			});
+
+			const requiredDocs = this.requiredDocs({
+				dimension: {
+					width: stackSize.width,
+					height: stackSize.height,
+				},
+				gap,
+				maxColsInDoc,
+				neededCols: neededCols.cols,
 			});
 
 			stacksInfo[type] = {
@@ -204,6 +214,7 @@ class GridCalculator {
 				neededCols,
 				heightByCols,
 				stackSize,
+				requiredDocs,
 			};
 		}
 
@@ -226,6 +237,7 @@ class GridCalculator {
 			pair,
 			heightPreference = "Less",
 			stackOrientation,
+			maxColsInDoc,
 		} = params;
 
 		// Get layout info for all stack types
@@ -235,6 +247,7 @@ class GridCalculator {
 			quantity,
 			pairGap,
 			pair,
+			maxColsInDoc,
 		}) as StackInfo;
 
 		// Determine which stack types to consider based on orientation
@@ -264,13 +277,14 @@ class GridCalculator {
 					totalHeight,
 					hasRemainder: false,
 					score: totalHeight,
-					mainCols: mainInfo.neededCols.rows,
+					mainCols: mainInfo.neededCols.cols,
 					remainderItems: 0,
 					mainHeight: mainInfo.heightByCols.mainStack,
 					remainderHeight: 0,
 					mainFitRow: mainInfo.fitRow,
 					remainderFitRow: mainInfo.fitRow,
 					remainderCols: 0,
+					requiredDocs: mainInfo.requiredDocs,
 				});
 				continue;
 			}
@@ -293,13 +307,14 @@ class GridCalculator {
 					totalHeight,
 					hasRemainder: true,
 					score: totalHeight,
-					mainCols: mainInfo.neededCols.rows,
+					mainCols: mainInfo.neededCols.cols,
 					remainderItems: mainInfo.neededCols.remainder,
 					mainHeight,
 					remainderHeight,
 					mainFitRow: mainInfo.fitRow,
 					remainderFitRow: remInfo.fitRow,
 					remainderCols: mainInfo.neededCols.remainder > 0 ? 1 : 0,
+					requiredDocs: mainInfo.requiredDocs, // remainder always can fit one document
 				});
 			}
 		}
@@ -334,6 +349,7 @@ class GridCalculator {
 			mainFitRow: best.mainFitRow,
 			remainderFitRow: best.remainderFitRow,
 			remainderCols: best.remainderCols,
+			requiredDocs: best.requiredDocs,
 			// allCombinations: validCombinations,
 		};
 	}
@@ -350,7 +366,7 @@ class GridCalculator {
 	 *
 	 * * @throws {Error} If the colsPerDocConfig execeeded the canva height size
 	 */
-	private requiredDocs(params: RequiredDocArg): RequiredDocReturn {
+	private static requiredDocs(params: RequiredDocArg): RequiredDocReturn {
 		const CANVAS_MAX_HEIGHT = 210;
 		const { dimension, neededCols, gap, maxColsInDoc } = params;
 
@@ -407,7 +423,7 @@ interface RowFitCounts {
 	gap?: number;
 }
 
-/** Parameters for row calculation by stack */
+/** Parameters for cols calculation by stack */
 interface RowByStack {
 	quantity?: number;
 	fitRow: number;
@@ -427,6 +443,7 @@ type StackInfo = Record<
 		neededCols: ReturnType<typeof GridCalculator.getColsByStack>;
 		heightByCols: ReturnType<typeof GridCalculator.getHeightByCols>;
 		stackSize: DimensionObject;
+		requiredDocs: RequiredDocReturn;
 	}
 >;
 
@@ -437,6 +454,7 @@ interface LayoutObjectInfo {
 	size: DimensionObject;
 	quantity: number;
 	pair?: boolean;
+	maxColsInDoc: number;
 }
 
 /** Parameters for recommended stack analysis */
@@ -461,6 +479,7 @@ interface CombinationScore {
 	mainFitRow: number;
 	remainderFitRow: number;
 	remainderCols: number;
+	requiredDocs: RequiredDocReturn;
 }
 
 /** Result from getRecommendedStacks */
@@ -483,6 +502,8 @@ interface RecommendedStacksResult {
 	remainderFitRow: number;
 	/** Number of remainder rows (always 0 or 1) */
 	remainderCols: number;
+	/** info about each doc fittable cols */
+	requiredDocs: RequiredDocReturn;
 	/** All valid combinations (sorted by score) */
 	// allCombinations: CombinationScore[];
 }
