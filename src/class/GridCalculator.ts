@@ -123,10 +123,10 @@ class GridCalculator {
 		const { fitRow, quantity = 1 } = params;
 
 		// if can't fit items then all are remainder
-		if (fitRow === 0)
+		if (fitRow === 0 || fitRow === 1)
 			return {
-				rows: 0,
-				remainder: quantity,
+				rows: quantity,
+				remainder: 0,
 			};
 
 		const remainder = quantity % fitRow;
@@ -337,6 +337,52 @@ class GridCalculator {
 			// allCombinations: validCombinations,
 		};
 	}
+
+	/**
+	 * Calculates document requirements for printing based on physical constraints.
+	 * Determines either:
+	 * - Documents needed when limited by maximum canvas height (inches), or
+	 * - Documents needed when using fixed columns-per-document configuration
+	 *
+	 * @returns {RequiredDocReturn} Object containing:
+	 *   - docsNeeded: Total number of documents required
+	 *   - colsPerDoc: Maximum columns that can fit in each document
+	 *
+	 * * @throws {Error} If the colsPerDocConfig execeeded the canva height size
+	 */
+	private requiredDocs(params: RequiredDocArg): RequiredDocReturn {
+		const CANVAS_MAX_HEIGHT = 210;
+		const { dimension, neededCols, gap, maxColsInDoc } = params;
+
+		let docsNeeded: number;
+
+		let colsPerDoc: number;
+
+		// Calculate how many columns can fit within the canvas height constraint
+		// This ensures we never exceed CANVAS_MAX_HEIGHT
+		let calculatedMaxColsInDoc = Math.floor(
+			CANVAS_MAX_HEIGHT / (dimension.height + gap)
+		);
+
+		// Ensure we don't exceed the total columns needed
+		calculatedMaxColsInDoc = Math.min(calculatedMaxColsInDoc, neededCols);
+
+		// Ensure at least 1 column per document
+		colsPerDoc = Math.max(1, calculatedMaxColsInDoc);
+		docsNeeded = Math.ceil(neededCols / colsPerDoc);
+
+		if (maxColsInDoc) {
+			if (maxColsInDoc > colsPerDoc) {
+				throw new Error(
+					`max cols in doc exceeded Canva height.\n\nPlease use ${colsPerDoc} for max`
+				);
+			}
+			colsPerDoc = maxColsInDoc;
+			docsNeeded = Math.ceil(neededCols / colsPerDoc);
+		}
+
+		return { docsNeeded, colsPerDoc };
+	}
 }
 
 /** Input parameters for stack size calculation */
@@ -439,4 +485,18 @@ interface RecommendedStacksResult {
 	remainderCols: number;
 	/** All valid combinations (sorted by score) */
 	// allCombinations: CombinationScore[];
+}
+
+interface RequiredDocArg {
+	neededCols: number;
+	dimension: DimensionObject;
+	maxColsInDoc: number;
+	gap: number;
+}
+
+interface RequiredDocReturn {
+	/** Total documents required to fit all content */
+	docsNeeded: number;
+	/** Maximum columns allocated per document */
+	colsPerDoc: number;
 }
