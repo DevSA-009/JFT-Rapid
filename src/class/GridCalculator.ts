@@ -119,7 +119,7 @@ class GridCalculator {
 	 *   - rows: Number of rows required to place the items
 	 *   - remainder: Items left after filling full rows
 	 */
-	static getRowsByStack(params: RowByStack) {
+	static getColsByStack(params: RowByStack) {
 		const { fitRow, quantity = 1 } = params;
 
 		// if can't fit items then all are remainder
@@ -146,7 +146,7 @@ class GridCalculator {
 	 * @param params.gap - Gap between rows
 	 * @returns Heights for main rows group and a single remainder row
 	 */
-	static getHeightByRows(params: HeightByRows) {
+	static getHeightByCols(params: HeightByCols) {
 		const { count, height, gap } = params;
 
 		return {
@@ -187,22 +187,22 @@ class GridCalculator {
 				gap,
 			});
 
-			const neededRows = this.getRowsByStack({
+			const neededCols = this.getColsByStack({
 				fitRow,
 				quantity:
 					type !== "VRH" ? quantity : Math.max(1, Math.ceil(quantity / 2)),
 			});
 
-			const heightByRows = this.getHeightByRows({
-				count: neededRows.rows,
+			const heightByCols = this.getHeightByCols({
+				count: neededCols.rows,
 				height: stackSize.height,
 				gap,
 			});
 
 			stacksInfo[type] = {
 				fitRow,
-				neededRows,
-				heightByRows,
+				neededCols,
+				heightByCols,
 				stackSize,
 			};
 		}
@@ -256,34 +256,34 @@ class GridCalculator {
 			if (mainInfo.fitRow === 0) continue;
 
 			// If no remainder, only main stack needed
-			if (mainInfo.neededRows.remainder === 0) {
-				const totalHeight = mainInfo.heightByRows.mainStack;
+			if (mainInfo.neededCols.remainder === 0) {
+				const totalHeight = mainInfo.heightByCols.mainStack;
 				validCombinations.push({
 					mainStack: mainType,
 					remainderStack: mainType,
 					totalHeight,
 					hasRemainder: false,
 					score: totalHeight,
-					mainRows: mainInfo.neededRows.rows,
+					mainCols: mainInfo.neededCols.rows,
 					remainderItems: 0,
-					mainHeight: mainInfo.heightByRows.mainStack,
+					mainHeight: mainInfo.heightByCols.mainStack,
 					remainderHeight: 0,
 					mainFitRow: mainInfo.fitRow,
 					remainderFitRow: mainInfo.fitRow,
-					remainderRows: 0,
+					remainderCols: 0,
 				});
 				continue;
 			}
 
 			// If remainder exists, check each remainder stack type
-			for (const remType of stackTypesTuple) {
+			for (const remType of stackTypes) {
 				const remInfo = allStacksInfo[remType];
 
 				// Check: remainder stack must fit at least the remainder items
-				if (remInfo.fitRow < mainInfo.neededRows.remainder) continue;
+				if (remInfo.fitRow < mainInfo.neededCols.remainder) continue;
 
-				const mainHeight = mainInfo.heightByRows.mainStack;
-				const remainderHeight = remInfo.heightByRows.remainderStack;
+				const mainHeight = mainInfo.heightByCols.mainStack;
+				const remainderHeight = remInfo.heightByCols.remainderStack;
 				const totalHeight =
 					mainHeight + (mainHeight > 0 ? gap : 0) + remainderHeight;
 
@@ -293,13 +293,13 @@ class GridCalculator {
 					totalHeight,
 					hasRemainder: true,
 					score: totalHeight,
-					mainRows: mainInfo.neededRows.rows,
-					remainderItems: mainInfo.neededRows.remainder,
+					mainCols: mainInfo.neededCols.rows,
+					remainderItems: mainInfo.neededCols.remainder,
 					mainHeight,
 					remainderHeight,
 					mainFitRow: mainInfo.fitRow,
 					remainderFitRow: remInfo.fitRow,
-					remainderRows: mainInfo.neededRows.remainder > 0 ? 1 : 0,
+					remainderCols: mainInfo.neededCols.remainder > 0 ? 1 : 0,
 				});
 			}
 		}
@@ -329,11 +329,11 @@ class GridCalculator {
 			remainderStack: best.remainderStack,
 			totalHeight: best.totalHeight,
 			hasRemainder: best.hasRemainder,
-			mainRows: best.mainRows,
+			mainCols: best.mainCols,
 			remainderItems: best.remainderItems,
 			mainFitRow: best.mainFitRow,
 			remainderFitRow: best.remainderFitRow,
-			remainderRows: best.remainderRows,
+			remainderCols: best.remainderCols,
 			// allCombinations: validCombinations,
 		};
 	}
@@ -368,7 +368,7 @@ interface RowByStack {
 }
 
 /** Parameters for height calculation by rows */
-interface HeightByRows extends StrictOmit<DimensionObject, "width"> {
+interface HeightByCols extends StrictOmit<DimensionObject, "width"> {
 	gap: number;
 	count: number;
 }
@@ -378,8 +378,8 @@ type StackInfo = Record<
 	StackType,
 	{
 		fitRow: number;
-		neededRows: ReturnType<typeof GridCalculator.getRowsByStack>;
-		heightByRows: ReturnType<typeof GridCalculator.getHeightByRows>;
+		neededCols: ReturnType<typeof GridCalculator.getColsByStack>;
+		heightByCols: ReturnType<typeof GridCalculator.getHeightByCols>;
 		stackSize: DimensionObject;
 	}
 >;
@@ -408,13 +408,13 @@ interface CombinationScore {
 	totalHeight: number;
 	hasRemainder: boolean;
 	score: number;
-	mainRows: number;
+	mainCols: number;
 	remainderItems: number;
 	mainHeight: number;
 	remainderHeight: number;
 	mainFitRow: number;
 	remainderFitRow: number;
-	remainderRows: number;
+	remainderCols: number;
 }
 
 /** Result from getRecommendedStacks */
@@ -427,8 +427,8 @@ interface RecommendedStacksResult {
 	totalHeight: number;
 	/** Whether remainder exists */
 	hasRemainder: boolean;
-	/** Number of main rows */
-	mainRows: number;
+	/** Number of main cols */
+	mainCols: number;
 	/** Number of remainder items */
 	remainderItems: number;
 	/** Number of items that fit per row in main stack */
@@ -436,7 +436,7 @@ interface RecommendedStacksResult {
 	/** Number of items that fit per row in remainder stack */
 	remainderFitRow: number;
 	/** Number of remainder rows (always 0 or 1) */
-	remainderRows: number;
+	remainderCols: number;
 	/** All valid combinations (sorted by score) */
 	// allCombinations: CombinationScore[];
 }
