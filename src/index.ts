@@ -224,8 +224,23 @@ const transHandler = new TransActionHandler({
     doc:app.activeDocument
 })
 
+const item = app.activeDocument.activeLayer.pageItems[0];
+
 transHandler.move({
-    deltaX:0,
-    deltaY:0,
-    item:app.activeDocument.selection[0]
-})
+	deltaX: 1500,
+	deltaY: 750,
+	item,
+});
+
+transHandler.rotate({
+	item,
+	deg: -90,
+});
+
+transHandler.scale({
+	item,
+	scaleFacX: (21.5 / 20.5) * 100,
+	scaleFacY: (31 / 30) * 100,
+});
+
+transHandler.removeAll();
