@@ -1,9 +1,8 @@
 class TransActionHandler {
-	private doc: Document;
-
+	private readonly doc: Document;
 	private currentSets: CurrentSets = {};
 
-	private templateMove = [
+	private readonly templateMove = [
 		"/version 3",
 		"/name [ 20",
 		"5472616e73666f726d6174696f6e5f4465765341",
@@ -53,7 +52,7 @@ class TransActionHandler {
 		"}",
 	];
 
-	private templateRotate = [
+	private readonly templateRotate = [
 		"/version 3",
 		"/name [ 5",
 		"5365742031",
@@ -98,7 +97,7 @@ class TransActionHandler {
 		"}",
 	];
 
-	private templateScale = [
+	private readonly templateScale = [
 		"/version 3",
 		"/name [ 5",
 		"5365742032",
@@ -160,214 +159,138 @@ class TransActionHandler {
 		"}",
 	];
 
-	constructor(params: TransActionHandlerParams) {
-		const { doc } = params;
-
+	constructor({ doc }: TransActionHandlerParams) {
 		this.doc = doc;
 	}
 
-	private createAiaFile(params: CreateAiaFile) {
-		const { content, setName } = params;
-
+	private createAiaFile({ content, setName }: CreateAiaFile): File {
 		const tempPathLocation = Folder.temp;
-
 		const tempFile = `${tempPathLocation.fsName}/Transformation_DevSA_${setName}.aia`;
-
 		const aiaFile = new File(tempFile);
 
 		aiaFile.open("w");
-
 		aiaFile.write(content);
-
 		aiaFile.close();
 
 		return aiaFile;
 	}
 
-	move(params: Move) {
-		const { deltaX, deltaY, item } = params;
+	private selectItem(item: PageItem): void {
+		Organizer.docSelectionHandler({
+			doc: this.doc,
+			items: [item],
+		});
+	}
 
+	private deselectItem(item: PageItem): void {
+		Organizer.docSelectionHandler({
+			doc: this.doc,
+			items: [item],
+			type: false,
+		});
+	}
+
+	private loadActionSet(setName: string, template: string[]): void {
+		const file = this.createAiaFile({
+			content: template.join("\n"),
+			setName,
+		});
+
+		app.loadAction(file);
+		this.currentSets[setName] = true;
+		file.remove();
+	}
+
+	move({ deltaX, deltaY, item }: Move): void {
 		const setName = `Trans_Move_${deltaX}x${deltaY}`;
 
-		Organizer.docSelectionHandler({
-			doc: this.doc,
-			items: [item],
-		});
+		this.selectItem(item);
 
 		if (this.currentSets[setName]) {
-			// app.doScript(setName, setName);
-
-			Organizer.docSelectionHandler({
-				doc: this.doc,
-				items: [item],
-				type: false,
-			});
+			app.doScript(setName, setName);
+			this.deselectItem(item);
+			return;
 		}
 
-		const setNameInHex = Utils.hexString(setName);
-
+		const hexName = Utils.hexString(setName);
 		const template = [...this.templateMove];
+		const hexByteLength = hexName.length / 2;
 
-		// update set name hex byte length
-		template[1] = `/name [ ${setNameInHex.length / 2}`;
+		// Update set and action names
+		template[1] = `/name [ ${hexByteLength}`;
+		template[2] = hexName;
+		template[7] = `/name [ ${hexByteLength}`;
+		template[8] = hexName;
 
-		// update set name in hex string
-		template[2] = `${setNameInHex}`;
-
-		// update action name hex byte length
-		template[7] = `/name [ ${setNameInHex.length / 2}`;
-
-		// update action name in hex string
-		template[8] = `${setNameInHex}`;
-
-		//  update delta x value
+		// Update delta values
 		template[29] = `/value ${deltaX.toFixed(4)}`;
-
-		//  update delta y value
 		template[36] = `/value ${deltaY.toFixed(4)}`;
 
-		const file = this.createAiaFile({
-			content: template.join("\n"),
-			setName,
-		});
-
-		app.loadAction(file);
-
-		this.currentSets[setName] = true;
-
-		file.remove();
-
-		// app.doScript(setName,setName);
-
-		Organizer.docSelectionHandler({
-			doc: this.doc,
-			items: [item],
-			type: false,
-		});
+		this.loadActionSet(setName, template);
+		app.doScript(setName, setName);
+		this.deselectItem(item);
 	}
 
-	scale(params: Scale) {
-		const { scaleFacX, scaleFacY, item } = params;
-
+	scale({ scaleFacX, scaleFacY, item }: Scale): void {
 		const setName = `Trans_Scale_${scaleFacX.toFixed(0)}x${scaleFacY.toFixed(0)}`;
 
-		Organizer.docSelectionHandler({
-			doc: this.doc,
-			items: [item],
-		});
+		this.selectItem(item);
 
 		if (this.currentSets[setName]) {
-			// app.doScript(setName, setName);
-
-			Organizer.docSelectionHandler({
-				doc: this.doc,
-				items: [item],
-				type: false,
-			});
+			app.doScript(setName, setName);
+			this.deselectItem(item);
+			return;
 		}
 
-		const setNameInHex = Utils.hexString(setName);
-
+		const hexName = Utils.hexString(setName);
 		const template = [...this.templateScale];
+		const hexByteLength = hexName.length / 2;
 
-		// update set name hex byte length
-		template[1] = `/name [ ${setNameInHex.length / 2}`;
+		// Update set and action names
+		template[1] = `/name [ ${hexByteLength}`;
+		template[2] = hexName;
+		template[7] = `/name [ ${hexByteLength}`;
+		template[8] = hexName;
 
-		// update set name in hex string
-		template[2] = `${setNameInHex}`;
-
-		// update action name hex byte length
-		template[7] = `/name [ ${setNameInHex.length / 2}`;
-
-		// update action name in hex string
-		template[8] = `${setNameInHex}`;
-
-		//  update scale factor x value
+		// Update scale factor values
 		template[41] = `/value ${scaleFacX.toFixed(4)}`;
-
-		//  update scale factor y value
 		template[48] = `/value ${scaleFacY.toFixed(4)}`;
 
-		const file = this.createAiaFile({
-			content: template.join("\n"),
-			setName,
-		});
-
-		app.loadAction(file);
-
-		this.currentSets[setName] = true;
-
-		file.remove();
-
-		// app.doScript(setName,setName);
-
-		Organizer.docSelectionHandler({
-			doc: this.doc,
-			items: [item],
-			type: false,
-		});
+		this.loadActionSet(setName, template);
+		app.doScript(setName, setName);
+		this.deselectItem(item);
 	}
 
-	rotate(params: Rotate) {
-		const { deg, item } = params;
-
+	rotate({ deg, item }: Rotate): void {
 		const setName = `Trans_Rotate_${deg}`;
 
-		Organizer.docSelectionHandler({
-			doc: this.doc,
-			items: [item],
-		});
+		this.selectItem(item);
 
 		if (this.currentSets[setName]) {
-			// app.doScript(setName, setName);
-
-			Organizer.docSelectionHandler({
-				doc: this.doc,
-				items: [item],
-				type: false,
-			});
+			app.doScript(setName, setName);
+			this.deselectItem(item);
+			return;
 		}
 
-		const setNameInHex = Utils.hexString(setName);
-
+		const hexName = Utils.hexString(setName);
 		const template = [...this.templateRotate];
+		const hexByteLength = hexName.length / 2;
 
-		// update set name hex byte length
-		template[1] = `/name [ ${setNameInHex.length / 2}`;
+		// Update set and action names
+		template[1] = `/name [ ${hexByteLength}`;
+		template[2] = hexName;
+		template[7] = `/name [ ${hexByteLength}`;
+		template[8] = hexName;
 
-		// update set name in hex string
-		template[2] = `${setNameInHex}`;
-
-		// update action name hex byte length
-		template[7] = `/name [ ${setNameInHex.length / 2}`;
-
-		// update action name in hex string
-		template[8] = `${setNameInHex}`;
-
-		// update rotate angel value
+		// Update rotation angle
 		template[37] = `/value ${deg.toFixed(4)}`;
 
-		const file = this.createAiaFile({
-			content: template.join("\n"),
-			setName,
-		});
-
-		app.loadAction(file);
-
-		this.currentSets[setName] = true;
-
-		file.remove();
-
-		// app.doScript(setName,setName);
-
-		Organizer.docSelectionHandler({
-			doc: this.doc,
-			items: [item],
-			type: false,
-		});
+		app.doScript(setName, setName);
+		this.loadActionSet(setName, template);
+		this.deselectItem(item);
 	}
 
-	public removeAll() {
+	removeAll(): void {
 		for (const setName in this.currentSets) {
 			app.unloadAction(setName, "");
 		}
