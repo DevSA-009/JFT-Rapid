@@ -218,4 +218,14 @@ const res = GridCalculator.getRecommendedStacks({
 	maxColsInDoc: CONFIG.perDoc
 });
 
-logMessage(JSONSA.stringify(res));
+// logMessage(JSONSA.stringify(res));
+
+const transHandler = new TransActionHandler({
+    doc:app.activeDocument
+})
+
+transHandler.move({
+    deltaX:0,
+    deltaY:0,
+    item:app.activeDocument.selection[0]
+})

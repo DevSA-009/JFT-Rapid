@@ -17,6 +17,7 @@
     "src/class/Utils.ts",
     "src/class/GridCalculator.ts",
     "src/class/JSONFileHandler.ts",
+    "src/class/TransActionHandler.ts",
     "src/class/ValidatorManager.ts",
     "src/class/GroupManager.ts",
     "src/class/Organizer.ts",
