@@ -1,5 +1,5 @@
-
-const JFT_CONF_PRODUCTION_PATH = "C:\\Users\\Admin\\AppData\\Roaming\\Adobe\\CEP\\extensions\\com.jftrapid.cep\\jft.conf";
+const JFT_CONF_PRODUCTION_PATH =
+	"C:\\Users\\Admin\\AppData\\Roaming\\Adobe\\CEP\\extensions\\com.jftrapid.cep\\jft.conf";
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
@@ -9,189 +9,196 @@ const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH);
 // const progressWindow = createProgressWindow();
 
 const CONFIG: JFTRapid_Config = {
-    Items_Gap: 0.1,
-    orientation: "Auto",
-    outlineNANO: false,
-    PAPER_MAX_SIZE: 63.25,
-    Persist_Config: ((JFTPersistConfigFetch).read() as PersistConfig),
-    kidsinV: false,
-    perDoc: 0,
-    opacityMask: false
+	Items_Gap: 0.1,
+	orientation: "Auto",
+	outlineNANO: false,
+	PAPER_MAX_SIZE: 63.25,
+	Persist_Config: JFTPersistConfigFetch.read() as PersistConfig,
+	kidsinV: false,
+	perDoc: 0,
+	opacityMask: false,
 };
 
 const gridMenuallyCB = (params: OrgManuallyParams) => {
-    try {
-        const { mode, quantity, sizeContainer, targetSizeChr, data, process } = params;
+	try {
+		const { mode, quantity, sizeContainer, targetSizeChr, data, process } =
+			params;
 
-        // ----------------- validation chaining ---------------\\
-        if (mode !== "PANT") {
-            ValidatorManager.checkBodyItems(app.activeDocument);
-        }
-        // ----------------- validation chaining ---------------\\
+		// ----------------- validation chaining ---------------\\
+		if (mode !== "PANT") {
+			ValidatorManager.checkBodyItems(app.activeDocument);
+		}
+		// ----------------- validation chaining ---------------\\
 
-        const dimension = Organizer.getBodyDimenstion({ sizeContainer, targetSizeChr });
+		const dimension = Organizer.getBodyDimenstion({
+			sizeContainer,
+			targetSizeChr,
+		});
 
-        const filesSeqIndex = Math.abs(Organizer.getDirectoryFileInfo().nexFileIndex - 1);
+		const filesSeqIndex = Math.abs(
+			Organizer.getDirectoryFileInfo().nexFileIndex - 1,
+		);
 
-        new AutomateGridLayout({
-            mode,
-            quantity,
-            dimension,
-            targetSizeChr,
-            filesSeqIndex,
-            data,
-            process,
-            folderPath: app.activeDocument.path.fsName
-        });
+		new AutomateGridLayout({
+			mode,
+			quantity,
+			dimension,
+			targetSizeChr,
+			filesSeqIndex,
+			data,
+			process,
+			folderPath: app.activeDocument.path.fsName,
+		});
 
-        const newPersist_Config = { ...CONFIG.Persist_Config };
+		const newPersist_Config = { ...CONFIG.Persist_Config };
 
-        newPersist_Config.config["container"] = sizeContainer;
-        if (mode !== "PANT") {
-            newPersist_Config.config["mode"] = mode;
-        }
+		newPersist_Config.config["container"] = sizeContainer;
+		if (mode !== "PANT") {
+			newPersist_Config.config["mode"] = mode;
+		}
 
-        JFTPersistConfigFetch.write(newPersist_Config);
-
-    } catch (error: any) {
-        alertDialogSA(error.message);
-    }
+		JFTPersistConfigFetch.write(newPersist_Config);
+	} catch (error: any) {
+		alertDialogSA(error.message);
+	}
 };
 
 const initiatePant = () => {
-    try {
-        ValidatorManager.checkdocument();
-        ItemsInitiater.initPant(app.activeDocument);
-    } catch (error: any) {
-        alertDialogSA(error.message)
-    }
+	try {
+		ValidatorManager.checkdocument();
+		ItemsInitiater.initPant(app.activeDocument);
+	} catch (error: any) {
+		alertDialogSA(error.message);
+	}
 };
 
 const automateNANO = (params: OrgAutoParams) => {
-    try {
-        const { mode, data, sizeContainer } = params;
+	try {
+		const { mode, data, sizeContainer } = params;
 
-        let outputInfo = "----- Output Result -----";
+		let outputInfo = "----- Output Result -----";
 
-        const validData = JSONSA.parse(data) as typeof data;
+		const validData = JSONSA.parse(data) as typeof data;
 
-        const validItems: typeof validData = {};
+		const validItems: typeof validData = {};
 
-        const missedTargetSizes: ApparelSize[] = [];
+		const missedTargetSizes: ApparelSize[] = [];
 
-        const selectedOrientaion = CONFIG.orientation;
+		const selectedOrientaion = CONFIG.orientation;
 
-        const sizeCategory = CONFIG.Persist_Config.sizes[sizeContainer as keyof typeof CONFIG.Persist_Config.sizes];
+		const sizeCategory =
+			CONFIG.Persist_Config.sizes[
+				sizeContainer as keyof typeof CONFIG.Persist_Config.sizes
+			];
 
-        let totalBodyQuantity = 0;
+		let totalBodyQuantity = 0;
 
-        // removed missed size or unknown size data and store valid size (which exist in container) data
-        for (const size in validData) {
-            const isBaby = isBabySize(size as ApparelSize, sizeCategory["BABY"]);
-            if (isBaby) {
-                const babyKey = size as BabySize;
-                const sizeField = babyKey in sizeCategory["BABY"];
-                if (sizeField) {
-                    if (validData[size as ApparelSize]?.length) {
-                        validItems[size as ApparelSize] = validData[size as ApparelSize];
-                        totalBodyQuantity += validData[size as ApparelSize]!.length;
-                    }
-                } else {
-                    missedTargetSizes.push(size as ApparelSize);
-                }
-            } else {
-                const mensKey = size as MensSize;
-                const sizeField = mensKey in sizeCategory["MENS"];
-                if (sizeField) {
-                    if (validData[size as ApparelSize]?.length) {
-                        validItems[size as ApparelSize] = validData[size as ApparelSize];
-                        totalBodyQuantity += validData[size as ApparelSize]!.length;
-                    }
-                } else {
-                    missedTargetSizes.push(size as ApparelSize);
-                }
-            }
-        }
+		// removed missed size or unknown size data and store valid size (which exist in container) data
+		for (const size in validData) {
+			const isBaby = isBabySize(size as ApparelSize, sizeCategory["BABY"]);
+			if (isBaby) {
+				const babyKey = size as BabySize;
+				const sizeField = babyKey in sizeCategory["BABY"];
+				if (sizeField) {
+					if (validData[size as ApparelSize]?.length) {
+						validItems[size as ApparelSize] = validData[size as ApparelSize];
+						totalBodyQuantity += validData[size as ApparelSize]!.length;
+					}
+				} else {
+					missedTargetSizes.push(size as ApparelSize);
+				}
+			} else {
+				const mensKey = size as MensSize;
+				const sizeField = mensKey in sizeCategory["MENS"];
+				if (sizeField) {
+					if (validData[size as ApparelSize]?.length) {
+						validItems[size as ApparelSize] = validData[size as ApparelSize];
+						totalBodyQuantity += validData[size as ApparelSize]!.length;
+					}
+				} else {
+					missedTargetSizes.push(size as ApparelSize);
+				}
+			}
+		}
 
-        const pantItems = [];
+		const pantItems = [];
 
-        // filter pant items
-        for (const size in validItems) {
-            const typedKey = size as keyof typeof data;
-            const persons = validItems[typedKey]! as Person[];
-            for (const person of persons) {
-                if (person.PANT) {
-                    pantItems.push(person);
-                }
-            }
-        }
+		// filter pant items
+		for (const size in validItems) {
+			const typedKey = size as keyof typeof data;
+			const persons = validItems[typedKey]! as Person[];
+			for (const person of persons) {
+				if (person.PANT) {
+					pantItems.push(person);
+				}
+			}
+		}
 
-        if (missedTargetSizes.length) {
-            alertDialogSA(`Missed Size = ${missedTargetSizes.toString()}`);
-        }
+		if (missedTargetSizes.length) {
+			alertDialogSA(`Missed Size = ${missedTargetSizes.toString()}`);
+		}
 
-        // process body
-        for (let size in validItems) {
-            const typedKey = size as keyof typeof data;
-            const element = validData[typedKey] as Person[];
-            const quantity = element?.length;
+		// process body
+		for (let size in validItems) {
+			const typedKey = size as keyof typeof data;
+			const element = validData[typedKey] as Person[];
+			const quantity = element?.length;
 
-            if (!quantity) {
-                continue
-            }
+			if (!quantity) {
+				continue;
+			}
 
-            const tempOrientation = CONFIG.orientation;
+			const tempOrientation = CONFIG.orientation;
 
-            const isBaby = isBabySize(typedKey as ApparelSize, sizeCategory["BABY"]);
+			const isBaby = isBabySize(typedKey as ApparelSize, sizeCategory["BABY"]);
 
-            if (isBaby && CONFIG.kidsinV && tempOrientation !== "V") {
-                CONFIG.orientation = "V";
-            } else {
-                if (selectedOrientaion !== CONFIG.orientation) {
-                    CONFIG.orientation = selectedOrientaion;
-                }
-            }
+			if (isBaby && CONFIG.kidsinV && tempOrientation !== "V") {
+				CONFIG.orientation = "V";
+			} else {
+				if (selectedOrientaion !== CONFIG.orientation) {
+					CONFIG.orientation = selectedOrientaion;
+				}
+			}
 
-            outputInfo = `${outputInfo}\n${typedKey}=${quantity} Set`;
+			outputInfo = `${outputInfo}\n${typedKey}=${quantity} Set`;
 
-            let finalMode: Mode = mode;
+			let finalMode: Mode = mode;
 
-            if(mode === "B") {
-                if (quantity % 2 && quantity <= 10) {
-                    finalMode = "FB";
-                }
-            }
+			if (mode === "B") {
+				if (quantity % 2 && quantity <= 10) {
+					finalMode = "FB";
+				}
+			}
 
-            gridMenuallyCB({
-                mode: finalMode,
-                quantity,
-                sizeContainer,
-                targetSizeChr: size as ApparelSize,
-                process: "10",
-                data: element
-            });
-        }
+			gridMenuallyCB({
+				mode: finalMode,
+				quantity,
+				sizeContainer,
+				targetSizeChr: size as ApparelSize,
+				process: "10",
+				data: element,
+			});
+		}
 
-        outputInfo = `${outputInfo}\n${"Total Body"}=${totalBodyQuantity} Set`
+		outputInfo = `${outputInfo}\n${"Total Body"}=${totalBodyQuantity} Set`;
 
-        if (pantItems.length) {
-            gridMenuallyCB({
-                mode: "PANT",
-                quantity: pantItems.length,
-                sizeContainer,
-                targetSizeChr: "3XL",
-                process: "10",
-                data: [...pantItems]
-            })
-        }
+		if (pantItems.length) {
+			gridMenuallyCB({
+				mode: "PANT",
+				quantity: pantItems.length,
+				sizeContainer,
+				targetSizeChr: "3XL",
+				process: "10",
+				data: [...pantItems],
+			});
+		}
 
-        outputInfo = `${outputInfo}\n${"PANT"}=${pantItems.length} Set`
+		outputInfo = `${outputInfo}\n${"PANT"}=${pantItems.length} Set`;
 
-        alertDialogSA(outputInfo, true);
-
-    } catch (error: any) {
-        alertDialogSA(error.message);
-    }
+		alertDialogSA(outputInfo, true);
+	} catch (error: any) {
+		alertDialogSA(error.message);
+	}
 };
 
 // gridMenuallyCB({
@@ -205,42 +212,3 @@ const automateNANO = (params: OrgAutoParams) => {
 
 // automateNANO()
 // automateInfoDialog()
-
-
-const res = GridCalculator.getRecommendedStacks({
-	gap: 0.1,
-	heightPreference: "Less",
-	pair: true,
-	quantity: 16,
-    pairGap:CONFIG.Items_Gap,
-	size: { height: 30, width: 20.5 },
-	stackOrientation: "horizontal",
-	maxColsInDoc: CONFIG.perDoc
-});
-
-// logMessage(JSONSA.stringify(res));
-
-const transHandler = new TransActionHandler({
-    doc:app.activeDocument
-})
-
-const item = app.activeDocument.activeLayer.pageItems[0];
-
-transHandler.move({
-	deltaX: 1500,
-	deltaY: 750,
-	item,
-});
-
-transHandler.rotate({
-	item,
-	deg: -90,
-});
-
-transHandler.scale({
-	item,
-	scaleFacX: (21.5 / 20.5) * 100,
-	scaleFacY: (31 / 30) * 100,
-});
-
-transHandler.removeAll();
