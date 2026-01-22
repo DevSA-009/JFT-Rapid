@@ -188,3 +188,5 @@ type LengthUnit = "mm" | "cm" | "inch" | "pt";
 
 type HeightPreference = "Less" | "More";
 type DimensionType = "width" | "height";
+
+type ThreadEngine = "script" | "action";

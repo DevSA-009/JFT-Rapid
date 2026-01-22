@@ -467,7 +467,7 @@ class TransActionHandler {
 	 */
 	move({ x, y, item, useAbsolute = false }: Move): void {
 		// Generate unique set name based on delta values
-		const setName = `Trans_Move_${x}x${y}`;
+		const setName = `Trans_Move_${x.toFixed(4)}x${y.toFixed(4)}`;
 
 		// Select the item before transformation
 		this.selectionHandler(item, true);
@@ -498,7 +498,7 @@ class TransActionHandler {
 		template[8] = hexName;
 
 		// Get current bounds of the item
-		const { left, right, top, bottom } = getSelectionBounds(item);
+		const bounds = getSelectionBounds(item);
 
 		// Initialize final coordinates
 		let finalX = x;
@@ -506,23 +506,15 @@ class TransActionHandler {
 
 		// Calculate final position based on mode
 		if (!useAbsolute) {
-			// Calculate current center X position
-			const currentCenterX = (left + right) / 2;
-
-			// Calculate current center Y position
-			let currentCenterY = (top + bottom) / 2;
-
-			// Apply Y-axis inversion logic for Illustrator coordinate system
-			// If Y is positive, make it negative; if negative, make it positive
-			if (currentCenterY > 0) {
-				currentCenterY = -currentCenterY;
-			} else {
-				currentCenterY = Math.abs(currentCenterY);
-			}
+			// get center XY value based on engine type
+			const { centerX, centerY } = Utils.getCenterXY({
+				bounds,
+				engine: "action",
+			});
 
 			// Add delta to current position
-			finalX += currentCenterX;
-			finalY += currentCenterY;
+			finalX += centerX;
+			finalY += centerY;
 		}
 
 		// Update X coordinate value in template (line 37: event-1 parameter-2)
@@ -559,7 +551,7 @@ class TransActionHandler {
 	 */
 	resize({ height, width, item }: Resize): void {
 		// Generate unique set name with rounded dimensions
-		const setName = `Trans_Resize_${width.toFixed(0)}x${height.toFixed(0)}`;
+		const setName = `Trans_Resize_${width.toFixed(4)}x${height.toFixed(4)}`;
 
 		// Select the item before transformation
 		this.selectionHandler(item, true);
@@ -625,7 +617,7 @@ class TransActionHandler {
 	 */
 	rotate({ deg, item }: Rotate): void {
 		// Generate unique set name based on rotation angle
-		const setName = `Trans_Rotate_${deg}`;
+		const setName = `Trans_Rotate_${deg.toFixed(4)}`;
 
 		// Select the item before transformation
 		this.selectionHandler(item, true);
