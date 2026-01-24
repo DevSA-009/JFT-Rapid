@@ -29,8 +29,6 @@
  * ```
  */
 class TransActionHandler {
-	/** The active Illustrator document */
-	private readonly doc: Document;
 
 	/** Cache of currently loaded action set names */
 	private currentSets: CurrentSets = {};
@@ -307,8 +305,7 @@ class TransActionHandler {
 	 * @param params - Configuration object
 	 * @param params.doc - The Illustrator document to operate on
 	 */
-	constructor({ doc }: TransActionHandlerParams) {
-		this.doc = doc;
+	constructor() {
 		this.changeRefPoint("CENTER");
 	}
 	/**
