@@ -211,117 +211,6 @@ class Utils {
   }
 
   /**
-   * Positions one or more PageItems in the active artboard by aligning their center to specified edges or center points.
-   * Handles both single item and multiple by temporarily grouping when needed.
-   * @param {Selection | PageItem} items - The item(s) to position. Can be a single PageItem or a Selection collection.
-   * @param {Document} params - The Illustrator document containing the artboard.
-   * @param {AlignPosition} [position] - The alignment position
-   */
-  /** */
-  static alignPageItemsToArtboard = (
-    params: AlignPageItemsToArtboard,
-  ): void => {
-    const { doc, position = "C", engine = "script" } = params;
-
-    let items = params.items;
-
-    const artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
-    const [abLeft, abTop, abRight, abBottom] = artboard.artboardRect;
-
-    const {
-      top: itemTop,
-      left: itemLeft,
-      bottom: itemBottom,
-      right: itemRight,
-    } = this.getObjectBounds(items); // [top, left, bottom, right]
-
-    const isItems = isArray(items);
-
-    const groupManger = new GroupManager(
-      isItems ? (items as Selection) : ([items] as Selection),
-    );
-    const { prev } = getAdjacentPageItems(items as Selection);
-    if (isItems) {
-      groupManger.group(prev);
-      items = groupManger.tempGroup as PageItem;
-    }
-
-    const { centerX, centerY } = this.getCenterXY({
-      bounds: {
-        left: itemLeft,
-        right: itemRight,
-        bottom: itemBottom,
-        top: itemTop,
-      },
-      engine: "script",
-    });
-
-    let targetX: number = centerX;
-    let targetY: number = centerY;
-
-    switch (position) {
-      case "L":
-        targetX = abLeft - (itemLeft - centerX);
-        break;
-      case "R":
-        targetX = abRight - (itemRight - centerX);
-        break;
-      case "T":
-        targetY = abTop - (itemTop - centerY); // 🔹 FIXED
-        break;
-      case "B":
-        targetY = abBottom - (itemBottom - centerY);
-        break;
-      case "TC":
-        targetX = (abLeft + abRight) / 2;
-        targetY = abTop - (itemTop - centerY);
-        break;
-      case "BC":
-        targetX = (abLeft + abRight) / 2;
-        targetY = abBottom - (itemBottom - centerY);
-        break;
-      case "LC":
-        targetX = abLeft - (itemLeft - centerX);
-        targetY = (abTop + abBottom) / 2;
-        break;
-      case "RC":
-        targetX = abRight - (itemRight - centerX);
-        targetY = (abTop + abBottom) / 2;
-        break;
-      case "CX":
-        targetX = (abLeft + abRight) / 2;
-        break;
-      case "CY":
-        targetY = (abTop + abBottom) / 2;
-        break;
-      case "C":
-        targetX = (abLeft + abRight) / 2;
-        targetY = (abTop + abBottom) / 2;
-        break;
-    }
-
-    // Compute translation distance
-    const deltaX = targetX - centerX;
-    let deltaY = targetY - centerY;
-
-    if (engine === "action") {
-      deltaY = this.reverseCenterY(deltaY);
-      const transActHandler = new TransActionHandler({
-        doc,
-      });
-      transActHandler.move({ item: items as PageItem, x: deltaX, y: deltaY });
-      transActHandler.removeAll();
-    } else {
-      // Move the item
-      (items as PageItem).translate(deltaX, deltaY);
-    }
-
-    if (isItems) {
-      groupManger.ungroup(prev);
-    }
-  };
-
-  /**
    * Calculates the visible bounding box of selected items in Adobe Illustrator.
    *
    * @param object - Object items in Illustrator.
@@ -398,6 +287,7 @@ class Utils {
 
     return bounds;
   };
+
 }
 
 interface ConvertParams {
@@ -410,14 +300,6 @@ interface GetCenterXY {
   bounds: BoundsObject;
   engine?: ThreadEngine;
 }
-
-interface AlignPageItemsToArtboard {
-  items: Selection | PageItem;
-  doc: Document;
-  position?: AlignPosition;
-  engine?: ThreadEngine;
-}
-
 /**
  * Parameters for calculating total size with gaps between items.
  */
