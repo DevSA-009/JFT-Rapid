@@ -64,6 +64,10 @@ enum StackOrientations {
 	"Vertical" = "vertical",
 }
 
+enum BodyType {
+	"BODY"
+}
+
 enum HamType {
 	None = "NONE",
 	RIB = "RIB",
@@ -114,3 +118,6 @@ enum GridOrientation {
 	H = "H",
 	L = "L",
 }
+
+
+const processSeqOrder = [JerseyType,HamType,SleeveType,];

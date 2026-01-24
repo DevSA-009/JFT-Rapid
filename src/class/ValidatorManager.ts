@@ -30,7 +30,7 @@ class ValidatorManager {
      * @throws If the required `SIZE_TKN` text frame is not found.
      */
     static checkSizeTkn(item: GroupItem) {
-        const sizeTextFrame = findElement(item.pageItems, (item) => item.typename === PageItemType.TextFrame && item.name === SearchingKeywords.SIZE_TKN);
+        const sizeTextFrame = ES6_SA.arrayFind(item.pageItems, (item) => item.typename === PageItemType.TextFrame && item.name === SearchingKeywords.SIZE_TKN);
 
         if (!sizeTextFrame) {
             this.errorThrow(`Size token not found in ${item.name}`)

@@ -495,7 +495,7 @@ class TransActionHandler {
 		template[8] = hexName;
 
 		// Get current bounds of the item
-		const bounds = getSelectionBounds(item);
+		const bounds = Utils.getObjectBounds(item);
 
 		// Initialize final coordinates
 		let finalX = x;

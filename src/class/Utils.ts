@@ -264,7 +264,7 @@ class Utils {
 			maxY = Math.max(maxY, top);
 		};
 
-		if (isArray(object)) {
+		if (ES6_SA.isArray(object)) {
 			// Process each selected item using a for loop
 			for (let i = 0; i < object.length; i++) {
 				processItem((object as Selection)[i]);
@@ -325,7 +325,7 @@ class Utils {
 			if (isInDocument(item)) {
 				item.selected = true;
 			} else {
-				logMessage(`${item.name} not in ${doc.name} document`);
+				// logMessage(`${item.name} not in ${doc.name} document`);
 				items.splice(i, 1);
 			}
 		}
@@ -340,7 +340,7 @@ class Utils {
 	static getAdjacentPageObjects = (
 		object: Selection | PageItem,
 	): PrevNextObjects => {
-		const isSelectionArr = isArray(object);
+		const isSelectionArr = ES6_SA.isArray(object);
 
 		const firstItem = isSelectionArr
 			? (object as Selection)[0]
@@ -360,8 +360,8 @@ class Utils {
 			throw new Error("Unsupported parent type: " + parent.typename);
 		}
 
-		const firstIndex = indexOf(siblings, firstItem);
-		const lastIndex = indexOf(siblings, lastItem);
+		const firstIndex = ES6_SA.arrayIndexOf(siblings, firstItem);
+		const lastIndex = ES6_SA.arrayIndexOf(siblings, lastItem);
 
 		const prev = firstIndex > 0 ? siblings[firstIndex - 1] : null;
 		const next =
@@ -415,7 +415,7 @@ class Utils {
 		item: GroupItem,
 		targetSizeChr: ApparelSize,
 	): void => {
-		const sizeTextFrame = findElement(
+		const sizeTextFrame = ES6_SA.arrayFind(
 			item.pageItems,
 			(item) =>
 				item.typename === PageItemType.TextFrame &&
@@ -446,10 +446,10 @@ class Utils {
 			return;
 		}
 
-		if (isArray(selection) && selection.length > 1) {
+		if (ES6_SA.isArray(selection) && selection.length > 1) {
 			const bounds = this.getObjectBounds(selection) as BoundsObject;
 			const { width, height } = this.getDimension(bounds);
-			const { prev } = getAdjacentPageItems(selection);
+			const { prev } = Utils.getAdjacentPageObjects(selection);
 			const groupManger = new GroupManager(selection as Selection);
 
 			groupManger.group(prev);
@@ -464,7 +464,7 @@ class Utils {
 
 			groupManger.ungroup(prev);
 		} else {
-			const targetItem = isArray(selection)
+			const targetItem = ES6_SA.isArray(selection)
 				? (selection as Selection)[0]
 				: (selection as PageItem);
 			const topMostItem = this.getObjectBounds(targetItem);
@@ -570,9 +570,9 @@ class Utils {
 
 		let item = items;
 
-		if (isArray(items)) {
+		if (ES6_SA.isArray(items)) {
 			groupManager = new GroupManager(items as Selection);
-			const { prev } = getAdjacentPageItems(items);
+			const { prev } = Utils.getAdjacentPageObjects(items);
 			groupManager.group(prev);
 			item = groupManager.tempGroup!;
 		}
@@ -602,6 +602,12 @@ class Utils {
 		}
 	};
 
+	/**
+	 * get object width and height value in `POINT` Unit
+	 * 
+	 * @param bounds 
+	 * @returns {DimensionObject}
+	 */
 	static getDimension = (bounds: BoundsObject): DimensionObject => {
 		const { left, top, right, bottom } = bounds;
 		const width = right - left;

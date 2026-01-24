@@ -109,12 +109,12 @@ class AlignmentHandler {
       right: itemRight,
     } = Utils.getObjectBounds(items); // [top, left, bottom, right]
 
-    const isItems = isArray(items);
+    const isItems = ES6_SA.isArray(items);
 
     const groupManger = new GroupManager(
       isItems ? (items as Selection) : ([items] as Selection),
     );
-    const { prev } = getAdjacentPageItems(items as Selection);
+    const { prev } = Utils.getAdjacentPageObjects(items as Selection);
     if (isItems) {
       groupManger.group(prev);
       items = groupManger.tempGroup as PageItem;

@@ -1,11 +1,9 @@
-type findElementCb<T> = (element: T, index?: number) => boolean;
-
 interface JFTRapid_Config {
 	readonly PAPER_MAX_SIZE: number;
 	Persist_Config: PersistConfig;
 	Items_Gap: number;
 	kidsinV: boolean;
-	orientation: "Auto" | LayoutShapeConstants;
+	orientation: StackOrientation;
 	perDoc: number;
 	outlineNANO: boolean;
 	opacityMask: boolean;
@@ -21,19 +19,6 @@ type PrevNextItems = {
 
 type MensSize = "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL";
 type BabySize = "2" | "4" | "6" | "8" | "10" | "12" | "14" | "16";
-type ApparelSize = MensSize | BabySize;
-
-type Mode = keyof typeof GridMode;
-
-type PantItems = [PageItem, PageItem, PageItem, PageItem];
-
-type Person = {
-	readonly NO: number;
-	readonly NAME: string;
-	readonly PANT: boolean;
-} & {
-	readonly [key: string]: string;
-};
 
 type BasePositions = "L" | "R" | "T" | "B";
 
@@ -49,35 +34,26 @@ type AlignPosition =
 	| "CX"
 	| "CY";
 
-interface MoveItemAfterParams {
-	base: Selection | PageItem;
-	moving: PageItem;
-	gap?: number;
-	position: BasePositions;
+interface SizeContainer {
+	[key: string]: {
+		[key in ApparelSize]: {
+			BODY: DimensionObject;
+			SLEEVE: {
+				SHORT: DimensionObject;
+				LONG: DimensionObject;
+			};
+		};
+	};
 }
 
-type BodyItems = [PageItem, PageItem];
-
-type BabySizeCategory = {
-	[key in BabySize]: DimensionObject;
-};
-
-type MensSizeCategory = {
-	[key in MensSize]: DimensionObject;
-};
-
-interface SizeCategory {
-	MENS: MensSizeCategory;
-	BABY: BabySizeCategory;
-}
+type PantItems = [PageItem, PageItem, PageItem, PageItem];
 
 interface PersistConfig {
 	config: {
 		container: string;
-		mode: Mode;
 	};
 	sizes: {
-		[key: string]: SizeCategory;
+		[key: string]: SizeContainer;
 	};
 }
 
@@ -88,31 +64,6 @@ type BoundsObject = {
 	bottom: number;
 };
 type DimensionObject = { width: number; height: number };
-
-interface SelectItemsInDocParams {
-	doc: Document;
-	items: Selection;
-	clear?: boolean;
-}
-
-type Process = "01" | "10";
-
-interface OrgManuallyParams {
-	readonly mode: Mode;
-	readonly quantity: number;
-	readonly targetSizeChr: ApparelSize;
-	readonly sizeContainer: string;
-	readonly process: Process;
-	data: null | Person[];
-}
-
-interface OrgAutoParams {
-	readonly mode: Mode;
-	readonly sizeContainer: string;
-	data: {
-		[key in ApparelSize]?: Person[]; // Apparel sizes can be optional too
-	};
-}
 
 // All New Types
 
@@ -190,3 +141,13 @@ type HeightPreference = "Less" | "More";
 type DimensionType = "width" | "height";
 
 type ThreadEngine = "script" | "action";
+
+type ApparelSize = BabySize | MensSize;
+
+interface ProcessBegin extends ProcessingOrder {}
+
+interface SelectItemsInDocParams {
+	doc: Document;
+	items: Selection;
+	clear?: boolean;
+}

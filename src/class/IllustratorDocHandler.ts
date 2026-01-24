@@ -95,6 +95,10 @@ class IllustratorDocument {
             duplicatedItems.unshift(items[i-1].duplicate(this.doc) as PageItem);
         }
 
-        alignPageItemsToArtboard(duplicatedItems, this.doc);
+        AlignmentHandler.alignPageItemsToArtboard({
+            doc:this.doc,
+            items:duplicatedItems,
+            engine:"action"
+        });
     }
 }
