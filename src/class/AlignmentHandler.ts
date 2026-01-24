@@ -19,7 +19,7 @@ class AlignmentHandler {
    * @throws Error if the base object bounds cannot be resolved.
    */
   static moveObjectAfter = (arg: MoveObjectAfterParams) => {
-    const { base, moving, position, gap = 0, engine } = arg;
+    const { base, moving, position, gap = 0, engine = "script" } = arg;
     // Get bounding boxes of the selection and moving item
     const baseBounds = Utils.getObjectBounds(base); // [left, top, right, bottom]
     const movingBounds = Utils.getObjectBounds(moving); // [left, top, right, bottom]
@@ -56,9 +56,6 @@ class AlignmentHandler {
       // Move the item
       (moving as PageItem).translate(dx, dy);
     }
-
-    // Apply translation to the moving item
-    translateXY(moving, dx, dy);
   };
 
   /**
@@ -191,7 +188,7 @@ interface MoveObjectAfterParams {
   /** Relative position for placement */
   position: BasePositions;
   /** Engine used to execute the movement */
-  engine: ThreadEngine;
+  engine?: ThreadEngine;
 }
 
 /**

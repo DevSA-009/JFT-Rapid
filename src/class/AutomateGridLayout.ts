@@ -487,12 +487,6 @@ class AutomateGridLayout {
                     prevItem = copyItem;
                     curColFirstRow = copyItem;
                 } else {
-                    moveItemAfter({
-                        base: prevItem,
-                        moving: copyItem,
-                        gap,
-                        position: "R"
-                    })
 
                     prevItem = copyItem;
 
@@ -516,12 +510,6 @@ class AutomateGridLayout {
             if (col === cols) {
                 referenceItem.remove();
             } else {
-                moveItemAfter({
-                    base: prevItem,
-                    moving: referenceItem,
-                    gap,
-                    position: "B"
-                })
             }
 
         };

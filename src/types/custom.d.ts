@@ -54,7 +54,6 @@ interface MoveItemAfterParams {
 	moving: PageItem;
 	gap?: number;
 	position: BasePositions;
-	engine:ThreadEngine;
 }
 
 type BodyItems = [PageItem, PageItem];
