@@ -173,6 +173,120 @@ class AlignmentHandler {
       groupManger.ungroup(prev);
     }
   };
+
+  /**
+   * Aligns a moving PageItem relative to a base PageItem using bounding-box geometry.
+   * Calculates translation deltas based on the requested alignment position and
+   * applies the movement using either the script engine or the action engine.
+   *
+   * Supported alignment positions:
+   * - `"L"`  : Left edges aligned
+   * - `"R"`  : Right edges aligned
+   * - `"T"`  : Top edges aligned
+   * - `"B"`  : Bottom edges aligned
+   * - `"LC"` : Left aligned, vertically centered
+   * - `"RC"` : Right aligned, vertically centered
+   * - `"TC"` : Top aligned, horizontally centered
+   * - `"BC"` : Bottom aligned, horizontally centered
+   * - `"C"`  : Fully centered (both axes)
+   * - `"CX"` : Horizontally centered
+   * - `"CY"` : Vertically centered
+   *
+   * @param params - Configuration object for object alignment.
+   * @param params.base - Reference PageItem used as the alignment anchor.
+   * @param params.moving - PageItem that will be translated.
+   * @param params.position - Alignment rule to apply (defaults to `"C"`).
+   * @param params.engine - Execution engine used to apply the translation.
+   *
+   * @throws Error if an unsupported alignment position is provided.
+   */
+  static alignObject = (params: AlignObjectParams): void => {
+    const { base, moving, position = "C", engine = "script" } = params;
+
+    const baseBounds = Utils.getObjectBounds(base);
+
+    // Get geometric bounds for the moving item
+    const movingBounds = Utils.getObjectBounds(moving);
+
+    // Calculate dimensions and centers
+    const baseLeft = baseBounds.left;
+    const baseTop = baseBounds.top;
+    const baseRight = baseBounds.right;
+    const baseBottom = baseBounds.bottom;
+
+    const moveLeft = movingBounds.left;
+    const moveTop = movingBounds.top;
+    const moveRight = movingBounds.right;
+    const moveBottom = movingBounds.bottom;
+
+    // Calculate centers
+    const baseCenterX = (baseLeft + baseRight) / 2;
+    const baseCenterY = (baseTop + baseBottom) / 2;
+    const moveCenterX = (moveLeft + moveRight) / 2;
+    const moveCenterY = (moveTop + moveBottom) / 2;
+
+    // Calculate required movement
+    let deltaX = 0;
+    let deltaY = 0;
+
+    // Determine alignment based on position parameter
+    switch (position.toUpperCase()) {
+      case "L": // Left align
+        deltaX = baseLeft - moveLeft;
+        break;
+      case "R": // Right align
+        deltaX = baseRight - moveRight;
+        break;
+      case "T": // Top align
+        deltaY = baseTop - moveTop;
+        break;
+      case "B": // Bottom align
+        deltaY = baseBottom - moveBottom;
+        break;
+      case "LC": // Left and vertically centered
+        deltaX = baseLeft - moveLeft;
+        deltaY = baseCenterY - moveCenterY;
+        break;
+      case "RC": // Right and vertically centered
+        deltaX = baseRight - moveRight;
+        deltaY = baseCenterY - moveCenterY;
+        break;
+      case "TC": // Top and horizontally centered
+        deltaX = baseCenterX - moveCenterX;
+        deltaY = baseTop - moveTop;
+        break;
+      case "BC": // Bottom and horizontally centered
+        deltaX = baseCenterX - moveCenterX;
+        deltaY = baseBottom - moveBottom;
+        break;
+      case "C": // Center in both directions
+        deltaX = baseCenterX - moveCenterX;
+        deltaY = baseCenterY - moveCenterY;
+        break;
+      case "CY": // Center in Y directions
+        deltaY = baseCenterY - moveCenterY;
+        break;
+      case "CX": // Center in X directions
+        deltaX = baseCenterX - moveCenterX;
+        break;
+      default:
+        throw new Error(
+          "Invalid position parameter: " +
+            position +
+            ". Use L, R, B, T, LC, RC, TC, BC, or C.",
+        );
+    }
+
+    if (engine === "action") {
+      deltaY = Utils.reverseCenterY(deltaY);
+      const transActHandler = new TransActionHandler();
+      transActHandler.move({ item: moving as PageItem, x: deltaX, y: deltaY });
+      transActHandler.removeAll();
+    } else {
+      // Move the item
+      (moving as PageItem).translate(deltaX, deltaY);
+    }
+  };
 }
 
 /**
@@ -200,6 +314,20 @@ interface AlignPageItemsToArtboard {
   /** Illustrator document containing the artboard */
   doc: Document;
   /** Desired alignment position */
+  position?: AlignPosition;
+  /** Engine used to execute the alignment */
+  engine?: ThreadEngine;
+}
+
+/**
+ * Parameters used to align a PageItem relative to another PageItem.
+ */
+interface AlignObjectParams {
+  /** Reference PageItem used as the alignment anchor */
+  base: PageItem;
+  /** PageItem that will be translated */
+  moving: PageItem;
+  /** Alignment rule describing how the moving item should be positioned */
   position?: AlignPosition;
   /** Engine used to execute the alignment */
   engine?: ThreadEngine;
