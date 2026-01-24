@@ -60,18 +60,37 @@ class AlignmentHandler {
 
   /**
    * Aligns one or more PageItems to the active artboard using a specified alignment rule.
-   * When multiple items are provided, they are temporarily grouped to preserve
-   * relative positioning during alignment.
+   * When multiple items are provided, they are temporarily grouped so their
+   * relative layout is preserved during alignment.
    *
-   * Supported alignments include edges, centers, and combined edge-center positions.
-   * Works with both script and action execution engines.
+   * The alignment is calculated from the geometric bounds of the items and the
+   * active artboard, then applied as a translation using the selected engine.
+   *
+   * Supported alignment positions:
+   *
+   * **Edges:**
+   * - `"L"` : Align left edge of item(s) to the left edge of the artboard
+   * - `"R"` : Align right edge of item(s) to the right edge of the artboard
+   * - `"T"` : Align top edge of item(s) to the top edge of the artboard
+   * - `"B"` : Align bottom edge of item(s) to the bottom edge of the artboard
+   *
+   * **Edge + Center:**
+   * - `"LC"` : Align left edge of item(s) and center vertically on the artboard
+   * - `"RC"` : Align right edge of item(s) and center vertically on the artboard
+   * - `"TC"` : Align top edge of item(s) and center horizontally on the artboard
+   * - `"BC"` : Align bottom edge of item(s) and center horizontally on the artboard
+   *
+   * **Center:**
+   * - `"C"`  : Center both horizontally and vertically on the artboard
+   * - `"CX"` : Center horizontally only
+   * - `"CY"` : Center vertically only
    *
    * @param params - Configuration object for artboard alignment.
-   * @param params.items - A single PageItem or a Selection of items to align.
-   * @param params.doc - The Illustrator document containing the active artboard.
-   * @param params.position - Desired alignment position relative to the artboard.
-   * Defaults to center alignment.
-   * @param params.engine - Execution engine used to apply the transformation.
+   * @param params.items - A single PageItem or a Selection of PageItems to align.
+   * @param params.doc - Illustrator document that owns the active artboard.
+   * @param params.position - Alignment rule to apply relative to the artboard
+   * (defaults to `"C"`).
+   * @param params.engine - Execution engine used to apply the translation.
    */
   static alignPageItemsToArtboard = (
     params: AlignPageItemsToArtboard,
