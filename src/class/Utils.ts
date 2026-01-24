@@ -288,6 +288,319 @@ class Utils {
     return bounds;
   };
 
+  /**
+   * Selects page items in Illustrator if they belong to the specified document.
+   * Optionally clears the current selection if `clear` is true.
+   *
+   * @param {SelectObjectInDocParams} params
+   * @param {Document} params.doc - The target Illustrator document.
+   * @param {PageItem[]} params.items - Array of Illustrator PageItems to check and select.
+   * @param {boolean} [params.clear=true] - Whether to clear the existing selection before selecting new items.
+   */
+  static selectObjectsInDoc = ({
+    doc,
+    items,
+    clear = true,
+  }: SelectItemsInDocParams): void => {
+    const isInDocument = (item: PageItem): boolean => {
+      // Recursive function to check if the item belongs to the document
+      let parent = item.layer.parent as Document | PageItem;
+      while (parent) {
+        if (parent === doc) {
+          return true;
+        }
+        parent = parent.parent as Document | PageItem;
+      }
+      return false;
+    };
+
+    // If clear is true, reset the selection
+    if (clear) {
+      doc.selection = null;
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      // Check if the item belongs to the correct document
+      if (isInDocument(item)) {
+        item.selected = true;
+      } else {
+        logMessage(`${item.name} not in ${doc.name} document`);
+        items.splice(i, 1);
+      }
+    }
+    return doc.selection;
+  };
+
+  /**
+   * Get the previous, current, and next PageItem around a selection,
+   * while supporting GroupItem or Layer parents.
+   * If there's no valid previous PageItem, `prev` will be `null`.
+   */
+  static getAdjacentPageObjects = (
+    object: Selection | PageItem,
+  ): PrevNextObjects => {
+    const isSelectionArr = isArray(object);
+
+    const firstItem = isSelectionArr
+      ? (object as Selection)[0]
+      : (object as PageItem);
+    const lastItem = isSelectionArr
+      ? (object as Selection)[(object as Selection).length - 1]
+      : firstItem;
+
+    const parent = firstItem.parent as PageItem | Layer;
+    let siblings: PageItems;
+
+    if (parent.typename === PageItemType.Layer) {
+      siblings = (parent as Layer).pageItems;
+    } else if (parent.typename === PageItemType.GroupItem) {
+      siblings = (parent as GroupItem).pageItems;
+    } else {
+      throw new Error("Unsupported parent type: " + parent.typename);
+    }
+
+    const firstIndex = indexOf(siblings, firstItem);
+    const lastIndex = indexOf(siblings, lastItem);
+
+    const prev = firstIndex > 0 ? siblings[firstIndex - 1] : null;
+    const next =
+      lastIndex < siblings.length - 1 ? siblings[lastIndex + 1] : null;
+
+    return {
+      prev,
+      current: firstItem,
+      next,
+    };
+  };
+
+  /**
+   * Displays an alert dialog with a given message using ScriptUI.
+   *
+   * @param {string} message - The message to display in the alert dialog.
+   */
+  static showAlertDialog = (message: string) => {
+    const dialog = new Window("dialog", "Alert");
+    dialog.add("statictext", undefined, message);
+    const okButton = dialog.add("button", undefined, "OK");
+
+    okButton.onClick = () => {
+      dialog.close();
+    };
+
+    dialog.show();
+  };
+
+  /**
+   * Logs a message to the JavaScript Console.
+   *
+   * @param {string} message - The message to log to the console.
+   */
+  static logMessage = (message: string) => {
+    $.writeln(message); // This will log the message to the JavaScript Console
+  };
+
+  /**
+   * Renames the size token for a given group item by updating the contents of a text frame
+   * with the specified target size. If no matching text frame is found, an alert is displayed.
+   *
+   * @param {GroupItem} item - The group item that contains the page items.
+   * @param {ApparelSize} targetSizeChr - The target apparel size to be set in the size token.
+   *
+   * @returns {void} - This function does not return any value.
+   *
+   * @throws {Error} - Throws an error if the size token text frame is not found.
+   */
+  static renameSizeTKN = (
+    item: GroupItem,
+    targetSizeChr: ApparelSize,
+  ): void => {
+    const sizeTextFrame = findElement(
+      item.pageItems,
+      (item) =>
+        item.typename === PageItemType.TextFrame &&
+        item.name === SearchingKeywords.SIZE_TKN,
+    );
+    if (sizeTextFrame) {
+      (sizeTextFrame as TextFrame).contents =
+        `size-${targetSizeChr}`.toUpperCase();
+    } else {
+      throw new Error(`Size token not found in ${item.name}`);
+    }
+  };
+
+  /**
+   * Resizes the selected objects to a target width and height (in POINT) while maintaining their proportions.
+   *
+   * @param selection - Array of selected items in Illustrator.
+   * @param targetWidth - The desired total width for the selection in POINT.
+   * @param targetHeight - The desired total height for the selection in POINT.
+   */
+  static resizeObject = (
+    selection: Selection | PageItem,
+    targetWidth: number = 0,
+    targetHeight: number = 0,
+  ): void => {
+    if (!selection || selection.length === 0) {
+      alert("No selection found!");
+      return;
+    }
+
+    if (isArray(selection) && selection.length > 1) {
+      const bounds = getSelectionBounds(selection) as BoundsObject;
+      const { width, height } = getWHDimension(bounds);
+      const { prev } = getAdjacentPageItems(selection);
+      const groupManger = new GroupManager(selection as Selection);
+
+      groupManger.group(prev);
+
+      const tempGroup = groupManger.tempGroup as GroupItem;
+
+      // Calculate scaling factors for both width and height
+      const scaleX = targetWidth ? (targetWidth / width) * 100 : 100;
+      const scaleY = targetHeight ? (targetHeight / height) * 100 : 100;
+
+      tempGroup.resize(scaleX, scaleY);
+
+      groupManger.ungroup(prev);
+    } else {
+      const targetItem = isArray(selection)
+        ? (selection as Selection)[0]
+        : (selection as PageItem);
+      const topMostItem = getSelectionBounds(targetItem);
+      const { left, bottom, right, top } = topMostItem;
+      const { width, height } = getWHDimension({ left, right, top, bottom });
+      // Calculate scaling factors for both width and height
+      const scaleX = targetWidth ? (targetWidth / width) * 100 : 100;
+      const scaleY = targetHeight ? (targetHeight / height) * 100 : 100;
+      targetItem.resize(scaleX, scaleY);
+    }
+  };
+
+  /**
+   * Finds and returns the largest object by area within a given PageItem hierarchy.
+   * Handles both individual objects and groups, including clipped groups where it
+   * specifically looks for clipping paths.
+   *
+   * @param item - The root PageItem to search within (can be GroupItem, PathItem, TextFrame, etc.)
+   * @returns The PageItem with the largest area, or null if no valid objects are found
+   *
+   * @example
+   * ```typescript
+   * // Find largest object in a selection
+   * const selection = app.activeDocument.selection[0];
+   * const largestObject = getFinalClippingPath(selection);
+   *
+   * if (largestObject) {
+   *   alert(`Largest object area: ${largestObject.width * largestObject.height}`);
+   * }
+   * ```
+   *
+   * @remarks
+   * - For clipped groups, only examines clipping paths
+   * - For unclipped groups, recursively searches all child items
+   * - Compares objects by total area (width × height)
+   * - Uses geometric bounds for size calculations
+   *
+   * @since 1.0.0
+   */
+  static getTopClippingPath = (item: PageItem): PageItem | null => {
+    let largestObject: PageItem | null = null;
+    let largestArea: number = 0;
+
+    /**
+     * Processes an Illustrator item and finds the largest object by area.
+     * @param item - The Illustrator item (PathItem, GroupItem, TextFrame, etc.).
+     */
+    const processItem = (item: PageItem): void => {
+      if (item.typename === PageItemType.GroupItem) {
+        if (item.clipped) {
+          // Find the clipping path within the clipped group
+          for (let i = 0; i < item.pageItems.length; i++) {
+            const child = item.pageItems[i];
+            if (child.clipping) {
+              checkIfLargest(child);
+              break; // Stop iterating within this GroupItem
+            }
+          }
+        } else {
+          // Recursively process child items for un-clipped groups
+          for (let i = 0; i < item.pageItems.length; i++) {
+            processItem(item.pageItems[i]);
+          }
+        }
+      }
+    };
+
+    /**
+     * Checks if the current item is larger than the previously found largest item.
+     * @param item - The item to check.
+     */
+    const checkIfLargest = (item: PageItem): void => {
+      const bounds = item.geometricBounds;
+      const [left, top, right, bottom] = bounds;
+
+      // Calculate width and height
+      const width = Math.abs(right - left);
+      const height = Math.abs(top - bottom);
+      const area = width * height;
+
+      // Update largest object if this one is bigger
+      if (area > largestArea) {
+        largestArea = area;
+        largestObject = item;
+      }
+    };
+
+    processItem(item);
+
+    return largestObject;
+  };
+
+  /**
+   * Rotate a items by degrees
+   * @param {Selection | PageItem} items
+   * @param {90 | -90 | 180 | 0 | -180} deg
+   */
+  static rotateItems = (
+    items: Selection | PageItem,
+    deg: RotateDegrees | number,
+  ) => {
+    let groupManager: GroupManager | null = null;
+
+    let item = items;
+
+    if (isArray(items)) {
+      groupManager = new GroupManager(items as Selection);
+      const { prev } = getAdjacentPageItems(items);
+      groupManager.group(prev);
+      item = groupManager.tempGroup!;
+    }
+
+    // Get original bounds
+    const { left, top, right, bottom } = getSelectionBounds(item);
+    const originalCenterX = (left + right) / 2;
+    const originalCenterY = (top + bottom) / 2;
+
+    // Rotate the object
+    (item as PageItem).rotate(deg);
+
+    // Get new bounds after rotation
+    const newBounds = getSelectionBounds(item);
+    const newCenterX = (newBounds.left + newBounds.right) / 2;
+    const newCenterY = (newBounds.top + newBounds.bottom) / 2;
+
+    // Calculate the translation needed to keep it centered
+    const deltaX = originalCenterX - newCenterX;
+    const deltaY = originalCenterY - newCenterY;
+
+    // Move object back to original center position
+    (item as PageItem).translate(deltaX, deltaY);
+
+    if (groupManager) {
+      groupManager.ungroup();
+    }
+  };
 }
 
 interface ConvertParams {
@@ -313,3 +626,15 @@ interface CalculateTotalWithGapParams {
   /** Gap between consecutive items */
   gap: number;
 }
+
+interface SelectObjectInDocParams {
+  doc: Document;
+  items: Selection;
+  clear?: boolean;
+}
+
+type PrevNextObjects = {
+  prev: PageItem | GroupItem | null;
+  current: PageItem;
+  next: PageItem | null;
+};
