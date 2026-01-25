@@ -3,873 +3,860 @@
  * Provides static methods for artboard manipulation and item alignment.
  */
 class Organizer {
-	/**
-	 * Verifies that there is an active document and a valid selection.
-	 *
-	 * @returns {SelectionVerifyChainReturn} An object containing the active document and selection if valid; otherwise.
-	 */
-	static selectionVerifyChain(): SelectionVerifyChainReturn {
-		const doc = app.activeDocument;
-		if (!doc) {
-			throw new Error("No open document found.");
-		}
-
-		const selection: Selection | undefined = doc.selection;
-
-		if (!selection || !selection.length) {
-			throw new Error("Please select objects.");
-		}
-
-		return { selection, doc };
-	}
-
-	/**
-	 * Resizes an artboard in the document based on specified dimensions (in inches).
-	 * Converts inches to points (1 inch = 72 points) for internal processing.
-	 *
-	 * @param {ArtboardScaler} params - Configuration object containing:
-	 *   @param {Document} params.doc - The Illustrator document containing the artboard
-	 *   @param {number} params.width - The desired width in inches
-	 *   @param {number} params.height - The desired height in inches
-	 */
-	static artboardScaler(params: ArtboardScaler): void {
-		const artboardManager = new ArtboardManager(params.doc);
-		artboardManager.resize(params.width * 72, params.height * 72);
-	}
-
-	/**
-	 * Resizes the active artboard to a small default size (1x1 inches).
-	 * Convenience wrapper around artboardScaler with preset dimensions.
-	 *
-	 * @param {Document} doc - The Illustrator document to modify
-	 */
-	static smallArtboard(doc: Document): void {
-		this.artboardScaler({
-			doc,
-			width: 1,
-			height: 1,
-		});
-	}
-
-	/**
-	 * Aligns all items in the active layer to the artboard boundaries.
-	 *
-	 * The operation:
-	 * 1. Clears any existing selection
-	 * 2. Selects all page items in the active layer
-	 * 3. Aligns them to the artboard using default alignment
-	 * 4. Clears the selection when complete
-	 */
-	static alignItemsToBoardCenter(doc: Document): void {
-		const activeLayerItems = doc.activeLayer.pageItems;
-		const itemsToSelect = ES6_SA.arrayFrom(activeLayerItems) as Selection;
-		AlignmentHandler.alignPageItemsToArtboard({
-			doc,
-			items: itemsToSelect,
-            engine:"action"
-		});
-		doc.selection = null;
-	}
-
-	/**
-	 * Selects all visible & unlocked items in an Illustrator document
-	 * @param {Document} doc - The Illustrator document to process
-	 * @returns {Selection} Array of selected items
-	 */
-	static selectAllItems(doc: Document): PageItem[] {
-		const items = doc.pageItems;
-		const selectedItems = [];
-
-		for (let i = 0; i < items.length; i++) {
-			const item = items[i];
-
-			// Skip hidden items (default behavior)
-			if (item.hidden) continue;
-
-			// Skip locked items unless explicitly included
-			if (item.locked) continue;
-
-			selectedItems.push(item);
-		}
-
-		doc.selection = selectedItems;
-		return selectedItems;
-	}
-
-	/**
-	 * Converts an Illustrator PageItems collection to a standard array
-	 * @param {PageItems} pageItems - The Illustrator PageItems collection to convert
-	 * @returns {PageItem[]} Array containing all items from the collection
-	 */
-	static pageItemsToArray(pageItems: PageItems): PageItem[] {
-		const selectedItems = [];
-
-		for (let i = 0; i < pageItems.length; i++) {
-			const item = pageItems[i];
-
-			selectedItems.push(item);
-		}
-
-		return selectedItems;
-	}
-
-	/**
-	 * Retrieves the front and back body items from a document or selection.
-	 * @param {Selection|null} [items=null] - Optional selection to search within
-	 * @returns {[PageItem, PageItem]} Tuple containing front and back body items
-	 * @throws {Error} If either FRONT or BACK items cannot be found
-	 */
-	static getBodyItems(items: Selection): [PageItem, PageItem] {
-		const frontBody = ES6_SA.arrayFind(
-			items,
-			(item) => item.name === SearchingKeywords.FRONT,
-		);
-		const backBody = ES6_SA.arrayFind(
-			items,
-			(item) => item.name === SearchingKeywords.BACK,
-		);
-
-		if (!frontBody || !backBody) {
-			throw new Error(`Can't found ${!frontBody ? "FRONT" : "BACK"}`);
-		}
-
-		return [frontBody, backBody];
-	}
-
-	/**
-	 * Gets the current document's directory and counts files in that directory
-	 * @param {Document} [doc=app.activeDocument] - The Illustrator document to check
-	 * @returns {GetDirectoryFileInfoReturn}
-	 * @throws {Error} If no document is open or document isn't saved
-	 */
-	static getDirectoryFileInfo(
-		doc: Document = app.activeDocument,
-	): GetDirectoryFileInfoReturn {
-		if (!app.documents.length) {
-			throw new Error("No document is open!");
-		}
-
-		const docPath = doc.fullName;
-
-		if (!docPath) {
-			throw new Error(
-				"Document must be saved first to determine its location.",
-			);
-		}
-
-		const folder = docPath.parent;
-		const items = folder.getFiles();
-		let fileCount = 0;
-		let folderCount = 0;
-
-		for (let i = 0; i < items.length; i++) {
-			if (items[i] instanceof Folder) {
-				folderCount++;
-			} else if (items[i] instanceof File) {
-				fileCount++;
-			}
-		}
-
-		return {
-			files: fileCount,
-			folder: folderCount,
-			nexFileIndex: fileCount,
-		};
-	}
-
-	/**
-	 * Retrieves pant-related items from the document's active layer.
-	 *
-	 * This method looks for the following items by their names:
-	 * - F_L
-	 * - F_R
-	 * - B_L
-	 * - B_R
-	 *
-	 * If any of these are missing, it throws an Error with a list of missing item names.
-	 *
-	 * @param {Document} doc - The document from which to retrieve pant items.
-	 * @returns {PantItems} An array of pant-related items tuple.
-	 * @throws {Error} If any pant items are missing.
-	 */
-	static getPantItems(container: PageItem[]): PantItems {
-		const pageItems = container;
-
-		const F_L = ES6_SA.arrayFind(
-			pageItems,
-			(item) => item.name === SearchingKeywordsForPant.PANT_F_L,
-		);
-		const F_R = ES6_SA.arrayFind(
-			pageItems,
-			(item) => item.name === SearchingKeywordsForPant.PANT_F_R,
-		);
-		const B_L = ES6_SA.arrayFind(
-			pageItems,
-			(item) => item.name === SearchingKeywordsForPant.PANT_B_L,
-		);
-		const B_R = ES6_SA.arrayFind(
-			pageItems,
-			(item) => item.name === SearchingKeywordsForPant.PANT_B_R,
-		);
-
-		const missing = [];
-
-		if (!F_L) missing.push(SearchingKeywordsForPant.PANT_F_L);
-		if (!F_R) missing.push(SearchingKeywordsForPant.PANT_F_R);
-		if (!B_L) missing.push(SearchingKeywordsForPant.PANT_B_L);
-		if (!B_R) missing.push(SearchingKeywordsForPant.PANT_B_R);
-
-		if (missing.length > 0) {
-			throw new Error(
-				`Can't find pant items: missing [${missing.join(", ")}].`,
-			);
-		}
-
-		return [F_L as PageItem, F_R as PageItem, B_L as PageItem, B_R as PageItem];
-	}
-
-	/**
-	 * Handles the key object selection logic.
-	 *
-	 * This static method checks the current document and selection, and either sets or removes
-	 * a custom `key` property on the selected item based on the `dispatch` flag.
-	 *
-	 * ### Error Cases:
-	 * - No document open
-	 * - No selection
-	 * - Multiple items selected
-	 * @param {boolean} dispatch - A boolean flag indicating whether to set (`true`) or remove (`false`) the `key` property on the selected object.
-	 *
-	 * @throws Will show an alert dialog with an error message if:
-	 * - No document is open.
-	 * - No object is selected.
-	 * - More than one object is selected.
-	 */
-	static objectKeyHandler(dispatch: boolean): void {
-		try {
-			const { selection } = this.selectionVerifyChain();
-
-			if (selection.length > 1) {
-				throw new Error("Multiple key objects are not supported.");
-			}
-
-			const item = selection[0];
-
-			if (dispatch) {
-				item.key = true;
-			} else {
-				delete item.key;
-			}
-			app.beep();
-		} catch (error: any) {
-			alertDialogSA(error.message);
-		}
-	}
-
-	/**
-	 * select all clipped path from selection
-	 */
-	static selectTopClippingPath() {
-		try {
-			const { doc, selection } = this.selectionVerifyChain();
-			const clippingPathObjects: PageItem[] = [];
-
-			for (let i = 0; i < selection.length; i++) {
-				const item = selection[i];
-				const topClippingPath = Utils.getTopClippingPath(item);
-				if (topClippingPath) {
-					clippingPathObjects.push(topClippingPath);
-				}
-			}
-
-			if (clippingPathObjects.length) {
-				doc.selection = null;
-				doc.selection = clippingPathObjects;
-			} else {
-				alertDialogSA(`No clipping path found!`);
-			}
-		} catch (error: any) {
-			alertDialogSA(error.message);
-		}
-	}
-
-	/**
-	 * check the objects are opacity mask existing by moving and rotateting
-	 */
-	static checkisOpacityMask() {
-		try {
-			const { selection } = this.selectionVerifyChain();
-
-			const groupManager = new GroupManager(selection);
-
-			groupManager.group();
-
-			const groupItem = groupManager.tempGroup;
-
-			if (!groupItem) {
-				throw new Error(`Can't grouping`);
-			}
-
-			const dupItem = groupItem.duplicate();
-
-			AlignmentHandler.moveObjectAfter({
-				base: groupItem,
-				moving: dupItem,
-				gap: 1,
-				position: "T",
-			});
-
-			groupManager.ungroup();
-		} catch (error: any) {
-			alertDialogSA(error.message);
-		}
-	}
-
-	/**
-	 * Initializes the preparation of a sleeve set using two selected Illustrator objects.
-	 *
-	 * ### Workflow Summary:
-	 * 1. Verifies exactly 2 objects are selected.
-	 * 2. Duplicates both and ensures they are the same dimensions.
-	 * 3. Rotates, aligns, and arranges them into a 1-set sleeve layout.
-	 * 4. Duplicates the 1-set to make a 2-set layout.
-	 * 5. Validates if final layout fits within maximum paper size.
-	 * 6. Resizes if necessary and removes the original selection.
-	 *
-	 * @throws {Error} If:
-	 * - Selection count is not 2.
-	 * - Duplicated items do not have equal dimensions.
-	 * - Sleeve set exceeds the allowed paper size.
-	 */
-	static fSlv2SetInit() {
-		try {
-			const { selection } = this.selectionVerifyChain();
-
-			// Validate exactly two objects are selected
-			if (selection.length !== 2) {
-				throw new Error("You must select exactly two objects.");
-			}
-
-			const transActHandler = new TransActionHandler();
-
-			const [obj1, obj2] = selection;
-
-			// Duplicate both objects
-			const dupObj1 = obj1.duplicate(obj1.parent);
-			const dupObj2 = obj2.duplicate(obj2.parent);
-
-			// Get dimensions of duplicated objects
-			const dupObj1Dim = Utils.getDimension(Utils.getObjectBounds(dupObj1));
-			const dupObj2Dim = Utils.getDimension(Utils.getObjectBounds(dupObj2));
-
-			// Check if duplicated objects have the same dimensions
-			if (
-				!(
-					dupObj1Dim.width === dupObj2Dim.width &&
-					dupObj1Dim.height === dupObj2Dim.height
-				)
-			) {
-				dupObj1.remove();
-				dupObj2.remove();
-				throw new Error("Both objects must have equal dimensions.");
-			}
-
-			// Define initial translation values (in points)
-			const firstXTrans = Utils.convertLength({
-				value: -2.2,
-				from: "inch",
-				to: "pt",
-			});
-			const secondXTrans = Utils.convertLength({
-				value: 0.4,
-				from: "inch",
-				to: "pt",
-			});
-
-			// Create a group manager instance for both duplicated items
-			const illsGrpManager = new GroupManager([dupObj1, dupObj2]);
-
-			// Align duplicated items to center (both horizontal and vertical)
-			AlignmentHandler.alignObject({
-				base: dupObj1,
-				moving: dupObj2,
-				engine: "action",
-			});
-
-			// Move second object to the right of the first
-			AlignmentHandler.moveObjectAfter({
-				base: dupObj1,
-				moving: dupObj2,
-				position: "R",
-				engine: "action",
-			});
-
-			// Rotate the second object by 180 degrees
-			transActHandler.rotate({ item: dupObj2, deg: 180 });
-
-			// Move the second object left by 2.2 inches
-			transActHandler.move({ item: dupObj2, x: firstXTrans, y: 0 });
-			dupObj2.translate(firstXTrans, 0);
-
-			// Group the arranged sleeve set
-			illsGrpManager.group();
-
-			// Get the grouped set
-			let tempGroup = illsGrpManager.tempGroup!;
-
-			// Rotate both objects by -7.5 degrees
-			transActHandler.rotate({
-				deg: -7.5 as unknown as RotateDegrees,
-				item: tempGroup,
-			});
-
-			illsGrpManager.ungroup();
-
-			// Align both again to vertical center
-			AlignmentHandler.alignObject({
-				base: dupObj1,
-				moving: dupObj2,
-				engine: "action",
-				position: "CY",
-			});
-
-			// Move the second object slightly right (0.4 inches)
-			transActHandler.move({ item: dupObj2, x: secondXTrans, y: 0 });
-
-			// Get dimensions of the grouped sleeve set
-			const groupedItemDim = Utils.getDimension(
-				Utils.getObjectBounds(tempGroup),
-			);
-
-			// Calculate half of the max allowed paper size
-			const halfOfPaperSize = Math.ceil(CONFIG.PAPER_MAX_SIZE / 2);
-
-			// If the 1-set width exceeds half the paper size, abort
-			if (groupedItemDim.width >= halfOfPaperSize) {
-				tempGroup.remove();
-				throw new Error(
-					`Sleeve width exceeds half of the allowed paper size (${CONFIG.PAPER_MAX_SIZE}").`,
-				);
-			}
-
-			// Duplicate the group to make a 2-set layout
-			const dupGroupedItem = tempGroup.duplicate(obj1);
-
-			// Place the duplicated group to the right of the original
-			AlignmentHandler.moveObjectAfter({
-				base: tempGroup,
-				moving: dupGroupedItem,
-				position: "R",
-				engine: "action",
-			});
-
-			// Get combined dimension of both sleeve sets
-			const finalDim = Utils.getDimension(
-				Utils.getObjectBounds([tempGroup, dupGroupedItem]),
-			);
-
-			// Resize if the combined width exceeds the paper limit
-			if (finalDim.width > CONFIG.PAPER_MAX_SIZE) {
-				Utils.resizeObject([tempGroup, dupGroupedItem], CONFIG.PAPER_MAX_SIZE);
-			}
-
-			// Clean up original selected objects
-			obj1.remove();
-			obj2.remove();
-		} catch (error: any) {
-			// Show error message via custom alert
-			alertDialogSA(error.message);
-		}
-	}
-
-	/**
-	 * Assigns a custom name (mark) to all selected Illustrator objects.
-	 *
-	 * This method is useful for tagging or identifying specific elements
-	 * within a document by applying a shared name to the currently selected items.
-	 *
-	 * ### Workflow:
-	 * 1. Verifies that a document is open and there is a valid selection.
-	 * 2. Iterates over the selected items.
-	 * 3. Sets the `.name` property of each item to the provided `mark` string.
-	 *
-	 * @param {string} mark - The name or identifier to assign to each selected object.
-	 *
-	 * @throws Will throw an error if:
-	 * - No document is open.
-	 * - No items are selected.
-	 */
-	static objectMarkByName(mark: string) {
-		const selectionVerifyChain = this.selectionVerifyChain();
-		const selection = selectionVerifyChain.selection;
-
-		for (const element of selection) {
-			element.name = mark;
-		}
-	}
-
-	/**
-	 * Returns the previous and next sibling items of a given page item,
-	 * as well as its index within the parent container's pageItems array.
-	 *
-	 * @param item - The PageItem (e.g., GroupItem, PathItem) to find siblings for.
-	 * @returns An object containing:
-	 *  - `prevItem`: the previous sibling (or `null` if first)
-	 *  - `nextItem`: the next sibling (or `null` if last)
-	 *  - `itemIndex`: the index of the current item in its parent’s pageItems
-	 *
-	 * @throws Error if the item is not found in its parent’s pageItems collection.
-	 */
-	static getSiblingItems(item: PageItem): GetSiblingItemsReturn {
-		// Get the parent container (Layer, GroupItem, or Document) of the given item
-		const parent = item.parent as Layer | GroupItem | Document;
-
-		// Get all page items under the parent — includes all types (GroupItem, PathItem, etc.)
-		const siblings = parent.pageItems;
-
-		// Initialize index to -1 (not found)
-		let index = -1;
-
-		// Loop through siblings to find the index of the current item
-		for (let i = 0; i < siblings.length; i++) {
-			if (siblings[i] === item) {
-				index = i;
-				break; // Exit the loop once the item is found
-			}
-		}
-
-		// If the item wasn't found, throw an error
-		if (index === -1) {
-			throw new Error("Item not found in parent's pageItems.");
-		}
-
-		// Get the previous item, or null if this is the first item
-		const prevItem = index > 0 ? siblings[index - 1] : null;
-
-		// Get the next item, or null if this is the last item
-		const nextItem = index < siblings.length - 1 ? siblings[index + 1] : null;
-
-		// Return the previous and next siblings, and the current item index
-		return { prevItem, nextItem, itemIndex: index };
-	}
-
-	/**
-	 * Ungroups a given GroupItem by moving all its child items out into the parent container,
-	 * preserving their stacking order relative to the group's position in the parent.
-	 *
-	 * This method determines the correct `ElementPlacement` by checking sibling items:
-	 * - If there is a previous sibling, new items are placed **after** it.
-	 * - If there is no previous sibling but a next sibling exists, items are placed **at the beginning**.
-	 * - If neither exist, items are placed **inside** the parent (default to beginning).
-	 *
-	 * @param groupItem - The GroupItem to ungroup.
-	 *
-	 * @throws Error if the item is not a valid GroupItem or has no children.
-	 */
-	static unGroupItem(groupItem: GroupItem): void {
-		// Validate that the item is a GroupItem and has child items
-		if (
-			groupItem.typename !== PageItemType.GroupItem ||
-			!groupItem.pageItems.length
-		) {
-			throw new Error("Item is not a Group object or is empty.");
-		}
-
-		// Get previous and next sibling items (used to determine insertion point)
-		const { nextItem, prevItem } = this.getSiblingItems(groupItem);
-
-		// Default to placing items in the same parent as the group
-		let parent = groupItem.parent;
-
-		// Default placement is at the beginning
-		let place = ElementPlacement.PLACEATBEGINNING;
-
-		// If there's a previous item, place ungrouped items after it
-		if (prevItem) {
-			place = ElementPlacement.PLACEAFTER;
-			parent = prevItem; // Place after this item
-		}
-
-		// If there's no previous item but a next item exists,
-		// keep placement at beginning (before the next item)
-		if (!prevItem && nextItem) {
-			place = ElementPlacement.PLACEATBEGINNING;
-			// parent remains the original parent
-		}
-
-		// Move each child of the group to the determined parent/position
-		// Iterate in reverse to preserve stacking order
-		for (let index = groupItem.pageItems.length - 1; index >= 0; index--) {
-			const item = groupItem.pageItems[index];
-			item.move(parent, place);
-		}
-
-		// Optionally remove the now-empty group
-		// groupItem.remove(); // Uncomment if you want to delete the group after ungrouping
-	}
-
-	/**
-	 * Manages the document's selection by either adding or removing items.
-	 *
-	 * ### Behavior:
-	 * - If `type` is `true` (default): items are added to the document’s selection.
-	 * - If `type` is `false`: items are removed from the selection.
-	 *
-	 * The `remaingExistSelection` flag determines whether to preserve the current selection or replace it.
-	 *
-	 * @param params - The configuration object.
-	 * @param params.doc - The target Illustrator document.
-	 * @param params.items - The PageItems to add or remove.
-	 * @param params.remaingExistSelection - If true, merges with/removes from existing selection. Default is false.
-	 * @param params.type - Whether to add (true) or remove (false) the items. Default is true.
-	 */
-	static docSelectionHandler(params: DocSelectionHandler): void {
-		const {
-			doc, // Target document
-			items, // Items to modify selection with
-			remaingExistSelection = false, // Whether to keep existing selection
-			type = true, // true = add, false = remove
-		} = params;
-
-		// ========================
-		// ADD ITEMS TO SELECTION
-		// ========================
-		if (type) {
-			if (!remaingExistSelection) {
-				// Replace selection entirely
-				doc.selection = undefined;
-				doc.selection = items;
-			} else {
-				// Merge with existing selection
-				if (doc.selection?.length) {
-					doc.selection = [...doc.selection, ...items];
-				} else {
-					doc.selection = items;
-				}
-			}
-		}
-
-		// ========================
-		// REMOVE ITEMS FROM SELECTION
-		// ========================
-		if (!type && doc.selection?.length) {
-			if (!remaingExistSelection) {
-				// Clear all selection
-				doc.selection = undefined;
-			} else {
-				// Filter out the specified items from the current selection
-				const filteredItems = ES6_SA.arrayFilter(
-					doc.selection,
-					(item) => !ES6_SA.arrayIncludes(items, item),
-				);
-				doc.selection = filteredItems;
-			}
-		}
-	}
-
-	/**
-	 * Recursively searches through a list of `PageItem`s and returns all items
-	 * whose names match any value in the given name array.
-	 *
-	 * This is useful for finding objects by name within deeply nested Illustrator
-	 * document structures (e.g., groups, layers).
-	 *
-	 * The search can optionally exclude items that are hidden or locked.
-	 *
-	 * @param items - The top-level array of PageItems to begin the recursive search from.
-	 * @param name - An array of strings to match against each PageItem’s `.name` property.
-	 * @param onlyVisibleAndUnlocked - If `true`, ignores hidden or locked items. Defaults to `true`.
-	 *
-	 * @returns An array of PageItems whose `.name` matches any string in the `name` array.
-	 */
-	static getItemsByNames(
-		items: PageItem[],
-		name: string[],
-		onlyVisibleAndUnlocked: boolean = true,
-	): PageItem[] {
-		// Holds all matching PageItems found during the recursive search
-		const foundItems: PageItem[] = [];
-
-		/**
-		 * Internal recursive function to walk through the PageItem tree.
-		 * @param _items - A batch of PageItems at the current recursion depth.
-		 */
-		const recursivelyFind = (_items: PageItem[]) => {
-			// Iterate through the current level of items
-			for (const item of _items) {
-				// Check if item name matches one of the names in the array
-				// Also check if visibility and lock filtering is enabled and passed
-				const nameMatches = ES6_SA.arrayIncludes(name, item.name);
-				const passesVisibilityCheck =
-					!onlyVisibleAndUnlocked || (!item.hidden && !item.locked);
-
-				if (nameMatches && passesVisibilityCheck) {
-					// If both conditions pass, add the item to the result
-					foundItems.push(item);
-				}
-
-				// If item has nested PageItems (e.g., GroupItem), search recursively
-				if ("pageItems" in item && item.pageItems.length > 0) {
-					recursivelyFind(item.pageItems);
-				}
-			}
-		};
-
-		// Begin the recursive search from the root list
-		recursivelyFind(items);
-
-		// Return the complete list of found PageItems
-		return foundItems;
-	}
-
-	/**
-	 * Retrieves the parent Illustrator `Document` from a given PageItem.
-	 *
-	 * This method is useful when dealing with nested selections (e.g., inside Groups, Layers),
-	 * where the document reference is not directly accessible from the selected object.
-	 *
-	 * It traverses the `.parent` chain recursively until it finds an object
-	 * that is an instance of `Document`.
-	 *
-	 * @param item - The Illustrator PageItem (e.g., PathItem, GroupItem, etc.) to start from.
-	 * @returns The `Document` object the item belongs to.
-	 *
-	 * @throws Will throw an error if the traversal reaches a null parent
-	 *         or no document is found (which shouldn't happen if the input is valid).
-	 */
-	static getDocumentFromItem(item: PageItem): Document {
-		// Start traversal from the given item
-		let current: any = item;
-
-		// Traverse upward through the item's parent hierarchy
-		while (current && !(current instanceof Document)) {
-			// Move up to the parent container (GroupItem, Layer, etc.)
-			current = current.parent;
-		}
-
-		// Return the found Document, or throw if none found
-		if (current instanceof Document) {
-			return current;
-		}
-
-		// If the loop ended without finding a Document, something went wrong
-		throw new Error("Could not find Document from the given item.");
-	}
-
-	/**
-	 * Applies an opacity mask to a set of Illustrator items.
-	 *
-	 * This method looks for specific named items (defined in `SearchingKeywords.OpacityMask` and `OpacityMaskInvert`),
-	 * ungroups them if needed, and executes a named action script (`doScript`) on each item individually.
-	 *
-	 * This is typically used to apply standard masking operations as part of an automated Illustrator workflow.
-	 *
-	 * ### Workflow:
-	 * 1. Finds all items matching mask-related names.
-	 * 2. Validates that at least one mask item exists.
-	 * 3. Retrieves the document from one of the found items.
-	 * 4. Iterates over each found item:
-	 *    - Selects it
-	 *    - Ungroups it
-	 *    - Runs the script named after the item
-	 *    - Deselects it
-	 *
-	 * @param items - An array of `PageItem` objects to search through for opacity mask candidates.
-	 *
-	 * @throws Will throw an error if no matching opacity mask items are found.
-	 */
-	static makeOpacityMask(items: PageItem[]) {
-		// Search for items named "OpacityMask" or "OpacityMaskInvert" within the provided items
-		const maskItems = this.getItemsByNames(items, [
-			SearchingKeywords.OpacityMask,
-			SearchingKeywords.OpacityMaskInvert,
-		]);
-
-		// If no mask-related items found, throw an error and stop execution
-		if (!maskItems?.length) {
-			throw new Error(
-				`${SearchingKeywords.OpacityMask} or ${SearchingKeywords.OpacityMaskInvert} not found`,
-			);
-		}
-
-		// Retrieve the Illustrator Document reference from the first found item
-		const doc = this.getDocumentFromItem(maskItems[0]);
-
-		// Loop through each found mask item
-		for (const item of maskItems) {
-			// Select the current item in the document
-			this.docSelectionHandler({
-				doc,
-				items: [item],
-				type: true,
-			});
-
-			// If the item is a group, ungroup it to access its children
-			this.unGroupItem(item as GroupItem);
-
-			// Run the action script associated with the item's name
-			// The action set is "JFT-Rapid", and dialogs are suppressed (false)
-			app.doScript(item.name, "JFT-Rapid", false);
-
-			// Deselect the current item after processing
-			this.docSelectionHandler({
-				doc,
-				items: [item],
-				type: false,
-			});
-		}
-	}
-
-	/**
-	 * repairing document by copying active layer objects to created new document and save
-	 */
-	static repairDocumentError() {
-		const actDoc = app.activeDocument;
-		if (!actDoc) {
-			throw new Error("No open document found.");
-		}
-		const fileNameWithoutExt = actDoc.name.replace(/\.[^.]+$/, "");
-		const fileName = `${fileNameWithoutExt} Fixed`;
-		const newDocHandler = new IllustratorDocument(fileName);
-		const fixedDoc = newDocHandler.create(actDoc.activeLayer.pageItems);
-		this.smallArtboard(fixedDoc);
-		newDocHandler.save(`${actDoc.path.fsName}`, fileName);
-	}
+  /**
+   * Verifies that there is an active document and a valid selection.
+   *
+   * @returns {SelectionVerifyChainReturn} An object containing the active document and selection if valid; otherwise.
+   */
+  static selectionVerifyChain(): SelectionVerifyChainReturn {
+    const doc = app.activeDocument;
+    if (!doc) {
+      throw new Error("No open document found.");
+    }
+
+    const selection: Selection | undefined = doc.selection;
+
+    if (!selection || !selection.length) {
+      throw new Error("Please select objects.");
+    }
+
+    return { selection, doc };
+  }
+
+  /**
+   * Resizes an artboard in the document based on specified dimensions (in inches).
+   * Converts inches to points (1 inch = 72 points) for internal processing.
+   *
+   * @param {ArtboardScaler} params - Configuration object containing:
+   *   @param {Document} params.doc - The Illustrator document containing the artboard
+   *   @param {number} params.width - The desired width in inches
+   *   @param {number} params.height - The desired height in inches
+   */
+  static artboardScaler(params: ArtboardScaler): void {
+    const artboardManager = new ArtboardManager(params.doc);
+    artboardManager.resize(params.width * 72, params.height * 72);
+  }
+
+  /**
+   * Resizes the active artboard to a small default size (1x1 inches).
+   * Convenience wrapper around artboardScaler with preset dimensions.
+   *
+   * @param {Document} doc - The Illustrator document to modify
+   */
+  static smallArtboard(doc: Document): void {
+    this.artboardScaler({
+      doc,
+      width: 1,
+      height: 1,
+    });
+  }
+
+  /**
+   * Aligns all items in the active layer to the artboard boundaries.
+   *
+   * The operation:
+   * 1. Clears any existing selection
+   * 2. Selects all page items in the active layer
+   * 3. Aligns them to the artboard using default alignment
+   * 4. Clears the selection when complete
+   */
+  static alignItemsToBoardCenter(doc: Document): void {
+    const activeLayerItems = doc.activeLayer.pageItems;
+    const itemsToSelect = ES6_SA.arrayFrom(activeLayerItems) as Selection;
+    AlignmentHandler.alignPageItemsToArtboard({
+      doc,
+      items: itemsToSelect,
+      engine: "action",
+    });
+    doc.selection = null;
+  }
+
+  /**
+   * Selects all visible & unlocked items in an Illustrator document
+   * @param {Document} doc - The Illustrator document to process
+   * @returns {Selection} Array of selected items
+   */
+  static selectAllItems(doc: Document): PageItem[] {
+    const items = doc.pageItems;
+    const selectedItems = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      // Skip hidden items (default behavior)
+      if (item.hidden) continue;
+
+      // Skip locked items unless explicitly included
+      if (item.locked) continue;
+
+      selectedItems.push(item);
+    }
+
+    doc.selection = selectedItems;
+    return selectedItems;
+  }
+
+  /**
+   * Converts an Illustrator PageItems collection to a standard array
+   * @param {PageItems} pageItems - The Illustrator PageItems collection to convert
+   * @returns {PageItem[]} Array containing all items from the collection
+   */
+  static pageItemsToArray(pageItems: PageItems): PageItem[] {
+    const selectedItems = [];
+
+    for (let i = 0; i < pageItems.length; i++) {
+      const item = pageItems[i];
+
+      selectedItems.push(item);
+    }
+
+    return selectedItems;
+  }
+
+  /**
+   * Retrieves the front and back body items from a document or selection.
+   * @param {Selection|null} [items=null] - Optional selection to search within
+   * @returns {[PageItem, PageItem]} Tuple containing front and back body items
+   * @throws {Error} If either FRONT or BACK items cannot be found
+   */
+  static getBodyItems(items: Selection): [PageItem, PageItem] {
+    const frontBody = ES6_SA.arrayFind(
+      items,
+      (item) => item.name === SearchingKeywords.FRONT,
+    );
+    const backBody = ES6_SA.arrayFind(
+      items,
+      (item) => item.name === SearchingKeywords.BACK,
+    );
+
+    if (!frontBody || !backBody) {
+      throw new Error(`Can't found ${!frontBody ? "FRONT" : "BACK"}`);
+    }
+
+    return [frontBody, backBody];
+  }
+
+  /**
+   * Gets the current document's directory and counts files in that directory
+   * @param {Document} [doc=app.activeDocument] - The Illustrator document to check
+   * @returns {GetDirectoryFileInfoReturn}
+   * @throws {Error} If no document is open or document isn't saved
+   */
+  static getDirectoryFileInfo(
+    doc: Document = app.activeDocument,
+  ): GetDirectoryFileInfoReturn {
+    if (!app.documents.length) {
+      throw new Error("No document is open!");
+    }
+
+    const docPath = doc.fullName;
+
+    if (!docPath) {
+      throw new Error(
+        "Document must be saved first to determine its location.",
+      );
+    }
+
+    const folder = docPath.parent;
+    const items = folder.getFiles();
+    let fileCount = 0;
+    let folderCount = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i] instanceof Folder) {
+        folderCount++;
+      } else if (items[i] instanceof File) {
+        fileCount++;
+      }
+    }
+
+    return {
+      files: fileCount,
+      folder: folderCount,
+      nexFileIndex: fileCount,
+    };
+  }
+
+  /**
+   * Retrieves pant-related items from the document's active layer.
+   *
+   * This method looks for the following items by their names:
+   * - F_L
+   * - F_R
+   * - B_L
+   * - B_R
+   *
+   * If any of these are missing, it throws an Error with a list of missing item names.
+   *
+   * @param {Document} doc - The document from which to retrieve pant items.
+   * @returns {PantItems} An array of pant-related items tuple.
+   * @throws {Error} If any pant items are missing.
+   */
+  static getPantItems(container: PageItem[]): PantItems {
+    const pageItems = container;
+
+    const F_L = ES6_SA.arrayFind(
+      pageItems,
+      (item) => item.name === SearchingKeywordsForPant.PANT_F_L,
+    );
+    const F_R = ES6_SA.arrayFind(
+      pageItems,
+      (item) => item.name === SearchingKeywordsForPant.PANT_F_R,
+    );
+    const B_L = ES6_SA.arrayFind(
+      pageItems,
+      (item) => item.name === SearchingKeywordsForPant.PANT_B_L,
+    );
+    const B_R = ES6_SA.arrayFind(
+      pageItems,
+      (item) => item.name === SearchingKeywordsForPant.PANT_B_R,
+    );
+
+    const missing = [];
+
+    if (!F_L) missing.push(SearchingKeywordsForPant.PANT_F_L);
+    if (!F_R) missing.push(SearchingKeywordsForPant.PANT_F_R);
+    if (!B_L) missing.push(SearchingKeywordsForPant.PANT_B_L);
+    if (!B_R) missing.push(SearchingKeywordsForPant.PANT_B_R);
+
+    if (missing.length > 0) {
+      throw new Error(
+        `Can't find pant items: missing [${missing.join(", ")}].`,
+      );
+    }
+
+    return [F_L as PageItem, F_R as PageItem, B_L as PageItem, B_R as PageItem];
+  }
+
+  /**
+   * Handles the key object selection logic.
+   *
+   * This static method checks the current document and selection, and either sets or removes
+   * a custom `key` property on the selected item based on the `dispatch` flag.
+   *
+   * ### Error Cases:
+   * - No document open
+   * - No selection
+   * - Multiple items selected
+   * @param {boolean} dispatch - A boolean flag indicating whether to set (`true`) or remove (`false`) the `key` property on the selected object.
+   *
+   * @throws Will show an alert dialog with an error message if:
+   * - No document is open.
+   * - No object is selected.
+   * - More than one object is selected.
+   */
+  static objectKeyHandler(dispatch: boolean): void {
+    try {
+      const { selection } = this.selectionVerifyChain();
+
+      if (selection.length > 1) {
+        throw new Error("Multiple key objects are not supported.");
+      }
+
+      const item = selection[0];
+
+      if (dispatch) {
+        item.key = true;
+      } else {
+        delete item.key;
+      }
+      app.beep();
+    } catch (error: any) {
+      alertDialogSA(error.message);
+    }
+  }
+
+  /**
+   * select all clipped path from selection
+   */
+  static selectTopClippingPath() {
+    try {
+      const { doc, selection } = this.selectionVerifyChain();
+      const clippingPathObjects: PageItem[] = [];
+
+      for (let i = 0; i < selection.length; i++) {
+        const item = selection[i];
+        const topClippingPath = Utils.getTopClippingPath(item);
+        if (topClippingPath) {
+          clippingPathObjects.push(topClippingPath);
+        }
+      }
+
+      if (clippingPathObjects.length) {
+        doc.selection = null;
+        doc.selection = clippingPathObjects;
+      } else {
+        alertDialogSA(`No clipping path found!`);
+      }
+    } catch (error: any) {
+      alertDialogSA(error.message);
+    }
+  }
+
+  /**
+   * check the objects are opacity mask existing by moving and rotateting
+   */
+  static checkisOpacityMask() {
+    try {
+      const { selection } = this.selectionVerifyChain();
+
+      const groupItem = GroupManager.group(selection);
+
+      if (!groupItem) {
+        throw new Error(`Can't grouping`);
+      }
+
+      const dupItem = groupItem.duplicate();
+
+      AlignmentHandler.moveObjectAfter({
+        base: groupItem,
+        moving: dupItem,
+        gap: 1,
+        position: "T",
+      });
+
+      GroupManager.ungroup(groupItem);
+    } catch (error: any) {
+      alertDialogSA(error.message);
+    }
+  }
+
+  /**
+   * Initializes the preparation of a sleeve set using two selected Illustrator objects.
+   *
+   * ### Workflow Summary:
+   * 1. Verifies exactly 2 objects are selected.
+   * 2. Duplicates both and ensures they are the same dimensions.
+   * 3. Rotates, aligns, and arranges them into a 1-set sleeve layout.
+   * 4. Duplicates the 1-set to make a 2-set layout.
+   * 5. Validates if final layout fits within maximum paper size.
+   * 6. Resizes if necessary and removes the original selection.
+   *
+   * @throws {Error} If:
+   * - Selection count is not 2.
+   * - Duplicated items do not have equal dimensions.
+   * - Sleeve set exceeds the allowed paper size.
+   */
+  static fSlv2SetInit() {
+    try {
+      const { selection } = this.selectionVerifyChain();
+
+      // Validate exactly two objects are selected
+      if (selection.length !== 2) {
+        throw new Error("You must select exactly two objects.");
+      }
+
+      const transActHandler = new TransActionHandler();
+
+      const [obj1, obj2] = selection;
+
+      // Duplicate both objects
+      const dupObj1 = obj1.duplicate(obj1.parent);
+      const dupObj2 = obj2.duplicate(obj2.parent);
+
+      // Get dimensions of duplicated objects
+      const dupObj1Dim = Utils.getDimension(Utils.getObjectBounds(dupObj1));
+      const dupObj2Dim = Utils.getDimension(Utils.getObjectBounds(dupObj2));
+
+      // Check if duplicated objects have the same dimensions
+      if (
+        !(
+          dupObj1Dim.width === dupObj2Dim.width &&
+          dupObj1Dim.height === dupObj2Dim.height
+        )
+      ) {
+        dupObj1.remove();
+        dupObj2.remove();
+        throw new Error("Both objects must have equal dimensions.");
+      }
+
+      // Define initial translation values (in points)
+      const firstXTrans = Utils.convertLength({
+        value: -2.2,
+        from: "inch",
+        to: "pt",
+      });
+      const secondXTrans = Utils.convertLength({
+        value: 0.4,
+        from: "inch",
+        to: "pt",
+      });
+      // Align duplicated items to center (both horizontal and vertical)
+      AlignmentHandler.alignObject({
+        base: dupObj1,
+        moving: dupObj2,
+        engine: "action",
+      });
+
+      // Move second object to the right of the first
+      AlignmentHandler.moveObjectAfter({
+        base: dupObj1,
+        moving: dupObj2,
+        position: "R",
+        engine: "action",
+      });
+
+      // Rotate the second object by 180 degrees
+      transActHandler.rotate({ objects: [dupObj2], deg: 180 });
+
+      // Move the second object left by 2.2 inches
+      transActHandler.move({ objects: [dupObj2], x: firstXTrans, y: 0 });
+      dupObj2.translate(firstXTrans, 0);
+
+      // Get the grouped set
+      const tempGroup = GroupManager.group([dupObj1, dupObj2]);
+
+      // Rotate both objects by -7.5 degrees
+      transActHandler.rotate({
+        deg: -7.5 as unknown as RotateDegrees,
+        objects: tempGroup[1]
+      });
+
+      // Align both again to vertical center
+      AlignmentHandler.alignObject({
+        base: tempGroup[0],
+        moving: tempGroup[1],
+        engine: "action",
+        position: "CY",
+      });
+
+      // Move the second object slightly right (0.4 inches)
+      transActHandler.move({ objects: tempGroup[1], x: secondXTrans, y: 0 });
+
+      // Get dimensions of the grouped sleeve set
+      const groupedItemDim = Utils.getDimension(
+        Utils.getObjectBounds(tempGroup),
+      );
+
+      // Calculate half of the max allowed paper size
+      const halfOfPaperSize = Math.ceil(CONFIG.PAPER_MAX_SIZE / 2);
+
+      // If the 1-set width exceeds half the paper size, abort
+      if (groupedItemDim.width >= halfOfPaperSize) {
+        tempGroup.remove();
+        throw new Error(
+          `Sleeve width exceeds half of the allowed paper size (${CONFIG.PAPER_MAX_SIZE}").`,
+        );
+      }
+
+      // Duplicate the group to make a 2-set layout
+      const dupGroupedItem = tempGroup.duplicate(obj1);
+
+      // Place the duplicated group to the right of the original
+      AlignmentHandler.moveObjectAfter({
+        base: tempGroup,
+        moving: dupGroupedItem,
+        position: "R",
+        engine: "action",
+      });
+
+      // Get combined dimension of both sleeve sets
+      const finalDim = Utils.getDimension(
+        Utils.getObjectBounds([tempGroup, dupGroupedItem]),
+      );
+
+      // Resize if the combined width exceeds the paper limit
+      if (finalDim.width > CONFIG.PAPER_MAX_SIZE) {
+        Utils.resizeObject([tempGroup, dupGroupedItem], CONFIG.PAPER_MAX_SIZE);
+      }
+
+      // Clean up original selected objects
+      obj1.remove();
+      obj2.remove();
+    } catch (error: any) {
+      // Show error message via custom alert
+      alertDialogSA(error.message);
+    }
+  }
+
+  /**
+   * Assigns a custom name (mark) to all selected Illustrator objects.
+   *
+   * This method is useful for tagging or identifying specific elements
+   * within a document by applying a shared name to the currently selected items.
+   *
+   * ### Workflow:
+   * 1. Verifies that a document is open and there is a valid selection.
+   * 2. Iterates over the selected items.
+   * 3. Sets the `.name` property of each item to the provided `mark` string.
+   *
+   * @param {string} mark - The name or identifier to assign to each selected object.
+   *
+   * @throws Will throw an error if:
+   * - No document is open.
+   * - No items are selected.
+   */
+  static objectMarkByName(mark: string) {
+    const selectionVerifyChain = this.selectionVerifyChain();
+    const selection = selectionVerifyChain.selection;
+
+    for (const element of selection) {
+      element.name = mark;
+    }
+  }
+
+  /**
+   * Returns the previous and next sibling items of a given page item,
+   * as well as its index within the parent container's pageItems array.
+   *
+   * @param item - The PageItem (e.g., GroupItem, PathItem) to find siblings for.
+   * @returns An object containing:
+   *  - `prevItem`: the previous sibling (or `null` if first)
+   *  - `nextItem`: the next sibling (or `null` if last)
+   *  - `itemIndex`: the index of the current item in its parent’s pageItems
+   *
+   * @throws Error if the item is not found in its parent’s pageItems collection.
+   */
+  static getSiblingItems(item: PageItem): GetSiblingItemsReturn {
+    // Get the parent container (Layer, GroupItem, or Document) of the given item
+    const parent = item.parent as Layer | GroupItem | Document;
+
+    // Get all page items under the parent — includes all types (GroupItem, PathItem, etc.)
+    const siblings = parent.pageItems;
+
+    // Initialize index to -1 (not found)
+    let index = -1;
+
+    // Loop through siblings to find the index of the current item
+    for (let i = 0; i < siblings.length; i++) {
+      if (siblings[i] === item) {
+        index = i;
+        break; // Exit the loop once the item is found
+      }
+    }
+
+    // If the item wasn't found, throw an error
+    if (index === -1) {
+      throw new Error("Item not found in parent's pageItems.");
+    }
+
+    // Get the previous item, or null if this is the first item
+    const prevItem = index > 0 ? siblings[index - 1] : null;
+
+    // Get the next item, or null if this is the last item
+    const nextItem = index < siblings.length - 1 ? siblings[index + 1] : null;
+
+    // Return the previous and next siblings, and the current item index
+    return { prevItem, nextItem, itemIndex: index };
+  }
+
+  /**
+   * Ungroups a given GroupItem by moving all its child items out into the parent container,
+   * preserving their stacking order relative to the group's position in the parent.
+   *
+   * This method determines the correct `ElementPlacement` by checking sibling items:
+   * - If there is a previous sibling, new items are placed **after** it.
+   * - If there is no previous sibling but a next sibling exists, items are placed **at the beginning**.
+   * - If neither exist, items are placed **inside** the parent (default to beginning).
+   *
+   * @param groupItem - The GroupItem to ungroup.
+   *
+   * @throws Error if the item is not a valid GroupItem or has no children.
+   */
+  static unGroupItem(groupItem: GroupItem): void {
+    // Validate that the item is a GroupItem and has child items
+    if (
+      groupItem.typename !== PageItemType.GroupItem ||
+      !groupItem.pageItems.length
+    ) {
+      throw new Error("Item is not a Group object or is empty.");
+    }
+
+    // Get previous and next sibling items (used to determine insertion point)
+    const { nextItem, prevItem } = this.getSiblingItems(groupItem);
+
+    // Default to placing items in the same parent as the group
+    let parent = groupItem.parent;
+
+    // Default placement is at the beginning
+    let place = ElementPlacement.PLACEATBEGINNING;
+
+    // If there's a previous item, place ungrouped items after it
+    if (prevItem) {
+      place = ElementPlacement.PLACEAFTER;
+      parent = prevItem; // Place after this item
+    }
+
+    // If there's no previous item but a next item exists,
+    // keep placement at beginning (before the next item)
+    if (!prevItem && nextItem) {
+      place = ElementPlacement.PLACEATBEGINNING;
+      // parent remains the original parent
+    }
+
+    // Move each child of the group to the determined parent/position
+    // Iterate in reverse to preserve stacking order
+    for (let index = groupItem.pageItems.length - 1; index >= 0; index--) {
+      const item = groupItem.pageItems[index];
+      item.move(parent, place);
+    }
+
+    // Optionally remove the now-empty group
+    // groupItem.remove(); // Uncomment if you want to delete the group after ungrouping
+  }
+
+  /**
+   * Manages the document's selection by either adding or removing items.
+   *
+   * ### Behavior:
+   * - If `type` is `true` (default): items are added to the document’s selection.
+   * - If `type` is `false`: items are removed from the selection.
+   *
+   * The `remaingExistSelection` flag determines whether to preserve the current selection or replace it.
+   *
+   * @param params - The configuration object.
+   * @param params.doc - The target Illustrator document.
+   * @param params.items - The PageItems to add or remove.
+   * @param params.remaingExistSelection - If true, merges with/removes from existing selection. Default is false.
+   * @param params.type - Whether to add (true) or remove (false) the items. Default is true.
+   */
+  static docSelectionHandler(params: DocSelectionHandler): void {
+    const {
+      doc, // Target document
+      items, // Items to modify selection with
+      remaingExistSelection = false, // Whether to keep existing selection
+      type = true, // true = add, false = remove
+    } = params;
+
+    // ========================
+    // ADD ITEMS TO SELECTION
+    // ========================
+    if (type) {
+      if (!remaingExistSelection) {
+        // Replace selection entirely
+        doc.selection = undefined;
+        doc.selection = items;
+      } else {
+        // Merge with existing selection
+        if (doc.selection?.length) {
+          doc.selection = [...doc.selection, ...items];
+        } else {
+          doc.selection = items;
+        }
+      }
+    }
+
+    // ========================
+    // REMOVE ITEMS FROM SELECTION
+    // ========================
+    if (!type && doc.selection?.length) {
+      if (!remaingExistSelection) {
+        // Clear all selection
+        doc.selection = undefined;
+      } else {
+        // Filter out the specified items from the current selection
+        const filteredItems = ES6_SA.arrayFilter(
+          doc.selection,
+          (item) => !ES6_SA.arrayIncludes(items, item),
+        );
+        doc.selection = filteredItems;
+      }
+    }
+  }
+
+  /**
+   * Recursively searches through a list of `PageItem`s and returns all items
+   * whose names match any value in the given name array.
+   *
+   * This is useful for finding objects by name within deeply nested Illustrator
+   * document structures (e.g., groups, layers).
+   *
+   * The search can optionally exclude items that are hidden or locked.
+   *
+   * @param items - The top-level array of PageItems to begin the recursive search from.
+   * @param name - An array of strings to match against each PageItem’s `.name` property.
+   * @param onlyVisibleAndUnlocked - If `true`, ignores hidden or locked items. Defaults to `true`.
+   *
+   * @returns An array of PageItems whose `.name` matches any string in the `name` array.
+   */
+  static getItemsByNames(
+    items: PageItem[],
+    name: string[],
+    onlyVisibleAndUnlocked: boolean = true,
+  ): PageItem[] {
+    // Holds all matching PageItems found during the recursive search
+    const foundItems: PageItem[] = [];
+
+    /**
+     * Internal recursive function to walk through the PageItem tree.
+     * @param _items - A batch of PageItems at the current recursion depth.
+     */
+    const recursivelyFind = (_items: PageItem[]) => {
+      // Iterate through the current level of items
+      for (const item of _items) {
+        // Check if item name matches one of the names in the array
+        // Also check if visibility and lock filtering is enabled and passed
+        const nameMatches = ES6_SA.arrayIncludes(name, item.name);
+        const passesVisibilityCheck =
+          !onlyVisibleAndUnlocked || (!item.hidden && !item.locked);
+
+        if (nameMatches && passesVisibilityCheck) {
+          // If both conditions pass, add the item to the result
+          foundItems.push(item);
+        }
+
+        // If item has nested PageItems (e.g., GroupItem), search recursively
+        if ("pageItems" in item && item.pageItems.length > 0) {
+          recursivelyFind(item.pageItems);
+        }
+      }
+    };
+
+    // Begin the recursive search from the root list
+    recursivelyFind(items);
+
+    // Return the complete list of found PageItems
+    return foundItems;
+  }
+
+  /**
+   * Retrieves the parent Illustrator `Document` from a given PageItem.
+   *
+   * This method is useful when dealing with nested selections (e.g., inside Groups, Layers),
+   * where the document reference is not directly accessible from the selected object.
+   *
+   * It traverses the `.parent` chain recursively until it finds an object
+   * that is an instance of `Document`.
+   *
+   * @param item - The Illustrator PageItem (e.g., PathItem, GroupItem, etc.) to start from.
+   * @returns The `Document` object the item belongs to.
+   *
+   * @throws Will throw an error if the traversal reaches a null parent
+   *         or no document is found (which shouldn't happen if the input is valid).
+   */
+  static getDocumentFromItem(item: PageItem): Document {
+    // Start traversal from the given item
+    let current: any = item;
+
+    // Traverse upward through the item's parent hierarchy
+    while (current && !(current instanceof Document)) {
+      // Move up to the parent container (GroupItem, Layer, etc.)
+      current = current.parent;
+    }
+
+    // Return the found Document, or throw if none found
+    if (current instanceof Document) {
+      return current;
+    }
+
+    // If the loop ended without finding a Document, something went wrong
+    throw new Error("Could not find Document from the given item.");
+  }
+
+  /**
+   * Applies an opacity mask to a set of Illustrator items.
+   *
+   * This method looks for specific named items (defined in `SearchingKeywords.OpacityMask` and `OpacityMaskInvert`),
+   * ungroups them if needed, and executes a named action script (`doScript`) on each item individually.
+   *
+   * This is typically used to apply standard masking operations as part of an automated Illustrator workflow.
+   *
+   * ### Workflow:
+   * 1. Finds all items matching mask-related names.
+   * 2. Validates that at least one mask item exists.
+   * 3. Retrieves the document from one of the found items.
+   * 4. Iterates over each found item:
+   *    - Selects it
+   *    - Ungroups it
+   *    - Runs the script named after the item
+   *    - Deselects it
+   *
+   * @param items - An array of `PageItem` objects to search through for opacity mask candidates.
+   *
+   * @throws Will throw an error if no matching opacity mask items are found.
+   */
+  static makeOpacityMask(items: PageItem[]) {
+    // Search for items named "OpacityMask" or "OpacityMaskInvert" within the provided items
+    const maskItems = this.getItemsByNames(items, [
+      SearchingKeywords.OpacityMask,
+      SearchingKeywords.OpacityMaskInvert,
+    ]);
+
+    // If no mask-related items found, throw an error and stop execution
+    if (!maskItems?.length) {
+      throw new Error(
+        `${SearchingKeywords.OpacityMask} or ${SearchingKeywords.OpacityMaskInvert} not found`,
+      );
+    }
+
+    // Retrieve the Illustrator Document reference from the first found item
+    const doc = this.getDocumentFromItem(maskItems[0]);
+
+    // Loop through each found mask item
+    for (const item of maskItems) {
+      // Select the current item in the document
+      this.docSelectionHandler({
+        doc,
+        items: [item],
+        type: true,
+      });
+
+      // If the item is a group, ungroup it to access its children
+      this.unGroupItem(item as GroupItem);
+
+      // Run the action script associated with the item's name
+      // The action set is "JFT-Rapid", and dialogs are suppressed (false)
+      app.doScript(item.name, "JFT-Rapid", false);
+
+      // Deselect the current item after processing
+      this.docSelectionHandler({
+        doc,
+        items: [item],
+        type: false,
+      });
+    }
+  }
+
+  /**
+   * repairing document by copying active layer objects to created new document and save
+   */
+  static repairDocumentError() {
+    const actDoc = app.activeDocument;
+    if (!actDoc) {
+      throw new Error("No open document found.");
+    }
+    const fileNameWithoutExt = actDoc.name.replace(/\.[^.]+$/, "");
+    const fileName = `${fileNameWithoutExt} Fixed`;
+    const newDocHandler = new IllustratorDocument(fileName);
+    const fixedDoc = newDocHandler.create(actDoc.activeLayer.pageItems);
+    this.smallArtboard(fixedDoc);
+    newDocHandler.save(`${actDoc.path.fsName}`, fileName);
+  }
 }
 
 interface GetDirectoryFileInfoReturn {
-	folder: number;
-	files: number;
-	nexFileIndex: number;
+  folder: number;
+  files: number;
+  nexFileIndex: number;
 }
 
 type ArtboardScaler = {
-	doc: Document;
-	width: number;
-	height: number;
+  doc: Document;
+  width: number;
+  height: number;
 };
 
 interface GetBodyDimenstionParams {
-	sizeContainer: string;
-	targetSizeChr: ApparelSize;
+  sizeContainer: string;
+  targetSizeChr: ApparelSize;
 }
 
 type MoveAfterItemUiDirection = "L" | "R" | "T" | "B";
 
 interface SelectionVerifyChainReturn {
-	selection: Selection;
-	doc: Document;
+  selection: Selection;
+  doc: Document;
 }
 
 type GetSiblingItemsReturn = {
-	prevItem: PageItem | null;
-	nextItem: PageItem | null;
-	itemIndex: number;
+  prevItem: PageItem | null;
+  nextItem: PageItem | null;
+  itemIndex: number;
 };
 
 interface DocSelectionHandler {
-	readonly doc: Document;
-	readonly items: PageItem[];
-	readonly type?: boolean;
-	readonly remaingExistSelection?: boolean;
+  readonly doc: Document;
+  readonly items: PageItem[];
+  readonly type?: boolean;
+  readonly remaingExistSelection?: boolean;
 }

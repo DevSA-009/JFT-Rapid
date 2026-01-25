@@ -9,6 +9,9 @@ interface JFTRapid_Config {
 	opacityMask: boolean;
 }
 
+/**
+ * Represents a selection of PageItems in Illustrator.
+ */
 type Selection = PageItem[];
 
 type PrevNextItems = {

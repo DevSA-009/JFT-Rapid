@@ -50,7 +50,7 @@ class AlignmentHandler {
     if (engine === "action") {
       dy = Utils.reverseCenterY(dy);
       const transActHandler = new TransActionHandler();
-      transActHandler.move({ item: moving as PageItem, x: dx, y: dy });
+      transActHandler.move({ objects: [moving], x: dx, y: dy });
       transActHandler.removeAll();
     } else {
       // Move the item
@@ -110,14 +110,8 @@ class AlignmentHandler {
     } = Utils.getObjectBounds(items); // [top, left, bottom, right]
 
     const isItems = ES6_SA.isArray(items);
-
-    const groupManger = new GroupManager(
-      isItems ? (items as Selection) : ([items] as Selection),
-    );
-    const { prev } = Utils.getAdjacentPageObjects(items as Selection);
     if (isItems) {
-      groupManger.group(prev);
-      items = groupManger.tempGroup as PageItem;
+      items = GroupManager.group(items as Selection);
     }
 
     const { centerX, centerY } = Utils.getCenterXY({
@@ -181,7 +175,7 @@ class AlignmentHandler {
     if (engine === "action") {
       deltaY = Utils.reverseCenterY(deltaY);
       const transActHandler = new TransActionHandler();
-      transActHandler.move({ item: items as PageItem, x: deltaX, y: deltaY });
+      transActHandler.move({ objects: items as Selection, x: deltaX, y: deltaY });
       transActHandler.removeAll();
     } else {
       // Move the item
@@ -189,7 +183,7 @@ class AlignmentHandler {
     }
 
     if (isItems) {
-      groupManger.ungroup(prev);
+      GroupManager.ungroup(items as GroupItem);
     }
   };
 
@@ -299,7 +293,7 @@ class AlignmentHandler {
     if (engine === "action") {
       deltaY = Utils.reverseCenterY(deltaY);
       const transActHandler = new TransActionHandler();
-      transActHandler.move({ item: moving as PageItem, x: deltaX, y: deltaY });
+      transActHandler.move({ objects: [moving], x: deltaX, y: deltaY });
       transActHandler.removeAll();
     } else {
       // Move the item
@@ -307,80 +301,80 @@ class AlignmentHandler {
     }
   };
 
-  	/**
-	 * Moves a selected item to a specific position on the Illustrator canvas.
-	 *
-	 * @param {PageItem} item - The selected object in Illustrator.
-	 * @param {AlignPosition} position - The desired position:
-	 *  - `"L"`  (Left)
-	 *  - `"R"`  (Right)
-	 *  - `"T"`  (Top)
-	 *  - `"B"`  (Bottom)
-	 *  - `"LC"` (Left-Center)
-	 *  - `"RC"` (Right-Center)
-	 *  - `"TC"` (Top-Center)
-	 *  - `"BC"` (Bottom-Center)
-	 *  - `"C"`  (Center both horizontally and vertically)
-	 */
-	static moveItemToCanvas = (
-		item: PageItem,
-		position: AlignPosition = "C",
-	): void => {
-		// Illustrator's max canvas size is 16383 x 16383 points
-		const canvasSize = 16344; //idle size
+  /**
+   * Moves a selected item to a specific position on the Illustrator canvas.
+   *
+   * @param {PageItem} item - The selected object in Illustrator.
+   * @param {AlignPosition} position - The desired position:
+   *  - `"L"`  (Left)
+   *  - `"R"`  (Right)
+   *  - `"T"`  (Top)
+   *  - `"B"`  (Bottom)
+   *  - `"LC"` (Left-Center)
+   *  - `"RC"` (Right-Center)
+   *  - `"TC"` (Top-Center)
+   *  - `"BC"` (Bottom-Center)
+   *  - `"C"`  (Center both horizontally and vertically)
+   */
+  static moveItemToCanvas = (
+    item: PageItem,
+    position: AlignPosition = "C",
+  ): void => {
+    // Illustrator's max canvas size is 16383 x 16383 points
+    const canvasSize = 16344; //idle size
 
-		const canvasHalf = canvasSize / 2;
+    const canvasHalf = canvasSize / 2;
 
-		// Get item bounds using Utils.getObjectBounds
-		const bounds = Utils.getObjectBounds(item);
-		const { left, bottom, right, top } = bounds;
-		const { height, width } = Utils.getDimension(bounds);
-		const itemWidth = width / 2;
-		const itemHeight = height / 2;
+    // Get item bounds using Utils.getObjectBounds
+    const bounds = Utils.getObjectBounds(item);
+    const { left, bottom, right, top } = bounds;
+    const { height, width } = Utils.getDimension(bounds);
+    const itemWidth = width / 2;
+    const itemHeight = height / 2;
 
-		// Default movement offsets (no movement)
-		let moveX = 0;
-		let moveY = 0;
+    // Default movement offsets (no movement)
+    let moveX = 0;
+    let moveY = 0;
 
-		// Calculate target positions based on alignment choice
-		switch (position) {
-			case "L": // Left edge
-				moveX = -(canvasHalf) - left;
-				break;
-			case "R": // Right edge
-				moveX = canvasHalf - right;
-				break;
-			case "T": // Top edge
-				moveY = canvasHalf - top;
-				break;
-			case "B": // Bottom edge
-				moveY = -canvasHalf - bottom;
-				break;
-			case "LC": // Left-Center
-				moveX = -(canvasHalf) - left;
-				moveY = -bounds.top + itemHeight / 2;
-				break;
-			case "RC": // Right-Center
-				moveX = canvasHalf - bounds.right;
-				moveY = -bounds.top + itemHeight / 2;
-				break;
-			case "TC": // Top-Center
-				moveX = -bounds.left + itemWidth / 2;
-				moveY = canvasHalf - bounds.top;
-				break;
-			case "BC": // Bottom-Center
-				moveX = -bounds.left + itemWidth / 2;
-				moveY = -canvasHalf - bounds.bottom;
-				break;
-			case "C": // Fully Centered
-				moveX = -canvasHalf + itemWidth / 2;
-				moveY = -bounds.top + itemHeight / 2;
-				break;
-		}
+    // Calculate target positions based on alignment choice
+    switch (position) {
+      case "L": // Left edge
+        moveX = -canvasHalf - left;
+        break;
+      case "R": // Right edge
+        moveX = canvasHalf - right;
+        break;
+      case "T": // Top edge
+        moveY = canvasHalf - top;
+        break;
+      case "B": // Bottom edge
+        moveY = -canvasHalf - bottom;
+        break;
+      case "LC": // Left-Center
+        moveX = -canvasHalf - left;
+        moveY = -bounds.top + itemHeight / 2;
+        break;
+      case "RC": // Right-Center
+        moveX = canvasHalf - bounds.right;
+        moveY = -bounds.top + itemHeight / 2;
+        break;
+      case "TC": // Top-Center
+        moveX = -bounds.left + itemWidth / 2;
+        moveY = canvasHalf - bounds.top;
+        break;
+      case "BC": // Bottom-Center
+        moveX = -bounds.left + itemWidth / 2;
+        moveY = -canvasHalf - bounds.bottom;
+        break;
+      case "C": // Fully Centered
+        moveX = -canvasHalf + itemWidth / 2;
+        moveY = -bounds.top + itemHeight / 2;
+        break;
+    }
 
-		// Apply movement
-		item.translate(moveX, moveY);
-	};
+    // Apply movement
+    item.translate(moveX, moveY);
+  };
 }
 
 /**
