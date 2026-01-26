@@ -19,6 +19,14 @@ const CONFIG: JFTRapid_Config = {
 	orientation:"auto"
 };
 
-const processBegin = () => {
+const transActHandler = new TransActionHandler();
 
-}
+const $item1 = app.activeDocument.activeLayer.pageItems[0];
+const $item2 = app.activeDocument.activeLayer.pageItems[1];
+
+AlignmentHandler.moveObjectAfter({
+	base:$item1,
+	moving:$item2,
+	engine:'action',
+	position:"B"
+})

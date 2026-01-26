@@ -72,28 +72,86 @@ class Organizer {
   }
 
   /**
-   * Selects all visible & unlocked items in an Illustrator document
-   * @param {Document} doc - The Illustrator document to process
-   * @returns {Selection} Array of selected items
+   * Selects or deselects all visible and unlocked objects in the active layer of a document.
+   *
+   * ### Behavior:
+   * - Processes only objects in the currently active layer
+   * - Skips hidden objects (object.hidden = true)
+   * - Skips locked objects (object.locked = true)
+   * - Uses `docSelectionHandler` internally for proper selection management
+   *
+   * ### When to use:
+   * - Selecting all editable content in the active layer
+   * - Clearing selection in the active layer
+   * - Preparing objects for batch operations
+   *
+   * @param params - The configuration object (optional)
+   * @param params.doc - The target Illustrator document. Default is app.activeDocument.
+   * @param params.type - Whether to select (true) or deselect (false) all objects. Default is true.
+   * @returns Array of objects that were selected or deselected
+   *
+   * @example
+   * ```typescript
+   * // Select all objects in active layer of active document
+   * const selected = Utils.docAllObjectsSelectionHandler();
+   *
+   * // Select all objects in specific document
+   * const selected = Utils.docAllObjectsSelectionHandler({
+   *   doc: myDocument
+   * });
+   *
+   * // Deselect all objects in active layer
+   * const deselected = Utils.docAllObjectsSelectionHandler({
+   *   type: false
+   * });
+   *
+   * // Deselect all objects in specific document
+   * const deselected = Utils.docAllObjectsSelectionHandler({
+   *   doc: myDocument,
+   *   type: false
+   * });
+   * ```
    */
-  static selectAllItems(doc: Document): PageItem[] {
-    const items = doc.pageItems;
-    const selectedItems = [];
+  static docAllObjectsSelectionHandler(
+    params: DocAllObjectsSelectionHandler = {},
+  ): PageItem[] {
+    const {
+      doc = app.activeDocument, // Default to active document
+      type = true, // Default to select (true)
+    } = params;
 
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+    // Get the active layer
+    const activeLayer = doc.activeLayer;
 
-      // Skip hidden items (default behavior)
-      if (item.hidden) continue;
+    // Get all page objects in the active layer
+    const layerObjects = activeLayer.pageItems;
 
-      // Skip locked items unless explicitly included
-      if (item.locked) continue;
+    // Collect all visible and unlocked objects
+    const processableObjects: PageItem[] = [];
 
-      selectedItems.push(item);
+    for (let i = 0; i < layerObjects.length; i++) {
+      const object = layerObjects[i];
+
+      // Skip hidden objects
+      if (object.hidden) continue;
+
+      // Skip locked objects
+      if (object.locked) continue;
+
+      // Add to processable objects
+      processableObjects.push(object);
     }
 
-    doc.selection = selectedItems;
-    return selectedItems;
+    // Use docSelectionHandler to manage selection
+    this.docSelectionHandler({
+      doc: doc,
+      objects: processableObjects,
+      remaingExistSelection: false, // Replace entire selection
+      type: type, // Select or deselect based on type parameter
+    });
+
+    // Return the processed objects
+    return processableObjects;
   }
 
   /**
@@ -409,7 +467,7 @@ class Organizer {
       // Rotate both objects by -7.5 degrees
       transActHandler.rotate({
         deg: -7.5 as unknown as RotateDegrees,
-        objects: tempGroup[1]
+        objects: tempGroup[1],
       });
 
       // Align both again to vertical center
@@ -596,60 +654,124 @@ class Organizer {
   }
 
   /**
-   * Manages the document's selection by either adding or removing items.
+   * Manages the document's selection by either adding or removing objects.
    *
    * ### Behavior:
-   * - If `type` is `true` (default): items are added to the document’s selection.
-   * - If `type` is `false`: items are removed from the selection.
+   * - If `type` is `true` (default): objects are added to the document's selection.
+   * - If `type` is `false`: objects are removed from the selection.
    *
    * The `remaingExistSelection` flag determines whether to preserve the current selection or replace it.
    *
+   * ### Implementation:
+   * - Directly manipulates each PageItem's `selected` property
+   * - Updates `doc.selection` array to reflect changes
+   * - Ensures proper synchronization between object states and document selection
+   *
    * @param params - The configuration object.
    * @param params.doc - The target Illustrator document.
-   * @param params.items - The PageItems to add or remove.
+   * @param params.objects - The PageItems to add or remove.
    * @param params.remaingExistSelection - If true, merges with/removes from existing selection. Default is false.
-   * @param params.type - Whether to add (true) or remove (false) the items. Default is true.
+   * @param params.type - Whether to add (true) or remove (false) the objects. Default is true.
+   *
+   * @example
+   * ```typescript
+   * // Replace selection with new objects
+   * Utils.docSelectionHandler({
+   *   doc: app.activeDocument,
+   *   objects: [object1, object2, object3]
+   * });
+   *
+   * // Add to existing selection
+   * Utils.docSelectionHandler({
+   *   doc: app.activeDocument,
+   *   objects: [object4, object5],
+   *   remaingExistSelection: true
+   * });
+   *
+   * // Remove specific objects from selection
+   * Utils.docSelectionHandler({
+   *   doc: app.activeDocument,
+   *   objects: [object2, object3],
+   *   remaingExistSelection: true,
+   *   type: false
+   * });
+   * ```
    */
   static docSelectionHandler(params: DocSelectionHandler): void {
     const {
       doc, // Target document
-      items, // Items to modify selection with
+      objects, // Objects to modify selection with
       remaingExistSelection = false, // Whether to keep existing selection
       type = true, // true = add, false = remove
     } = params;
 
     // ========================
-    // ADD ITEMS TO SELECTION
+    // ADD OBJECTS TO SELECTION
     // ========================
     if (type) {
       if (!remaingExistSelection) {
-        // Replace selection entirely
-        doc.selection = undefined;
-        doc.selection = items;
+        // Step 1: Deselect all currently selected objects
+        if (doc.selection && doc.selection.length > 0) {
+          for (let i = 0; i < doc.selection.length; i++) {
+            doc.selection[i].selected = false;
+          }
+        }
+
+        // Step 2: Clear document selection
+        doc.selection = null;
+
+        // Step 3: Select new objects and build array
+        const selectedArray: PageItem[] = [];
+        for (let i = 0; i < objects.length; i++) {
+          objects[i].selected = true;
+          selectedArray.push(objects[i]);
+        }
+
+        // Step 4: Assign to document selection
+        doc.selection = selectedArray;
       } else {
         // Merge with existing selection
-        if (doc.selection?.length) {
-          doc.selection = [...doc.selection, ...items];
+        // Step 1: Select the new objects
+        for (let i = 0; i < objects.length; i++) {
+          objects[i].selected = true;
+        }
+
+        // Step 2: Merge with existing selection
+        if (doc.selection && doc.selection.length > 0) {
+          doc.selection = [...doc.selection, ...objects];
         } else {
-          doc.selection = items;
+          doc.selection = objects;
         }
       }
     }
 
     // ========================
-    // REMOVE ITEMS FROM SELECTION
+    // REMOVE OBJECTS FROM SELECTION
     // ========================
-    if (!type && doc.selection?.length) {
+    if (!type && doc.selection && doc.selection.length > 0) {
       if (!remaingExistSelection) {
         // Clear all selection
-        doc.selection = undefined;
+        // Step 1: Deselect all objects
+        for (let i = 0; i < doc.selection.length; i++) {
+          doc.selection[i].selected = false;
+        }
+
+        // Step 2: Clear document selection
+        doc.selection = null;
       } else {
-        // Filter out the specified items from the current selection
-        const filteredItems = ES6_SA.arrayFilter(
+        // Remove specific objects
+        // Step 1: Deselect the objects to be removed
+        for (let i = 0; i < objects.length; i++) {
+          objects[i].selected = false;
+        }
+
+        // Step 2: Filter out removed objects from selection
+        const filteredObjects = ES6_SA.arrayFilter(
           doc.selection,
-          (item) => !ES6_SA.arrayIncludes(items, item),
+          (object) => !ES6_SA.arrayIncludes(objects, object),
         );
-        doc.selection = filteredItems;
+
+        doc.selection = filteredObjects;
       }
     }
   }
@@ -787,7 +909,7 @@ class Organizer {
       // Select the current item in the document
       this.docSelectionHandler({
         doc,
-        items: [item],
+        objects: [item],
         type: true,
       });
 
@@ -801,7 +923,7 @@ class Organizer {
       // Deselect the current item after processing
       this.docSelectionHandler({
         doc,
-        items: [item],
+        objects: [item],
         type: false,
       });
     }
@@ -854,9 +976,27 @@ type GetSiblingItemsReturn = {
   itemIndex: number;
 };
 
+/**
+ * Parameters for document selection handler
+ */
 interface DocSelectionHandler {
-  readonly doc: Document;
-  readonly items: PageItem[];
-  readonly type?: boolean;
-  readonly remaingExistSelection?: boolean;
+  /** The target Illustrator document */
+  doc: Document;
+  /** The PageItems to add or remove from selection */
+  objects: PageItem[];
+  /** If true, merges with/removes from existing selection. Default is false. */
+  remaingExistSelection?: boolean;
+  /** Whether to add (true) or remove (false) the objects. Default is true. */
+  type?: boolean;
 }
+
+/**
+ * Parameters for selecting all objects in document
+ */
+interface DocAllObjectsSelectionHandler {
+  /** The target Illustrator document. Default is active document. */
+  doc?: Document;
+  /** Whether to select (true) or deselect (false) all objects. Default is true. */
+  type?: boolean;
+}
+

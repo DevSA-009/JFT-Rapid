@@ -498,6 +498,9 @@ class TransActionHandler {
     // Generate unique set name based on delta values
     const setName = `Trans_Move_${x.toFixed(4)}x${y.toFixed(4)}`;
 
+    // deselect everything in document
+    Organizer.docAllObjectsSelectionHandler({ type: false });
+
     // Select the target object before transformation
     this.selectionHandler([targetObject], true);
 
@@ -634,6 +637,9 @@ class TransActionHandler {
     // Generate unique set name with rounded dimensions
     const setName = `Trans_Resize_${finalWidth.toFixed(4)}x${finalHeight.toFixed(4)}`;
 
+    // deselect everything in document
+    Organizer.docAllObjectsSelectionHandler({ type: false });
+
     // Select the target object before transformation
     this.selectionHandler([targetObject], true);
 
@@ -728,6 +734,9 @@ class TransActionHandler {
 
     // Generate unique set name based on rotation angle
     const setName = `Trans_Rotate_${deg.toFixed(4)}`;
+
+    // deselect everything in document
+    Organizer.docAllObjectsSelectionHandler({ type: false });
 
     // Select the target object before transformation
     this.selectionHandler([targetObject], true);
