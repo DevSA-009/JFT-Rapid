@@ -603,8 +603,8 @@ class Utils {
    */
   static getDimension = (bounds: BoundsObject): DimensionObject => {
     const { left, top, right, bottom } = bounds;
-    const width = right - left;
-    const height = top - bottom;
+    const width = parseFloat((right - left).toFixed(4));
+    const height = parseFloat((top - bottom).toFixed(4));
     return { width, height };
   };
 }
