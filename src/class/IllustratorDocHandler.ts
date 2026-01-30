@@ -136,7 +136,7 @@ class IllustratorDocument {
 	 */
 	private saveAsTIFF(savePath: string): void {
 		const tiffOptions = new ExportOptionsTIFF() as typeof ExportOptionsTIFF;
-		tiffOptions.antiAliasing = AntiAliasingMethod.TYPEOPTIMIZED;
+		tiffOptions.antiAliasing = AntiAliasingMethod.None;
 		tiffOptions.embedICCProfile = true;
 		tiffOptions.imageColorSpace = ImageColorSpace.CMYK;
 		tiffOptions.lZWCompression = false;

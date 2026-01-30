@@ -930,8 +930,75 @@ class Organizer {
 		});
 	}
 
+	/**
+	 * select object by names method for CEP Button
+	 */
 	static selectObjectsByNamesUI() {
 		inputDialog(this.selectObjectsByNames);
+	}
+
+	/**
+	 * Replaces each selected object with an embedded TIFF raster copy of itself.
+	 * Useful for flattening, rasterizing or creating bitmap versions while keeping position.
+	 */
+	static replaceSelectionWithEmbeddedTiffCopies() {
+		// Verify we have an active document and at least one selected item
+		const { doc, selection } = this.selectionVerifyChain();
+
+		// Loop through every selected object using its index as identifier
+		for (const index in selection) {
+			// Get reference to the current original vector object
+			const originalItem = selection[index];
+
+			// Create short, unique base name for temporary files (helps debugging)
+			const tempBaseName = `jft_rapid_devsa_009_temp_raster_${index}`;
+
+			// Remember in which folder the current Illustrator document lives
+			const folderPath = doc.path.fsName;
+
+			// Create helper object that will manage our short-lived temporary document
+			const tempDocument = new IllustratorDocument(tempBaseName);
+
+			// Build brand new document containing **only** the current selected object
+			tempDocument.create([originalItem]);
+
+			// Export that tiny document immediately as TIFF format
+			tempDocument.save({
+				filePath: folderPath, // save right next to original document
+				fileName: tempBaseName, // consistent naming
+				format: "TIFF", // raster format we want
+			});
+
+			// Close temporary document right away – we don't need it open anymore
+			tempDocument.close();
+
+			// Build File object pointing to the TIFF we just created
+			const tempTiffFile = new File(`${folderPath}/${tempBaseName}.tif`);
+
+			// Create new placed item slot in the original document
+			const placedImage = doc.placedItems.add();
+
+			// Tell Illustrator to use our freshly saved TIFF file as content
+			placedImage.file = tempTiffFile;
+
+			// Put the new placed image immediately after original item in stacking order
+			placedImage.move(originalItem, ElementPlacement.PLACEAFTER);
+
+			// Perfectly align the new raster image with original vector object's position
+			AlignmentHandler.alignObject({
+				base: originalItem, // use original as reference
+				moving: placedImage, // move placed TIFF to match it
+			});
+
+			// Convert the linked TIFF into embedded image data (no external file dependency)
+			placedImage.embed();
+
+			// Delete the temporary TIFF file from disk – cleanup
+			tempTiffFile.remove();
+
+			// Remove the original vector object – we replaced it with raster version
+			originalItem.remove();
+		}
 	}
 }
 
