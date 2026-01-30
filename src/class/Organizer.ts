@@ -65,7 +65,7 @@ class Organizer {
 		const itemsToSelect = ES6_SA.arrayFrom(activeLayerItems) as Selection;
 		AlignmentHandler.alignPageItemsToArtboard({
 			doc,
-			items: itemsToSelect,
+			objects: itemsToSelect,
 			engine: "action",
 		});
 		doc.selection = null;
@@ -952,12 +952,18 @@ class Organizer {
 		if (!actDoc) {
 			throw new Error("No open document found.");
 		}
-		const fileNameWithoutExt = actDoc.name.replace(/\.[^.]+$/, "");
+		const fileNameWithoutExt = actDoc.fullName.name.replace(/\.[^.]+$/, "");
 		const fileName = `${fileNameWithoutExt} Fixed`;
 		const newDocHandler = new IllustratorDocument(fileName);
 		const fixedDoc = newDocHandler.create(actDoc.activeLayer.pageItems);
 		this.smallArtboard(fixedDoc);
-		newDocHandler.save(`${actDoc.path.fsName}`, fileName);
+		newDocHandler.save({
+			filePath: actDoc.path.fsName,
+			fileName,
+			format: "AI",
+		});
+
+		app.beep();
 	}
 }
 
