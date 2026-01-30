@@ -344,7 +344,7 @@ class TransActionHandler {
     if (this.currentSets[setName]) {
       // Execute cached action
       app.doScript(setName, setName);
-      app.redraw();
+      // app.redraw();
       return;
     }
 
@@ -373,7 +373,6 @@ class TransActionHandler {
     // Load and execute the action set
     this.loadActionSet(setName, template);
     app.doScript(setName, setName);
-    app.redraw()
     app.unloadAction(setName, "");
     this.currentSets = {};
   }
@@ -413,7 +412,6 @@ class TransActionHandler {
    * @private
    */
   private selectionHandler(objects: Selection, type: boolean): void {
-    app.redraw();
     if (!type) {
       // Deselect all objects in the document
       app.executeMenuCommand("deselectall");
