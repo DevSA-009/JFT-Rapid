@@ -57,7 +57,7 @@ class IllustratorDocument {
 			this.copyItemsToCenter(objects);
 		}
 
-		docObj.selection = null;
+		Organizer.docAllObjectsSelectionHandler({doc:this.doc,type:false});
 
 		return docObj;
 	}

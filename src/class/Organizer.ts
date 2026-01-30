@@ -24,17 +24,16 @@ class Organizer {
 	}
 
 	/**
-	 * Resizes an artboard in the document based on specified dimensions (in inches).
-	 * Converts inches to points (1 inch = 72 points) for internal processing.
+	 * Resizes an artboard in the document based on specified dimensions (in points).
 	 *
 	 * @param {ArtboardScaler} params - Configuration object containing:
 	 *   @param {Document} params.doc - The Illustrator document containing the artboard
-	 *   @param {number} params.width - The desired width in inches
-	 *   @param {number} params.height - The desired height in inches
+	 *   @param {number} params.width - The desired width in points
+	 *   @param {number} params.height - The desired height in points
 	 */
 	static artboardScaler(params: ArtboardScaler): void {
 		const artboardManager = new ArtboardManager(params.doc);
-		artboardManager.resize(params.width * 72, params.height * 72);
+		artboardManager.resize(params.width, params.height);
 	}
 
 	/**
@@ -46,8 +45,8 @@ class Organizer {
 	static smallArtboard(doc: Document): void {
 		this.artboardScaler({
 			doc,
-			width: 1,
-			height: 1,
+			width: Utils.convertLength({ value: 1, from: "inch", to: "pt" }),
+			height: Utils.convertLength({ value: 1, from: "inch", to: "pt" }),
 		});
 	}
 
@@ -68,7 +67,7 @@ class Organizer {
 			objects: itemsToSelect,
 			engine: "action",
 		});
-		doc.selection = null;
+		this.docAllObjectsSelectionHandler({ doc, type: false });
 	}
 
 	/**
@@ -153,7 +152,6 @@ class Organizer {
 		// Return the processed objects
 		return processableObjects;
 	}
-
 	/**
 	 * Converts an Illustrator PageItems collection to a standard array
 	 * @param {PageItems} pageItems - The Illustrator PageItems collection to convert
@@ -169,29 +167,6 @@ class Organizer {
 		}
 
 		return selectedItems;
-	}
-
-	/**
-	 * Retrieves the front and back body items from a document or selection.
-	 * @param {Selection|null} [items=null] - Optional selection to search within
-	 * @returns {[PageItem, PageItem]} Tuple containing front and back body items
-	 * @throws {Error} If either FRONT or BACK items cannot be found
-	 */
-	static getBodyItems(items: Selection): [PageItem, PageItem] {
-		const frontBody = ES6_SA.arrayFind(
-			items,
-			(item) => item.name === SearchingKeywords.FRONT,
-		);
-		const backBody = ES6_SA.arrayFind(
-			items,
-			(item) => item.name === SearchingKeywords.BACK,
-		);
-
-		if (!frontBody || !backBody) {
-			throw new Error(`Can't found ${!frontBody ? "FRONT" : "BACK"}`);
-		}
-
-		return [frontBody, backBody];
 	}
 
 	/**
@@ -614,61 +589,6 @@ class Organizer {
 	}
 
 	/**
-	 * Ungroups a given GroupItem by moving all its child items out into the parent container,
-	 * preserving their stacking order relative to the group's position in the parent.
-	 *
-	 * This method determines the correct `ElementPlacement` by checking sibling items:
-	 * - If there is a previous sibling, new items are placed **after** it.
-	 * - If there is no previous sibling but a next sibling exists, items are placed **at the beginning**.
-	 * - If neither exist, items are placed **inside** the parent (default to beginning).
-	 *
-	 * @param groupItem - The GroupItem to ungroup.
-	 *
-	 * @throws Error if the item is not a valid GroupItem or has no children.
-	 */
-	static unGroupItem(groupItem: GroupItem): void {
-		// Validate that the item is a GroupItem and has child items
-		if (
-			groupItem.typename !== PageItemType.GroupItem ||
-			!groupItem.pageItems.length
-		) {
-			throw new Error("Item is not a Group object or is empty.");
-		}
-
-		// Get previous and next sibling items (used to determine insertion point)
-		const { nextItem, prevItem } = this.getSiblingItems(groupItem);
-
-		// Default to placing items in the same parent as the group
-		let parent = groupItem.parent;
-
-		// Default placement is at the beginning
-		let place = ElementPlacement.PLACEATBEGINNING;
-
-		// If there's a previous item, place ungrouped items after it
-		if (prevItem) {
-			place = ElementPlacement.PLACEAFTER;
-			parent = prevItem; // Place after this item
-		}
-
-		// If there's no previous item but a next item exists,
-		// keep placement at beginning (before the next item)
-		if (!prevItem && nextItem) {
-			place = ElementPlacement.PLACEATBEGINNING;
-			// parent remains the original parent
-		}
-
-		// Move each child of the group to the determined parent/position
-		// Iterate in reverse to preserve stacking order
-		for (let index = groupItem.pageItems.length - 1; index >= 0; index--) {
-			const item = groupItem.pageItems[index];
-			item.move(parent, place);
-		}
-
-		// Optionally remove the now-empty group
-		// groupItem.remove(); // Uncomment if you want to delete the group after ungrouping
-	}
-
-	/**
 	 * Manages the document's selection by either adding or removing objects.
 	 *
 	 * ### Behavior:
@@ -878,70 +798,6 @@ class Organizer {
 
 		// If the loop ended without finding a Document, something went wrong
 		throw new Error("Could not find Document from the given item.");
-	}
-
-	/**
-	 * Applies an opacity mask to a set of Illustrator items.
-	 *
-	 * This method looks for specific named items (defined in `SearchingKeywords.OpacityMask` and `OpacityMaskInvert`),
-	 * ungroups them if needed, and executes a named action script (`doScript`) on each item individually.
-	 *
-	 * This is typically used to apply standard masking operations as part of an automated Illustrator workflow.
-	 *
-	 * ### Workflow:
-	 * 1. Finds all items matching mask-related names.
-	 * 2. Validates that at least one mask item exists.
-	 * 3. Retrieves the document from one of the found items.
-	 * 4. Iterates over each found item:
-	 *    - Selects it
-	 *    - Ungroups it
-	 *    - Runs the script named after the item
-	 *    - Deselects it
-	 *
-	 * @param items - An array of `PageItem` objects to search through for opacity mask candidates.
-	 *
-	 * @throws Will throw an error if no matching opacity mask items are found.
-	 */
-	static makeOpacityMask(items: PageItem[]) {
-		// Search for items named "OpacityMask" or "OpacityMaskInvert" within the provided items
-		const maskItems = this.getItemsByNames(items, [
-			SearchingKeywords.OpacityMask,
-			SearchingKeywords.OpacityMaskInvert,
-		]);
-
-		// If no mask-related items found, throw an error and stop execution
-		if (!maskItems?.length) {
-			throw new Error(
-				`${SearchingKeywords.OpacityMask} or ${SearchingKeywords.OpacityMaskInvert} not found`,
-			);
-		}
-
-		// Retrieve the Illustrator Document reference from the first found item
-		const doc = this.getDocumentFromItem(maskItems[0]);
-
-		// Loop through each found mask item
-		for (const item of maskItems) {
-			// Select the current item in the document
-			this.docSelectionHandler({
-				doc,
-				objects: [item],
-				type: true,
-			});
-
-			// If the item is a group, ungroup it to access its children
-			this.unGroupItem(item as GroupItem);
-
-			// Run the action script associated with the item's name
-			// The action set is "JFT-Rapid", and dialogs are suppressed (false)
-			app.doScript(item.name, "JFT-Rapid", false);
-
-			// Deselect the current item after processing
-			this.docSelectionHandler({
-				doc,
-				objects: [item],
-				type: false,
-			});
-		}
 	}
 
 	/**

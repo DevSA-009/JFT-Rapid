@@ -37,22 +37,6 @@ class ValidatorManager {
         }
     };
 
-    /**
-     * Validates that both front and back body items exist in the document's active layer,
-     * and that they both include size tokens.
-     * @param doc - The document to validate.
-     * @throws If front or back items are missing or size tokens are not found.
-     */
-    static checkBodyItems(doc: Document) {
-        const [front, back] = Organizer.getBodyItems(Organizer.pageItemsToArray(doc.activeLayer.pageItems));
-
-        if (!front || !back) {
-            this.errorThrow(`can't found body items`);
-        };
-
-        this.checkSizeTkn(front as GroupItem);
-        this.checkSizeTkn(back as GroupItem);
-    };
 }
 
 interface OrientationCheckParams {
