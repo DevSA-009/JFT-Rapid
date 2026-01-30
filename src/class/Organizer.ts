@@ -303,26 +303,22 @@ class Organizer {
 	 * select all clipped path from selection
 	 */
 	static selectTopClippingPath() {
-		try {
-			const { doc, selection } = this.selectionVerifyChain();
-			const clippingPathObjects: PageItem[] = [];
+		const { doc, selection } = this.selectionVerifyChain();
+		const clippingPathObjects: PageItem[] = [];
 
-			for (let i = 0; i < selection.length; i++) {
-				const item = selection[i];
-				const topClippingPath = Utils.getTopClippingPath(item);
-				if (topClippingPath) {
-					clippingPathObjects.push(topClippingPath);
-				}
+		for (let i = 0; i < selection.length; i++) {
+			const item = selection[i];
+			const topClippingPath = Utils.getTopClippingPath(item);
+			if (topClippingPath) {
+				clippingPathObjects.push(topClippingPath);
 			}
+		}
 
-			if (clippingPathObjects.length) {
-				doc.selection = null;
-				doc.selection = clippingPathObjects;
-			} else {
-				alertDialogSA(`No clipping path found!`);
-			}
-		} catch (error: any) {
-			alertDialogSA(error.message);
+		if (clippingPathObjects.length) {
+			this.docSelectionHandler({ doc, objects: clippingPathObjects });
+			app.redraw();
+		} else {
+			throw new Error(`No clipping path found!`);
 		}
 	}
 
@@ -862,6 +858,55 @@ class Organizer {
 			app.beep();
 		} catch (error: any) {
 			// Use your custom alert function (assuming it exists)
+			alertDialogSA(error.message);
+		}
+	}
+
+	/**
+	 * Duplicates the top clipping path of the current selection (if it is a clipped group),
+	 * removes its clipping attribute, applies a specific stroke color (CMYK [75,67,67,100]),
+	 * removes any fill, and selects the resulting stroked path(s) instead.
+	 *
+	 * Purpose:
+	 *   - Useful for visualizing/debugging clipping paths
+	 *   - Creates an outline/stroke-only version of the clipping boundary
+	 *   - Commonly used in prepress, die-line creation, or mask inspection workflows
+	 *
+	 * @throws {Error} If no valid clipping path is found, selection is invalid,
+	 *                 or any operation fails (caught and shown via alert)
+	 */
+	static applyStrokeOnClipPath() {
+		try {
+			this.selectTopClippingPath();
+
+			const { doc, selection } = this.selectionVerifyChain();
+
+			const newObject: PathItem[] = [];
+
+			ES6_SA.arrayForEach(selection as PathItems, (clipPath) => {
+				const dupPathObject = clipPath.duplicate(
+					clipPath,
+					ElementPlacement.PLACEAFTER,
+				);
+				dupPathObject.clipping = false;
+				Utils.setCMYKColor({
+					object: dupPathObject,
+					color: [75, 67, 67, 100],
+					target: "stroke",
+				});
+				Utils.setCMYKColor({
+					object: dupPathObject,
+					color: null,
+					target: "fill",
+				});
+				newObject.push(dupPathObject);
+			});
+
+			this.docSelectionHandler({
+				doc,
+				objects: newObject,
+			});
+		} catch (error: any) {
 			alertDialogSA(error.message);
 		}
 	}
