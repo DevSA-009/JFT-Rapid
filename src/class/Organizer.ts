@@ -821,6 +821,50 @@ class Organizer {
 
 		app.beep();
 	}
+
+	/**
+	 * Arranges selected objects so they appear **immediately after** a designated "key object" in the stacking order (Z-order).
+	 *
+	 * Useful for controlling appearance order (e.g., which object is in front/behind others) without changing layers.
+	 *
+	 * @throws {Error} With user-friendly message
+	 */
+	static arrangeObjectsAfter(): void {
+		try {
+			const { selection, doc } = this.selectionVerifyChain();
+
+			if (selection.length < 2) {
+				throw new Error("Please select at least two objects");
+			}
+
+			// Find the previously marked key object
+			const keyObject = ES6_SA.arrayFind(
+				selection,
+				(object) => object.key === true,
+			);
+
+			if (!keyObject) {
+				throw new Error("No key object found in the selection.");
+			}
+
+			// All other selected objects (excluding the key)
+			const itemsToArrange = ES6_SA.arrayFilter(
+				selection,
+				(object) => object !== keyObject,
+			);
+
+			// Move each item right after the key object
+			ES6_SA.arrayForEach(itemsToArrange, (item) => {
+				item.move(keyObject, ElementPlacement.PLACEAFTER);
+			});
+
+			// Optional: small feedback sound
+			app.beep();
+		} catch (error: any) {
+			// Use your custom alert function (assuming it exists)
+			alertDialogSA(error.message);
+		}
+	}
 }
 
 interface GetDirectoryFileInfoReturn {
