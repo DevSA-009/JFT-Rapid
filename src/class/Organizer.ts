@@ -716,14 +716,14 @@ class Organizer {
 	 *
 	 * The search can optionally exclude items that are hidden or locked.
 	 *
-	 * @param items - The top-level array of PageItems to begin the recursive search from.
+	 * @param objects - The top-level array of PageItems to begin the recursive search from.
 	 * @param name - An array of strings to match against each PageItem’s `.name` property.
 	 * @param onlyVisibleAndUnlocked - If `true`, ignores hidden or locked items. Defaults to `true`.
 	 *
 	 * @returns An array of PageItems whose `.name` matches any string in the `name` array.
 	 */
-	static getItemsByNames(
-		items: PageItem[],
+	static getObjectsByNames(
+		objects: PageItem[],
 		name: string[],
 		onlyVisibleAndUnlocked: boolean = true,
 	): PageItem[] {
@@ -756,7 +756,7 @@ class Organizer {
 		};
 
 		// Begin the recursive search from the root list
-		recursivelyFind(items);
+		recursivelyFind(objects);
 
 		// Return the complete list of found PageItems
 		return foundItems;
@@ -909,6 +909,29 @@ class Organizer {
 		} catch (error: any) {
 			alertDialogSA(error.message);
 		}
+	}
+	/**
+	 * Selects all page items in the current selection whose `.name` property matches
+	 * any of the provided name strings. Only visible and unlocked items are considered.
+	 *
+	 * This method is useful for quickly selecting multiple tagged/marked objects
+	 * (e.g., components, labels, die-lines, registration marks, etc.) by their names.
+	 *
+	 * @param names - Array of strings to match against each `PageItem.name`
+	 * @throws {Error} If no document is open or no objects are selected (via `selectionVerifyChain`)
+	 */
+	private static selectObjectsByNames(names: string[]) {
+		const { selection } = this.selectionVerifyChain();
+		const validName = ES6_SA.arrayFilter(names, (name) => !!name);
+		const matchedObjects = this.getObjectsByNames(selection, validName, true);
+		this.docSelectionHandler({
+			doc: app.activeDocument,
+			objects: matchedObjects,
+		});
+	}
+
+	static selectObjectsByNamesUI() {
+		inputDialog(this.selectObjectsByNames);
 	}
 }
 
