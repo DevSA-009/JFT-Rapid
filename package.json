@@ -1,5 +1,6 @@
 {
-    "scripts": {
-        "build":"tsc"
-    }
+  "scripts": {
+    "build": "tsc",
+    "format": "npx prettier . --write"
+  }
 }

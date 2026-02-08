@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+coverage
+.env
+HOST
+CLIENT/CSInterface.js
+src/adobe-types

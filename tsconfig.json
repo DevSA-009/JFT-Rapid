@@ -27,6 +27,6 @@
     "src/scriptUI/**/*.js",
     "src/class/ArtboardManager.ts",
     "src/class/IllustratorDocHandler.ts",
-    "src/index.ts",
+    "src/index.ts"
   ]
 }

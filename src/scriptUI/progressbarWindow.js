@@ -4,103 +4,110 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
 */
 
 const createProgressWindow = () => {
-    let stepValue = 100 / 1;
-    let isOpen = false;
-    let defaultStateLabel = "Begin...";
+  let stepValue = 100 / 1;
+  let isOpen = false;
+  let defaultStateLabel = "Begin...";
 
-    const progressWin = new Window("palette", "Progress", undefined, { minimizeButton: false, closeButton: false });
-    progressWin.orientation = "column";
-    progressWin.alignChildren = ["fill", "top"];
-    progressWin.spacing = 10;
-    progressWin.margins = 30;
+  const progressWin = new Window("palette", "Progress", undefined, {
+    minimizeButton: false,
+    closeButton: false,
+  });
+  progressWin.orientation = "column";
+  progressWin.alignChildren = ["fill", "top"];
+  progressWin.spacing = 10;
+  progressWin.margins = 30;
 
-    // ─────────────────────────────
-    // State Text Container
-    // ─────────────────────────────
-    const stateTextGroup = progressWin.add("group");
-    stateTextGroup.orientation = "row";
-    stateTextGroup.alignChildren = ["fill", "center"];
-    stateTextGroup.spacing = 10;
+  // ─────────────────────────────
+  // State Text Container
+  // ─────────────────────────────
+  const stateTextGroup = progressWin.add("group");
+  stateTextGroup.orientation = "row";
+  stateTextGroup.alignChildren = ["fill", "center"];
+  stateTextGroup.spacing = 10;
 
-    // Left Group (Process Text)
-    const stateLeftGroup = stateTextGroup.add("group");
-    stateLeftGroup.alignment = ["left", "center"];
-    const stateLabel = stateLeftGroup.add("statictext", undefined, defaultStateLabel);
-    stateLabel.justify = "left";
-    stateLabel.characters = 30;
+  // Left Group (Process Text)
+  const stateLeftGroup = stateTextGroup.add("group");
+  stateLeftGroup.alignment = ["left", "center"];
+  const stateLabel = stateLeftGroup.add(
+    "statictext",
+    undefined,
+    defaultStateLabel,
+  );
+  stateLabel.justify = "left";
+  stateLabel.characters = 30;
 
-    // Right Group (Percentage)
-    const stateRightGroup = stateTextGroup.add("group");
-    stateRightGroup.alignment = ["right", "center"];
-    const percentLabel = stateRightGroup.add("statictext", undefined, "0%");
-    percentLabel.justify = "right";
-    percentLabel.characters = 5; // prevent "100%" cutoff
+  // Right Group (Percentage)
+  const stateRightGroup = stateTextGroup.add("group");
+  stateRightGroup.alignment = ["right", "center"];
+  const percentLabel = stateRightGroup.add("statictext", undefined, "0%");
+  percentLabel.justify = "right";
+  percentLabel.characters = 5; // prevent "100%" cutoff
 
-    // ─────────────────────────────
-    // Progress Bar
-    // ─────────────────────────────
-    const progressBar = progressWin.add("progressbar", undefined, 0, 100);
-    progressBar.value = 0;
-    progressBar.preferredSize = [315, 8];
+  // ─────────────────────────────
+  // Progress Bar
+  // ─────────────────────────────
+  const progressBar = progressWin.add("progressbar", undefined, 0, 100);
+  progressBar.value = 0;
+  progressBar.preferredSize = [315, 8];
 
-    // ─────────────────────────────
-    // Show function (manual)
-    // ─────────────────────────────
-    const showWindow = (steps = 0) => {
-        try {
-            if (isOpen) {
-                closeWindow();
-            }
-            stepValue = 100 / steps;
-            progressWin.show();
-            isOpen = true;
-        } catch (e) {
-            // In case of already shown/closed
-            closeWindow();
-        }
-    };
+  // ─────────────────────────────
+  // Show function (manual)
+  // ─────────────────────────────
+  const showWindow = (steps = 0) => {
+    try {
+      if (isOpen) {
+        closeWindow();
+      }
+      stepValue = 100 / steps;
+      progressWin.show();
+      isOpen = true;
+    } catch (e) {
+      // In case of already shown/closed
+      closeWindow();
+    }
+  };
 
-    // ─────────────────────────────
-    // Update function
-    // ─────────────────────────────
-    const updateProgress = (step, text = defaultStateLabel) => {
-        if (!isOpen) return; // prevent update before shown
+  // ─────────────────────────────
+  // Update function
+  // ─────────────────────────────
+  const updateProgress = (step, text = defaultStateLabel) => {
+    if (!isOpen) return; // prevent update before shown
 
-        if (text) {
-            defaultStateLabel = text
-        }
+    if (text) {
+      defaultStateLabel = text;
+    }
 
-        const value = Math.min(Math.round(step * stepValue), 100);
-        stateLabel.text = defaultStateLabel;
-        percentLabel.text = value + "%";
-        progressBar.value = value;
-        progressWin.update();
+    const value = Math.min(Math.round(step * stepValue), 100);
+    stateLabel.text = defaultStateLabel;
+    percentLabel.text = value + "%";
+    progressBar.value = value;
+    progressWin.update();
 
-        if (value >= 100) closeWindow();
-    };
+    if (value >= 100) closeWindow();
+  };
 
-    // ─────────────────────────────
-    // Close function
-    // ─────────────────────────────
-    const closeWindow = () => {
-        try {
-            if (isOpen) {
-                progressWin.close();
-                isOpen = false
-            }
-        } catch (e) {
-            alertDialogSA(e.message)
-        }
+  // ─────────────────────────────
+  // Close function
+  // ─────────────────────────────
+  const closeWindow = () => {
+    try {
+      if (isOpen) {
+        progressWin.close();
+        isOpen = false;
+      }
+    } catch (e) {
+      alertDialogSA(e.message);
+    }
+  };
 
-    };
-
-    // return control API
-    return {
-        showWindow,       // manually show the loader
-        updateProgress,   // update progress
-        closeWindow,      // close manually
-        isOpen() {    // expose flag
-            return isOpen;
-        }
-    };
+  // return control API
+  return {
+    showWindow, // manually show the loader
+    updateProgress, // update progress
+    closeWindow, // close manually
+    isOpen() {
+      // expose flag
+      return isOpen;
+    },
+  };
 };

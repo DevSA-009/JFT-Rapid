@@ -6,525 +6,718 @@ Below ScriptUI Backup JSON
 */
 
 const automateInfoDialog = () => {
-    try {
-        ValidatorManager.checkdocument();
-
-        // DIALOGROOT
-        // ==========
-        const dialogRoot = new Window("dialog");
-        dialogRoot.text = "Automate NA/NO";
-        dialogRoot.preferredSize.height = 420;
-        dialogRoot.orientation = "column";
-        dialogRoot.alignChildren = ["center", "center"];
-        dialogRoot.spacing = 0;
-        dialogRoot.margins = 16;
-
-        // PANELCONTGRP
-        // ============
-        const panelContGrp = dialogRoot.add("group", undefined, { name: "panelContGrp" });
-        panelContGrp.orientation = "column";
-        panelContGrp.alignChildren = ["center", "center"];
-        panelContGrp.spacing = 10;
-        panelContGrp.margins = [0, 0, 0, 15];
-
-        // FIRSTCOL
-        // ========
-        const firstCol = panelContGrp.add("group", undefined, { name: "firstCol" });
-        firstCol.orientation = "column";
-        firstCol.alignChildren = ["center", "center"];
-        firstCol.spacing = 10;
-        firstCol.margins = [0, 10, 0, 5];
-
-        // JERSEYTYPEGRP
-        // =============
-        const jerseyTypeGrp = firstCol.add("group", undefined, { name: "jerseyTypeGrp" });
-        jerseyTypeGrp.orientation = "row";
-        jerseyTypeGrp.alignChildren = ["left", "center"];
-        jerseyTypeGrp.spacing = 10;
-        jerseyTypeGrp.margins = 0;
-
-        const jerseyTypeTextField = jerseyTypeGrp.add("statictext", undefined, undefined, { name: "jerseyTypeTextField" });
-        jerseyTypeTextField.text = "Jersey Type:";
-        jerseyTypeTextField.justify = "center";
-
-        const polo = jerseyTypeGrp.add("radiobutton", undefined, JerseyType.POLO, { name: "polo" });
-        polo.value = true;
-
-        const tshirt = jerseyTypeGrp.add("radiobutton", undefined, JerseyType.TSHIRT, { name: "tshirt" });
-
-        // SLVTYPEGRP
-        // ==========
-        const slvTypeGrp = firstCol.add("group", undefined, { name: "slvTypeGrp" });
-        slvTypeGrp.orientation = "row";
-        slvTypeGrp.alignChildren = ["left", "center"];
-        slvTypeGrp.spacing = 10;
-        slvTypeGrp.margins = 0;
-
-        const slvTypeTextField = slvTypeGrp.add("statictext", undefined, undefined, { name: "slvTypeTextField" });
-        slvTypeTextField.text = "Sleeve Type:";
-        slvTypeTextField.justify = "center";
-
-        const slvShort = slvTypeGrp.add("radiobutton", undefined, undefined, { name: "slvShort" });
-        slvShort.text = "SHORT";
-        slvShort.value = true;
-
-        const slvLong = slvTypeGrp.add("radiobutton", undefined, undefined, { name: "slvLong" });
-        slvLong.text = "LONG";
-
-        const slvBoth = slvTypeGrp.add("radiobutton", undefined, undefined, { name: "slvBoth" });
-        slvBoth.text = "Both";
-
-        // SECCOL
-        // ======
-        const secCol = panelContGrp.add("group", undefined, { name: "secCol" });
-        secCol.orientation = "row";
-        secCol.preferredSize.height = 280;
-        secCol.alignChildren = ["left", "center"];
-        secCol.spacing = 10;
-        secCol.margins = 0;
-
-        // ORGBODY
-        // =======
-        const orgBody = secCol.add("panel", undefined, undefined, { name: "orgBody" });
-        orgBody.text = "ORG Body";
-        orgBody.preferredSize.width = 200;
-        orgBody.orientation = "column";
-        orgBody.alignChildren = ["center", "top"];
-        orgBody.spacing = 10;
-        orgBody.margins = 10;
-        orgBody.alignment = ["left", "fill"];
-
-        // MODEGRP
-        // =======
-        const modeGrp = orgBody.add("group", undefined, { name: "modeGrp" });
-        modeGrp.preferredSize.width = 100;
-        modeGrp.orientation = "column";
-        modeGrp.alignChildren = ["center", "center"];
-        modeGrp.spacing = 5;
-        modeGrp.margins = 0;
-
-        const orgMode = modeGrp.add("statictext", undefined, undefined, { name: "orgMode" });
-        orgMode.text = "Mode:";
-        orgMode.justify = "center";
-
-        const orgModeList = modeGrp.add("dropdownlist", undefined, undefined, { name: "orgModeList" });
-        orgModeList.selection = 0;
-        orgModeList.preferredSize.width = 70;
-        orgModeList.preferredSize.height = 10;
-
-        // ORIENTATIONGRP
-        // ==============
-        const orientationGrp = orgBody.add("group", undefined, { name: "orientationGrp" });
-        orientationGrp.preferredSize.width = 100;
-        orientationGrp.orientation = "column";
-        orientationGrp.alignChildren = ["center", "center"];
-        orientationGrp.spacing = 5;
-        orientationGrp.margins = 0;
-        orientationGrp.alignment = ["center", "top"];
-
-        const orgOrientation = orientationGrp.add("statictext", undefined, undefined, { name: "orgOrientation" });
-        orgOrientation.text = "Orientation:";
-        orgOrientation.justify = "center";
-
-        const orientations = orientationGrp.add("dropdownlist", undefined, undefined, { name: "orientations" });
-        orientations.selection = 0;
-        orientations.preferredSize.width = 70;
-        orientations.preferredSize.height = 10;
-        orientations.alignment = ["center", "center"];
-
-        // PERDOCGRP
-        // =========
-        const perDocGrp = orgBody.add("group", undefined, { name: "perDocGrp" });
-        perDocGrp.preferredSize.width = 100;
-        perDocGrp.orientation = "column";
-        perDocGrp.alignChildren = ["center", "center"];
-        perDocGrp.spacing = 5;
-        perDocGrp.margins = 0;
-
-        const perDoc = perDocGrp.add("statictext", undefined, undefined, { name: "perDoc" });
-        perDoc.text = "Per Doc Row";
-        perDoc.justify = "center";
-
-        const perDocField = perDocGrp.add('edittext {justify: "center", properties: {name: "perDocField"}}');
-        perDocField.text = "0";
-        perDocField.preferredSize.width = 70;
-
-        // ITEMSGAP
-        // ========
-        const itemsGap = orgBody.add("group", undefined, { name: "itemsGap" });
-        itemsGap.preferredSize.width = 100;
-        itemsGap.orientation = "column";
-        itemsGap.alignChildren = ["center", "center"];
-        itemsGap.spacing = 5;
-        itemsGap.margins = 0;
-
-        const itemsGap1 = itemsGap.add("statictext", undefined, undefined, { name: "itemsGap1" });
-        itemsGap1.text = "Items Gap";
-        itemsGap1.justify = "center";
-
-        const itemsGapField = itemsGap.add('edittext {justify: "center", properties: {name: "itemsGapField"}}');
-        itemsGapField.text = "0.1";
-        itemsGapField.preferredSize.width = 70;
-
-        // HAMconstIANT
-        // ==========
-        const hamconstiant = secCol.add("panel", undefined, undefined, { name: "hamconstiant" });
-        hamconstiant.text = "Ham constiant";
-        hamconstiant.preferredSize.width = 200;
-        hamconstiant.orientation = "column";
-        hamconstiant.alignChildren = ["left", "top"];
-        hamconstiant.spacing = 10;
-        hamconstiant.margins = 10;
-        hamconstiant.alignment = ["left", "fill"];
-
-        // HAMTYPEGRP
-        // ==========
-        const hamTypeGrp = hamconstiant.add("group", undefined, { name: "hamTypeGrp" });
-        hamTypeGrp.orientation = "column";
-        hamTypeGrp.alignChildren = ["left", "center"];
-        hamTypeGrp.spacing = 10;
-        hamTypeGrp.margins = 0;
-
-        const hamTypeTextField = hamTypeGrp.add("statictext", undefined, undefined, { name: "hamTypeTextField" });
-        hamTypeTextField.text = "Ham Type:";
-        hamTypeTextField.justify = "center";
-
-        const hamTypeNone = hamTypeGrp.add("radiobutton", undefined, undefined, { name: "hamTypeNone" });
-        hamTypeNone.text = "None";
-        hamTypeNone.value = true;
-
-        const hamTypeRib = hamTypeGrp.add("radiobutton", undefined, undefined, { name: "hamTypeRib" });
-        hamTypeRib.text = "RIB";
-
-        const hamTypeCuff = hamTypeGrp.add("radiobutton", undefined, undefined, { name: "hamTypeCuff" });
-        hamTypeCuff.text = "CUFF";
-
-        // HAMAPPLYGRP
-        // ===========
-        const hamApplyGrp = hamconstiant.add("group", undefined, { name: "hamApplyGrp" });
-        hamApplyGrp.orientation = "column";
-        hamApplyGrp.alignChildren = ["left", "center"];
-        hamApplyGrp.spacing = 10;
-        hamApplyGrp.margins = 0;
-
-        const hamApplyTextField = hamApplyGrp.add("statictext", undefined, undefined, { name: "hamApplyTextField" });
-        hamApplyTextField.text = "Ham Apply:";
-        hamApplyTextField.justify = "center";
-
-        const hamApplyShort = hamApplyGrp.add("radiobutton", undefined, undefined, { name: "hamApplyShort" });
-        hamApplyShort.text = "SHORT";
-
-        const hamApplyLong = hamApplyGrp.add("radiobutton", undefined, undefined, { name: "hamApplyLong" });
-        hamApplyLong.text = "LONG";
-
-        const hamApplyBoth = hamApplyGrp.add("radiobutton", undefined, undefined, { name: "hamApplyBoth" });
-        hamApplyBoth.text = "Both";
-        hamApplyBoth.value = true;
-
-        // REQUIREDPANEL
-        // =============
-        const requiredPanel = secCol.add("panel", undefined, undefined, { name: "requiredPanel" });
-        requiredPanel.text = "Required Data";
-        requiredPanel.preferredSize.width = 200;
-        requiredPanel.orientation = "column";
-        requiredPanel.alignChildren = ["center", "top"];
-        requiredPanel.spacing = 10;
-        requiredPanel.margins = 10;
-        requiredPanel.alignment = ["left", "fill"];
-
-        // NANODATAGRP
-        // ===========
-        const nanoDataGrp = requiredPanel.add("group", undefined, { name: "nanoDataGrp" });
-        nanoDataGrp.orientation = "column";
-        nanoDataGrp.alignChildren = ["center", "center"];
-        nanoDataGrp.spacing = 5;
-        nanoDataGrp.margins = 0;
-
-        const nanoData = nanoDataGrp.add("statictext", undefined, undefined, { name: "nanoData" });
-        nanoData.helpTip = "the data that will apply!";
-        nanoData.text = "NA/NO Data";
-        nanoData.justify = "center";
-
-        const nanoDataField = nanoDataGrp.add('edittext {justify: "center", properties: {name: "nanoDataField"}}');
-        nanoDataField.helpTip = "data should be json format";
-        nanoDataField.preferredSize.width = 127;
-        nanoDataField.preferredSize.height = 50;
-
-        // SIZECONTGRP
-        // ===========
-        const sizeContGrp = requiredPanel.add("group", undefined, { name: "sizeContGrp" });
-        sizeContGrp.preferredSize.width = 100;
-        sizeContGrp.orientation = "column";
-        sizeContGrp.alignChildren = ["center", "center"];
-        sizeContGrp.spacing = 5;
-        sizeContGrp.margins = 0;
-        sizeContGrp.alignment = ["center", "top"];
-
-        const sizeContainer = sizeContGrp.add("statictext", undefined, undefined, { name: "sizeContainer" });
-        sizeContainer.text = "Size Container";
-        sizeContainer.justify = "center";
-        const sizeContainerList = sizeContGrp.add("dropdownlist", undefined, undefined, { name: "sizeContainerList" });
-        sizeContainerList.selection = 0;
-        sizeContainerList.preferredSize.width = 70;
-        sizeContainerList.preferredSize.height = 10;
-        sizeContainerList.alignment = ["center", "center"];
-
-        // KIDSINVORIENTGRP
-        // ================
-        const kidsInVOrientGrp = requiredPanel.add("group", undefined, { name: "kidsInVOrientGrp" });
-        kidsInVOrientGrp.orientation = "row";
-        kidsInVOrientGrp.alignChildren = ["left", "center"];
-        kidsInVOrientGrp.spacing = 10;
-        kidsInVOrientGrp.margins = 0;
-
-        const kidsInVCheckBox = kidsInVOrientGrp.add("checkbox", undefined, undefined, { name: "kidsInVCheckBox" });
-        kidsInVCheckBox.helpTip = "kids size should be V orientation";
-        kidsInVCheckBox.text = "KidsInV";
-        kidsInVCheckBox.value = true;
-
-        // OUTLINENANOGRP
-        // ==============
-        const outlineNANOGrp = requiredPanel.add("group", undefined, { name: "outlineNANOGrp" });
-        outlineNANOGrp.orientation = "row";
-        outlineNANOGrp.alignChildren = ["left", "center"];
-        outlineNANOGrp.spacing = 10;
-        outlineNANOGrp.margins = 0;
-
-        const outlineNANOCheckBox = outlineNANOGrp.add("checkbox", undefined, undefined, { name: "outlineNANOCheckBox" });
-        outlineNANOCheckBox.helpTip = "NANO text convert to shape";
-        outlineNANOCheckBox.text = "Outline NANO";
-        outlineNANOCheckBox.value = true;
-
-        // OPACITYMASKGRP
-        // ==============
-        const opacityMaskGrp = requiredPanel.add("group", undefined, { name: "opacityMaskGrp" });
-        opacityMaskGrp.enabled = false;
-        opacityMaskGrp.orientation = "row";
-        opacityMaskGrp.alignChildren = ["left", "center"];
-        opacityMaskGrp.spacing = 10;
-        opacityMaskGrp.margins = 0;
-
-        const opacityMaskCheckBox = opacityMaskGrp.add("checkbox", undefined, undefined, { name: "opacityMaskCheckBox" });
-        opacityMaskCheckBox.helpTip = "handle properly transform opacity mask item";
-        opacityMaskCheckBox.text = "Opacity Mask";
-
-        // ENTERBTNGRP
-        // ===========
-        const enterBtnGrp = dialogRoot.add("group", undefined, { name: "enterBtnGrp" });
-        enterBtnGrp.orientation = "row";
-        enterBtnGrp.alignChildren = ["left", "center"];
-        enterBtnGrp.spacing = 10;
-        enterBtnGrp.margins = 0;
-
-        const enterBn = enterBtnGrp.add("button", undefined, undefined, { name: "enterBn" });
-        enterBn.helpTip = "Start Action";
-        enterBn.text = "Start";
-        enterBn.active = true;
-
-        // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html ) 
-        dialogRoot.items = {
-            dialogRoot: dialogRoot, // dialog
-            panelContGrp: panelContGrp, // group
-            firstCol: firstCol, // group
-            jerseyTypeGrp: jerseyTypeGrp, // group
-            jerseyTypeTextField: jerseyTypeTextField, // statictext
-            polo: polo, // radiobutton
-            tshirt: tshirt, // radiobutton
-            slvTypeGrp: slvTypeGrp, // group
-            slvTypeTextField: slvTypeTextField, // statictext
-            slvShort: slvShort, // radiobutton
-            slvLong: slvLong, // radiobutton
-            slvBoth: slvBoth, // radiobutton
-            secCol: secCol, // group
-            orgBody: orgBody, // panel
-            modeGrp: modeGrp, // group
-            orgMode: orgMode, // statictext
-            orgModeList: orgModeList, // dropdownlist
-            orientationGrp: orientationGrp, // group
-            orgOrientation: orgOrientation, // statictext
-            orientations: orientations, // dropdownlist
-            perDocGrp: perDocGrp, // group
-            perDoc: perDoc, // statictext
-            perDocField: perDocField, // edittext
-            itemsGap: itemsGap, // group
-            itemsGap1: itemsGap1, // statictext
-            itemsGapField: itemsGapField, // edittext
-            hamconstiant: hamconstiant, // panel
-            hamTypeGrp: hamTypeGrp, // group
-            hamTypeTextField: hamTypeTextField, // statictext
-            hamTypeNone: hamTypeNone, // radiobutton
-            hamTypeRib: hamTypeRib, // radiobutton
-            hamTypeCuff: hamTypeCuff, // radiobutton
-            hamApplyGrp: hamApplyGrp, // group
-            hamApplyTextField: hamApplyTextField, // statictext
-            hamApplyShort: hamApplyShort, // radiobutton
-            hamApplyLong: hamApplyLong, // radiobutton
-            hamApplyBoth: hamApplyBoth, // radiobutton
-            requiredPanel: requiredPanel, // panel
-            nanoDataGrp: nanoDataGrp, // group
-            nanoData: nanoData, // statictext
-            nanoDataField: nanoDataField, // edittext
-            sizeContGrp: sizeContGrp, // group
-            sizeContainer: sizeContainer, // statictext
-            sizeContainerList: sizeContainerList, // dropdownlist
-            kidsInVOrientGrp: kidsInVOrientGrp, // group
-            kidsInVCheckBox: kidsInVCheckBox, // checkbox
-            outlineNANOGrp: outlineNANOGrp, // group
-            outlineNANOCheckBox: outlineNANOCheckBox, // checkbox
-            opacityMaskGrp: opacityMaskGrp, // group
-            opacityMaskCheckBox: opacityMaskCheckBox, // checkbox
-            enterBtnGrp: enterBtnGrp, // group
-            enterBn: enterBn // button
-        };
-        dialogRoot.itemsArray = [dialogRoot, panelContGrp, firstCol, jerseyTypeGrp, jerseyTypeTextField, polo, tshirt, slvTypeGrp, slvTypeTextField, slvShort, slvLong, slvBoth, secCol, orgBody, modeGrp, orgMode, orgModeList, orientationGrp, orgOrientation, orientations, perDocGrp, perDoc, perDocField, itemsGap, itemsGap1, itemsGapField, hamconstiant, hamTypeGrp, hamTypeTextField, hamTypeNone, hamTypeRib, hamTypeCuff, hamApplyGrp, hamApplyTextField, hamApplyShort, hamApplyLong, hamApplyBoth, requiredPanel, nanoDataGrp, nanoData, nanoDataField, sizeContGrp, sizeContainer, sizeContainerList, kidsInVOrientGrp, kidsInVCheckBox, outlineNANOGrp, outlineNANOCheckBox, opacityMaskGrp, opacityMaskCheckBox, enterBtnGrp, enterBn];
-
-
-        /* Apply field dynamic value start */
-
-        const orgModeList_array = objectKeys(GridMode);
-        arrayForEach(orgModeList_array, e => { orgModeList.add("item", e) });
-        const currentMode = CONFIG.Persist_Config.config["mode"];
-        orgModeList.selection = indexOf(orgModeList_array, currentMode);
-
-        const orientations_array = ["Auto", ...objectKeys(GridOrientation)];
-        arrayForEach(orientations_array, e => { orientations.add("item", e) });
-        orientations.selection = 0;
-
-        const sizeContainerList_array = objectKeys(CONFIG.Persist_Config.sizes);
-        arrayForEach(sizeContainerList_array, e => { sizeContainerList.add("item", e) });
-        const currentSizeContainer = CONFIG.Persist_Config.config["container"];
-        sizeContainerList.selection = indexOf(sizeContainerList_array, currentSizeContainer);
-
-        /* Apply field dynamic value end */
-
-        // ====================================
-
-        /* Get field input value start */
-
-        const jerseyType = polo.value ? JerseyType.POLO : JerseyType.TSHIRT;
-
-        const slvType = slvShort.value ? SleeveType.SHORT : slvLong.value ? SleeveType.LONG : SleeveType.Both;
-
-        const hamType = hamTypeNone.value ? HamType.None : hamTypeRib.value ? HamType.RIB : HamType.CUFF;
-
-        const hamApply = hamApplyBoth.value ? SleeveType.Both : hamApplyShort.value ? SleeveType.SHORT : SleeveType.LONG;
-
-        const orgModeVal = orgModeList.selection.text;
-
-        const orientationVal = orientations.selection.text;
-
-        const perDocVal = perDocField.text ? parseInt(perDocField.text) : 0;
-
-        const itemGapVal = itemsGapField.text ? fixMultipleDots(itemsGapField.text) : 0;
-
-        const nanoDataVal = nanoDataField.text;
-
-        const sizeContainerVal = sizeContainerList.selection.text;
-
-        const kidsInVVal = kidsInVCheckBox.value;
-
-        const outlineNanoVal = outlineNANOCheckBox.value;
-
-        const opacityMaskVal = opacityMaskCheckBox.value;
-
-        /* Get field input value end */
-
-        // ====================================
-
-        /* Event callback functions start */
-
-        const digitValidateCb = (event) => {
-            const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
-
-            if (event.keyName === "Escape") {
-                dialogRoot.close();
-                return;
-            }
-
-            // Allow numbers, backspace, delete, and decimal point
-            // Also prevent multiple decimal points
-            if (
-                !/[0-9]/.test(key) &&
-                key !== "Backspace" &&
-                key !== "Delete"
-            ) {
-                event.preventDefault();
-            }
-
-            if (key === "Enter") {
-                enterBn.notify()
-            }
-        };
-
-        function fixMultipleDots(str) {
-            const parts = str.split('.');
-            if (parts.length <= 2) {
-                return parseFloat(str); // Already a valid float
-            }
-
-            // Join only the first two parts to make a valid float
-            const fixedStr = parts[0] + '.' + parts[1];
-            return parseFloat(fixedStr);
-        };
-
-        /* Event callback functions end */
-
-        // ====================================
-
-        /* Attach event listener callback functions start */
-
-        perDocField.addEventListener("keydown", digitValidateCb);
-
-        itemsGapField.addEventListener("keydown", (event) => {
-            const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
-
-            if (event.keyName === "Escape") {
-                dialogRoot.close();
-                return;
-            }
-
-            // Allow numbers, backspace, delete, and decimal point
-            // Also prevent multiple decimal points
-            if (
-                !/[0-9]/.test(key) &&
-                key !== "Backspace" &&
-                key !== "Delete" &&
-                key !== "Decimal" &&
-                key !== "Period"
-            ) {
-                event.preventDefault();
-            }
-            if (key === "Enter") {
-                enterBn.notify()
-            }
-        });
-
-        enterBn.onClick = () => {
-            dialogRoot.close();
-
-            CONFIG.Items_Gap = itemGapVal;
-            CONFIG.perDoc = perDocVal;
-            CONFIG.orientation = orientationVal;
-            CONFIG.kidsinV = kidsInVVal;
-            CONFIG.outlineNANO = outlineNanoVal;
-            CONFIG.opacityMask = opacityMaskVal;
-            dialogRoot.close(1); // success signal
-        };
-
-        /* Attach event listener callback functions end */
-
-        // Show dialog and act on result
-        const result = dialogRoot.show();
-
-        if (result === 1) {
-            automateNANO({
-                mode: orgModeVal,
-                data: nanoDataVal,
-                sizeContainer: sizeContainerVal
-            });
-        }
-
-    } catch (error) {
-        alertDialogSA(error.message)
+  try {
+    ValidatorManager.checkdocument();
+
+    // DIALOGROOT
+    // ==========
+    const dialogRoot = new Window("dialog");
+    dialogRoot.text = "Automate NA/NO";
+    dialogRoot.preferredSize.height = 420;
+    dialogRoot.orientation = "column";
+    dialogRoot.alignChildren = ["center", "center"];
+    dialogRoot.spacing = 0;
+    dialogRoot.margins = 16;
+
+    // PANELCONTGRP
+    // ============
+    const panelContGrp = dialogRoot.add("group", undefined, {
+      name: "panelContGrp",
+    });
+    panelContGrp.orientation = "column";
+    panelContGrp.alignChildren = ["center", "center"];
+    panelContGrp.spacing = 10;
+    panelContGrp.margins = [0, 0, 0, 15];
+
+    // FIRSTCOL
+    // ========
+    const firstCol = panelContGrp.add("group", undefined, { name: "firstCol" });
+    firstCol.orientation = "column";
+    firstCol.alignChildren = ["center", "center"];
+    firstCol.spacing = 10;
+    firstCol.margins = [0, 10, 0, 5];
+
+    // JERSEYTYPEGRP
+    // =============
+    const jerseyTypeGrp = firstCol.add("group", undefined, {
+      name: "jerseyTypeGrp",
+    });
+    jerseyTypeGrp.orientation = "row";
+    jerseyTypeGrp.alignChildren = ["left", "center"];
+    jerseyTypeGrp.spacing = 10;
+    jerseyTypeGrp.margins = 0;
+
+    const jerseyTypeTextField = jerseyTypeGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "jerseyTypeTextField" },
+    );
+    jerseyTypeTextField.text = "Jersey Type:";
+    jerseyTypeTextField.justify = "center";
+
+    const polo = jerseyTypeGrp.add("radiobutton", undefined, JerseyType.POLO, {
+      name: "polo",
+    });
+    polo.value = true;
+
+    const tshirt = jerseyTypeGrp.add(
+      "radiobutton",
+      undefined,
+      JerseyType.TSHIRT,
+      { name: "tshirt" },
+    );
+
+    // SLVTYPEGRP
+    // ==========
+    const slvTypeGrp = firstCol.add("group", undefined, { name: "slvTypeGrp" });
+    slvTypeGrp.orientation = "row";
+    slvTypeGrp.alignChildren = ["left", "center"];
+    slvTypeGrp.spacing = 10;
+    slvTypeGrp.margins = 0;
+
+    const slvTypeTextField = slvTypeGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "slvTypeTextField" },
+    );
+    slvTypeTextField.text = "Sleeve Type:";
+    slvTypeTextField.justify = "center";
+
+    const slvShort = slvTypeGrp.add("radiobutton", undefined, undefined, {
+      name: "slvShort",
+    });
+    slvShort.text = "SHORT";
+    slvShort.value = true;
+
+    const slvLong = slvTypeGrp.add("radiobutton", undefined, undefined, {
+      name: "slvLong",
+    });
+    slvLong.text = "LONG";
+
+    const slvBoth = slvTypeGrp.add("radiobutton", undefined, undefined, {
+      name: "slvBoth",
+    });
+    slvBoth.text = "Both";
+
+    // SECCOL
+    // ======
+    const secCol = panelContGrp.add("group", undefined, { name: "secCol" });
+    secCol.orientation = "row";
+    secCol.preferredSize.height = 280;
+    secCol.alignChildren = ["left", "center"];
+    secCol.spacing = 10;
+    secCol.margins = 0;
+
+    // ORGBODY
+    // =======
+    const orgBody = secCol.add("panel", undefined, undefined, {
+      name: "orgBody",
+    });
+    orgBody.text = "ORG Body";
+    orgBody.preferredSize.width = 200;
+    orgBody.orientation = "column";
+    orgBody.alignChildren = ["center", "top"];
+    orgBody.spacing = 10;
+    orgBody.margins = 10;
+    orgBody.alignment = ["left", "fill"];
+
+    // MODEGRP
+    // =======
+    const modeGrp = orgBody.add("group", undefined, { name: "modeGrp" });
+    modeGrp.preferredSize.width = 100;
+    modeGrp.orientation = "column";
+    modeGrp.alignChildren = ["center", "center"];
+    modeGrp.spacing = 5;
+    modeGrp.margins = 0;
+
+    const orgMode = modeGrp.add("statictext", undefined, undefined, {
+      name: "orgMode",
+    });
+    orgMode.text = "Mode:";
+    orgMode.justify = "center";
+
+    const orgModeList = modeGrp.add("dropdownlist", undefined, undefined, {
+      name: "orgModeList",
+    });
+    orgModeList.selection = 0;
+    orgModeList.preferredSize.width = 70;
+    orgModeList.preferredSize.height = 10;
+
+    // ORIENTATIONGRP
+    // ==============
+    const orientationGrp = orgBody.add("group", undefined, {
+      name: "orientationGrp",
+    });
+    orientationGrp.preferredSize.width = 100;
+    orientationGrp.orientation = "column";
+    orientationGrp.alignChildren = ["center", "center"];
+    orientationGrp.spacing = 5;
+    orientationGrp.margins = 0;
+    orientationGrp.alignment = ["center", "top"];
+
+    const orgOrientation = orientationGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "orgOrientation" },
+    );
+    orgOrientation.text = "Orientation:";
+    orgOrientation.justify = "center";
+
+    const orientations = orientationGrp.add(
+      "dropdownlist",
+      undefined,
+      undefined,
+      { name: "orientations" },
+    );
+    orientations.selection = 0;
+    orientations.preferredSize.width = 70;
+    orientations.preferredSize.height = 10;
+    orientations.alignment = ["center", "center"];
+
+    // PERDOCGRP
+    // =========
+    const perDocGrp = orgBody.add("group", undefined, { name: "perDocGrp" });
+    perDocGrp.preferredSize.width = 100;
+    perDocGrp.orientation = "column";
+    perDocGrp.alignChildren = ["center", "center"];
+    perDocGrp.spacing = 5;
+    perDocGrp.margins = 0;
+
+    const perDoc = perDocGrp.add("statictext", undefined, undefined, {
+      name: "perDoc",
+    });
+    perDoc.text = "Per Doc Row";
+    perDoc.justify = "center";
+
+    const perDocField = perDocGrp.add(
+      'edittext {justify: "center", properties: {name: "perDocField"}}',
+    );
+    perDocField.text = "0";
+    perDocField.preferredSize.width = 70;
+
+    // ITEMSGAP
+    // ========
+    const itemsGap = orgBody.add("group", undefined, { name: "itemsGap" });
+    itemsGap.preferredSize.width = 100;
+    itemsGap.orientation = "column";
+    itemsGap.alignChildren = ["center", "center"];
+    itemsGap.spacing = 5;
+    itemsGap.margins = 0;
+
+    const itemsGap1 = itemsGap.add("statictext", undefined, undefined, {
+      name: "itemsGap1",
+    });
+    itemsGap1.text = "Items Gap";
+    itemsGap1.justify = "center";
+
+    const itemsGapField = itemsGap.add(
+      'edittext {justify: "center", properties: {name: "itemsGapField"}}',
+    );
+    itemsGapField.text = "0.1";
+    itemsGapField.preferredSize.width = 70;
+
+    // HAMconstIANT
+    // ==========
+    const hamconstiant = secCol.add("panel", undefined, undefined, {
+      name: "hamconstiant",
+    });
+    hamconstiant.text = "Ham constiant";
+    hamconstiant.preferredSize.width = 200;
+    hamconstiant.orientation = "column";
+    hamconstiant.alignChildren = ["left", "top"];
+    hamconstiant.spacing = 10;
+    hamconstiant.margins = 10;
+    hamconstiant.alignment = ["left", "fill"];
+
+    // HAMTYPEGRP
+    // ==========
+    const hamTypeGrp = hamconstiant.add("group", undefined, {
+      name: "hamTypeGrp",
+    });
+    hamTypeGrp.orientation = "column";
+    hamTypeGrp.alignChildren = ["left", "center"];
+    hamTypeGrp.spacing = 10;
+    hamTypeGrp.margins = 0;
+
+    const hamTypeTextField = hamTypeGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "hamTypeTextField" },
+    );
+    hamTypeTextField.text = "Ham Type:";
+    hamTypeTextField.justify = "center";
+
+    const hamTypeNone = hamTypeGrp.add("radiobutton", undefined, undefined, {
+      name: "hamTypeNone",
+    });
+    hamTypeNone.text = "None";
+    hamTypeNone.value = true;
+
+    const hamTypeRib = hamTypeGrp.add("radiobutton", undefined, undefined, {
+      name: "hamTypeRib",
+    });
+    hamTypeRib.text = "RIB";
+
+    const hamTypeCuff = hamTypeGrp.add("radiobutton", undefined, undefined, {
+      name: "hamTypeCuff",
+    });
+    hamTypeCuff.text = "CUFF";
+
+    // HAMAPPLYGRP
+    // ===========
+    const hamApplyGrp = hamconstiant.add("group", undefined, {
+      name: "hamApplyGrp",
+    });
+    hamApplyGrp.orientation = "column";
+    hamApplyGrp.alignChildren = ["left", "center"];
+    hamApplyGrp.spacing = 10;
+    hamApplyGrp.margins = 0;
+
+    const hamApplyTextField = hamApplyGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "hamApplyTextField" },
+    );
+    hamApplyTextField.text = "Ham Apply:";
+    hamApplyTextField.justify = "center";
+
+    const hamApplyShort = hamApplyGrp.add("radiobutton", undefined, undefined, {
+      name: "hamApplyShort",
+    });
+    hamApplyShort.text = "SHORT";
+
+    const hamApplyLong = hamApplyGrp.add("radiobutton", undefined, undefined, {
+      name: "hamApplyLong",
+    });
+    hamApplyLong.text = "LONG";
+
+    const hamApplyBoth = hamApplyGrp.add("radiobutton", undefined, undefined, {
+      name: "hamApplyBoth",
+    });
+    hamApplyBoth.text = "Both";
+    hamApplyBoth.value = true;
+
+    // REQUIREDPANEL
+    // =============
+    const requiredPanel = secCol.add("panel", undefined, undefined, {
+      name: "requiredPanel",
+    });
+    requiredPanel.text = "Required Data";
+    requiredPanel.preferredSize.width = 200;
+    requiredPanel.orientation = "column";
+    requiredPanel.alignChildren = ["center", "top"];
+    requiredPanel.spacing = 10;
+    requiredPanel.margins = 10;
+    requiredPanel.alignment = ["left", "fill"];
+
+    // NANODATAGRP
+    // ===========
+    const nanoDataGrp = requiredPanel.add("group", undefined, {
+      name: "nanoDataGrp",
+    });
+    nanoDataGrp.orientation = "column";
+    nanoDataGrp.alignChildren = ["center", "center"];
+    nanoDataGrp.spacing = 5;
+    nanoDataGrp.margins = 0;
+
+    const nanoData = nanoDataGrp.add("statictext", undefined, undefined, {
+      name: "nanoData",
+    });
+    nanoData.helpTip = "the data that will apply!";
+    nanoData.text = "NA/NO Data";
+    nanoData.justify = "center";
+
+    const nanoDataField = nanoDataGrp.add(
+      'edittext {justify: "center", properties: {name: "nanoDataField"}}',
+    );
+    nanoDataField.helpTip = "data should be json format";
+    nanoDataField.preferredSize.width = 127;
+    nanoDataField.preferredSize.height = 50;
+
+    // SIZECONTGRP
+    // ===========
+    const sizeContGrp = requiredPanel.add("group", undefined, {
+      name: "sizeContGrp",
+    });
+    sizeContGrp.preferredSize.width = 100;
+    sizeContGrp.orientation = "column";
+    sizeContGrp.alignChildren = ["center", "center"];
+    sizeContGrp.spacing = 5;
+    sizeContGrp.margins = 0;
+    sizeContGrp.alignment = ["center", "top"];
+
+    const sizeContainer = sizeContGrp.add("statictext", undefined, undefined, {
+      name: "sizeContainer",
+    });
+    sizeContainer.text = "Size Container";
+    sizeContainer.justify = "center";
+    const sizeContainerList = sizeContGrp.add(
+      "dropdownlist",
+      undefined,
+      undefined,
+      { name: "sizeContainerList" },
+    );
+    sizeContainerList.selection = 0;
+    sizeContainerList.preferredSize.width = 70;
+    sizeContainerList.preferredSize.height = 10;
+    sizeContainerList.alignment = ["center", "center"];
+
+    // KIDSINVORIENTGRP
+    // ================
+    const kidsInVOrientGrp = requiredPanel.add("group", undefined, {
+      name: "kidsInVOrientGrp",
+    });
+    kidsInVOrientGrp.orientation = "row";
+    kidsInVOrientGrp.alignChildren = ["left", "center"];
+    kidsInVOrientGrp.spacing = 10;
+    kidsInVOrientGrp.margins = 0;
+
+    const kidsInVCheckBox = kidsInVOrientGrp.add(
+      "checkbox",
+      undefined,
+      undefined,
+      { name: "kidsInVCheckBox" },
+    );
+    kidsInVCheckBox.helpTip = "kids size should be V orientation";
+    kidsInVCheckBox.text = "KidsInV";
+    kidsInVCheckBox.value = true;
+
+    // OUTLINENANOGRP
+    // ==============
+    const outlineNANOGrp = requiredPanel.add("group", undefined, {
+      name: "outlineNANOGrp",
+    });
+    outlineNANOGrp.orientation = "row";
+    outlineNANOGrp.alignChildren = ["left", "center"];
+    outlineNANOGrp.spacing = 10;
+    outlineNANOGrp.margins = 0;
+
+    const outlineNANOCheckBox = outlineNANOGrp.add(
+      "checkbox",
+      undefined,
+      undefined,
+      { name: "outlineNANOCheckBox" },
+    );
+    outlineNANOCheckBox.helpTip = "NANO text convert to shape";
+    outlineNANOCheckBox.text = "Outline NANO";
+    outlineNANOCheckBox.value = true;
+
+    // OPACITYMASKGRP
+    // ==============
+    const opacityMaskGrp = requiredPanel.add("group", undefined, {
+      name: "opacityMaskGrp",
+    });
+    opacityMaskGrp.enabled = false;
+    opacityMaskGrp.orientation = "row";
+    opacityMaskGrp.alignChildren = ["left", "center"];
+    opacityMaskGrp.spacing = 10;
+    opacityMaskGrp.margins = 0;
+
+    const opacityMaskCheckBox = opacityMaskGrp.add(
+      "checkbox",
+      undefined,
+      undefined,
+      { name: "opacityMaskCheckBox" },
+    );
+    opacityMaskCheckBox.helpTip = "handle properly transform opacity mask item";
+    opacityMaskCheckBox.text = "Opacity Mask";
+
+    // ENTERBTNGRP
+    // ===========
+    const enterBtnGrp = dialogRoot.add("group", undefined, {
+      name: "enterBtnGrp",
+    });
+    enterBtnGrp.orientation = "row";
+    enterBtnGrp.alignChildren = ["left", "center"];
+    enterBtnGrp.spacing = 10;
+    enterBtnGrp.margins = 0;
+
+    const enterBn = enterBtnGrp.add("button", undefined, undefined, {
+      name: "enterBn",
+    });
+    enterBn.helpTip = "Start Action";
+    enterBn.text = "Start";
+    enterBn.active = true;
+
+    // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html )
+    dialogRoot.items = {
+      dialogRoot: dialogRoot, // dialog
+      panelContGrp: panelContGrp, // group
+      firstCol: firstCol, // group
+      jerseyTypeGrp: jerseyTypeGrp, // group
+      jerseyTypeTextField: jerseyTypeTextField, // statictext
+      polo: polo, // radiobutton
+      tshirt: tshirt, // radiobutton
+      slvTypeGrp: slvTypeGrp, // group
+      slvTypeTextField: slvTypeTextField, // statictext
+      slvShort: slvShort, // radiobutton
+      slvLong: slvLong, // radiobutton
+      slvBoth: slvBoth, // radiobutton
+      secCol: secCol, // group
+      orgBody: orgBody, // panel
+      modeGrp: modeGrp, // group
+      orgMode: orgMode, // statictext
+      orgModeList: orgModeList, // dropdownlist
+      orientationGrp: orientationGrp, // group
+      orgOrientation: orgOrientation, // statictext
+      orientations: orientations, // dropdownlist
+      perDocGrp: perDocGrp, // group
+      perDoc: perDoc, // statictext
+      perDocField: perDocField, // edittext
+      itemsGap: itemsGap, // group
+      itemsGap1: itemsGap1, // statictext
+      itemsGapField: itemsGapField, // edittext
+      hamconstiant: hamconstiant, // panel
+      hamTypeGrp: hamTypeGrp, // group
+      hamTypeTextField: hamTypeTextField, // statictext
+      hamTypeNone: hamTypeNone, // radiobutton
+      hamTypeRib: hamTypeRib, // radiobutton
+      hamTypeCuff: hamTypeCuff, // radiobutton
+      hamApplyGrp: hamApplyGrp, // group
+      hamApplyTextField: hamApplyTextField, // statictext
+      hamApplyShort: hamApplyShort, // radiobutton
+      hamApplyLong: hamApplyLong, // radiobutton
+      hamApplyBoth: hamApplyBoth, // radiobutton
+      requiredPanel: requiredPanel, // panel
+      nanoDataGrp: nanoDataGrp, // group
+      nanoData: nanoData, // statictext
+      nanoDataField: nanoDataField, // edittext
+      sizeContGrp: sizeContGrp, // group
+      sizeContainer: sizeContainer, // statictext
+      sizeContainerList: sizeContainerList, // dropdownlist
+      kidsInVOrientGrp: kidsInVOrientGrp, // group
+      kidsInVCheckBox: kidsInVCheckBox, // checkbox
+      outlineNANOGrp: outlineNANOGrp, // group
+      outlineNANOCheckBox: outlineNANOCheckBox, // checkbox
+      opacityMaskGrp: opacityMaskGrp, // group
+      opacityMaskCheckBox: opacityMaskCheckBox, // checkbox
+      enterBtnGrp: enterBtnGrp, // group
+      enterBn: enterBn, // button
+    };
+    dialogRoot.itemsArray = [
+      dialogRoot,
+      panelContGrp,
+      firstCol,
+      jerseyTypeGrp,
+      jerseyTypeTextField,
+      polo,
+      tshirt,
+      slvTypeGrp,
+      slvTypeTextField,
+      slvShort,
+      slvLong,
+      slvBoth,
+      secCol,
+      orgBody,
+      modeGrp,
+      orgMode,
+      orgModeList,
+      orientationGrp,
+      orgOrientation,
+      orientations,
+      perDocGrp,
+      perDoc,
+      perDocField,
+      itemsGap,
+      itemsGap1,
+      itemsGapField,
+      hamconstiant,
+      hamTypeGrp,
+      hamTypeTextField,
+      hamTypeNone,
+      hamTypeRib,
+      hamTypeCuff,
+      hamApplyGrp,
+      hamApplyTextField,
+      hamApplyShort,
+      hamApplyLong,
+      hamApplyBoth,
+      requiredPanel,
+      nanoDataGrp,
+      nanoData,
+      nanoDataField,
+      sizeContGrp,
+      sizeContainer,
+      sizeContainerList,
+      kidsInVOrientGrp,
+      kidsInVCheckBox,
+      outlineNANOGrp,
+      outlineNANOCheckBox,
+      opacityMaskGrp,
+      opacityMaskCheckBox,
+      enterBtnGrp,
+      enterBn,
+    ];
+
+    /* Apply field dynamic value start */
+
+    const orgModeList_array = objectKeys(GridMode);
+    arrayForEach(orgModeList_array, (e) => {
+      orgModeList.add("item", e);
+    });
+    const currentMode = CONFIG.Persist_Config.config["mode"];
+    orgModeList.selection = indexOf(orgModeList_array, currentMode);
+
+    const orientations_array = ["Auto", ...objectKeys(GridOrientation)];
+    arrayForEach(orientations_array, (e) => {
+      orientations.add("item", e);
+    });
+    orientations.selection = 0;
+
+    const sizeContainerList_array = objectKeys(CONFIG.Persist_Config.sizes);
+    arrayForEach(sizeContainerList_array, (e) => {
+      sizeContainerList.add("item", e);
+    });
+    const currentSizeContainer = CONFIG.Persist_Config.config["container"];
+    sizeContainerList.selection = indexOf(
+      sizeContainerList_array,
+      currentSizeContainer,
+    );
+
+    /* Apply field dynamic value end */
+
+    // ====================================
+
+    /* Get field input value start */
+
+    const jerseyType = polo.value ? JerseyType.POLO : JerseyType.TSHIRT;
+
+    const slvType = slvShort.value
+      ? SleeveType.SHORT
+      : slvLong.value
+        ? SleeveType.LONG
+        : SleeveType.Both;
+
+    const hamType = hamTypeNone.value
+      ? HamType.None
+      : hamTypeRib.value
+        ? HamType.RIB
+        : HamType.CUFF;
+
+    const hamApply = hamApplyBoth.value
+      ? SleeveType.Both
+      : hamApplyShort.value
+        ? SleeveType.SHORT
+        : SleeveType.LONG;
+
+    const orgModeVal = orgModeList.selection.text;
+
+    const orientationVal = orientations.selection.text;
+
+    const perDocVal = perDocField.text ? parseInt(perDocField.text) : 0;
+
+    const itemGapVal = itemsGapField.text
+      ? fixMultipleDots(itemsGapField.text)
+      : 0;
+
+    const nanoDataVal = nanoDataField.text;
+
+    const sizeContainerVal = sizeContainerList.selection.text;
+
+    const kidsInVVal = kidsInVCheckBox.value;
+
+    const outlineNanoVal = outlineNANOCheckBox.value;
+
+    const opacityMaskVal = opacityMaskCheckBox.value;
+
+    /* Get field input value end */
+
+    // ====================================
+
+    /* Event callback functions start */
+
+    const digitValidateCb = (event) => {
+      const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
+
+      if (event.keyName === "Escape") {
+        dialogRoot.close();
+        return;
+      }
+
+      // Allow numbers, backspace, delete, and decimal point
+      // Also prevent multiple decimal points
+      if (!/[0-9]/.test(key) && key !== "Backspace" && key !== "Delete") {
+        event.preventDefault();
+      }
+
+      if (key === "Enter") {
+        enterBn.notify();
+      }
+    };
+
+    function fixMultipleDots(str) {
+      const parts = str.split(".");
+      if (parts.length <= 2) {
+        return parseFloat(str); // Already a valid float
+      }
+
+      // Join only the first two parts to make a valid float
+      const fixedStr = parts[0] + "." + parts[1];
+      return parseFloat(fixedStr);
     }
+
+    /* Event callback functions end */
+
+    // ====================================
+
+    /* Attach event listener callback functions start */
+
+    perDocField.addEventListener("keydown", digitValidateCb);
+
+    itemsGapField.addEventListener("keydown", (event) => {
+      const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
+
+      if (event.keyName === "Escape") {
+        dialogRoot.close();
+        return;
+      }
+
+      // Allow numbers, backspace, delete, and decimal point
+      // Also prevent multiple decimal points
+      if (
+        !/[0-9]/.test(key) &&
+        key !== "Backspace" &&
+        key !== "Delete" &&
+        key !== "Decimal" &&
+        key !== "Period"
+      ) {
+        event.preventDefault();
+      }
+      if (key === "Enter") {
+        enterBn.notify();
+      }
+    });
+
+    enterBn.onClick = () => {
+      dialogRoot.close();
+
+      CONFIG.Items_Gap = itemGapVal;
+      CONFIG.perDoc = perDocVal;
+      CONFIG.orientation = orientationVal;
+      CONFIG.kidsinV = kidsInVVal;
+      CONFIG.outlineNANO = outlineNanoVal;
+      CONFIG.opacityMask = opacityMaskVal;
+      dialogRoot.close(1); // success signal
+    };
+
+    /* Attach event listener callback functions end */
+
+    // Show dialog and act on result
+    const result = dialogRoot.show();
+
+    if (result === 1) {
+      automateNANO({
+        mode: orgModeVal,
+        data: nanoDataVal,
+        sizeContainer: sizeContainerVal,
+      });
+    }
+  } catch (error) {
+    alertDialogSA(error.message);
+  }
 };
