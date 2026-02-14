@@ -111,10 +111,9 @@ enum GridMode {
   PANT = "PANT",
 }
 
-enum GridOrientation {
-  V = "V",
-  H = "H",
-  L = "L",
+enum Orientation {
+  V = "VERTICAL",
+  H = "HORIZONTAL",
 }
 
 const processSeqOrder = [JerseyType, HamType, SleeveType];

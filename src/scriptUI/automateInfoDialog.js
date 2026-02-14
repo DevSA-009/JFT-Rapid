@@ -123,28 +123,6 @@ const automateInfoDialog = () => {
     orgBody.margins = 10;
     orgBody.alignment = ["left", "fill"];
 
-    // MODEGRP
-    // =======
-    const modeGrp = orgBody.add("group", undefined, { name: "modeGrp" });
-    modeGrp.preferredSize.width = 100;
-    modeGrp.orientation = "column";
-    modeGrp.alignChildren = ["center", "center"];
-    modeGrp.spacing = 5;
-    modeGrp.margins = 0;
-
-    const orgMode = modeGrp.add("statictext", undefined, undefined, {
-      name: "orgMode",
-    });
-    orgMode.text = "Mode:";
-    orgMode.justify = "center";
-
-    const orgModeList = modeGrp.add("dropdownlist", undefined, undefined, {
-      name: "orgModeList",
-    });
-    orgModeList.selection = 0;
-    orgModeList.preferredSize.width = 70;
-    orgModeList.preferredSize.height = 10;
-
     // ORIENTATIONGRP
     // ==============
     const orientationGrp = orgBody.add("group", undefined, {
@@ -460,9 +438,6 @@ const automateInfoDialog = () => {
       slvBoth: slvBoth, // radiobutton
       secCol: secCol, // group
       orgBody: orgBody, // panel
-      modeGrp: modeGrp, // group
-      orgMode: orgMode, // statictext
-      orgModeList: orgModeList, // dropdownlist
       orientationGrp: orientationGrp, // group
       orgOrientation: orgOrientation, // statictext
       orientations: orientations, // dropdownlist
@@ -514,9 +489,6 @@ const automateInfoDialog = () => {
       slvBoth,
       secCol,
       orgBody,
-      modeGrp,
-      orgMode,
-      orgModeList,
       orientationGrp,
       orgOrientation,
       orientations,
@@ -556,25 +528,20 @@ const automateInfoDialog = () => {
 
     /* Apply field dynamic value start */
 
-    const orgModeList_array = objectKeys(GridMode);
-    arrayForEach(orgModeList_array, (e) => {
-      orgModeList.add("item", e);
-    });
-    const currentMode = CONFIG.Persist_Config.config["mode"];
-    orgModeList.selection = indexOf(orgModeList_array, currentMode);
-
-    const orientations_array = ["Auto", ...objectKeys(GridOrientation)];
-    arrayForEach(orientations_array, (e) => {
+    const orientations_array = ["Auto", ...ES6_SA.objectKeys(Orientation)];
+    ES6_SA.arrayForEach(orientations_array, (e) => {
       orientations.add("item", e);
     });
     orientations.selection = 0;
 
-    const sizeContainerList_array = objectKeys(CONFIG.Persist_Config.sizes);
-    arrayForEach(sizeContainerList_array, (e) => {
+    const sizeContainerList_array = ES6_SA.objectKeys(
+      CONFIG.Persist_Config.sizes,
+    );
+    ES6_SA.arrayForEach(sizeContainerList_array, (e) => {
       sizeContainerList.add("item", e);
     });
-    const currentSizeContainer = CONFIG.Persist_Config.config["container"];
-    sizeContainerList.selection = indexOf(
+    const currentSizeContainer = CONFIG.Persist_Config.config["sizeContainer"];
+    sizeContainerList.selection = ES6_SA.arrayIndexOf(
       sizeContainerList_array,
       currentSizeContainer,
     );
@@ -604,8 +571,6 @@ const automateInfoDialog = () => {
       : hamApplyShort.value
         ? SleeveType.SHORT
         : SleeveType.LONG;
-
-    const orgModeVal = orgModeList.selection.text;
 
     const orientationVal = orientations.selection.text;
 
