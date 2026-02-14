@@ -376,8 +376,6 @@ class Organizer {
         throw new Error("You must select exactly two objects.");
       }
 
-      // const transActHandler = new TransActionHandler();
-
       const [obj1, obj2] = selection;
 
       // Duplicate both objects
@@ -412,7 +410,8 @@ class Organizer {
         to: "pt",
       });
 
-      const transActHandler = new TransActionHandler();
+      const gTransAct = Utils.getGlobalTransActHandler();
+      const transActHandler = gTransAct || new TransActionHandler();
 
       // Align duplicated items to center (both horizontal and vertical)
       AlignmentHandler.alignObject({
@@ -507,7 +506,7 @@ class Organizer {
       obj2.remove();
 
       // clean action
-      transActHandler.removeAll();
+      if (!gTransAct) transActHandler.removeAll();
     } catch (error: any) {
       // Show error message via custom alert
       alertDialogSA(error.message);

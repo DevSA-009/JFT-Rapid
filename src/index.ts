@@ -3,7 +3,7 @@ const JFT_CONF_PRODUCTION_PATH =
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
-const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH);
+const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_DEV_PATH);
 
 // for globally handler progressbar
 // const progressWindow = createProgressWindow();
@@ -19,14 +19,10 @@ const CONFIG: JFTRapid_Config = {
   orientation: "auto",
 };
 
-const transActHandler = new TransActionHandler();
+const globalTransActHandler = new TransActionHandler();
 
-const $item1 = app.activeDocument.activeLayer.pageItems[0];
-const $item2 = app.activeDocument.activeLayer.pageItems[1];
 
-AlignmentHandler.moveObjectAfter({
-  base: $item1,
-  moving: $item2,
-  engine: "action",
-  position: "B",
-});
+// .... all task
+
+
+globalTransActHandler.removeAll()

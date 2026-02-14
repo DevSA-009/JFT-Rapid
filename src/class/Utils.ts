@@ -706,6 +706,19 @@ class Utils {
       }
     }
   }
+
+  /**
+   * get globally declared TransActHandler instance
+   *
+   * @returns {TransActionHandler | null} - error occur or not declared return null
+   */
+  static getGlobalTransActHandler(): TransActionHandler | null {
+    try {
+      return globalTransActHandler || null;
+    } catch (error) {
+      return null;
+    }
+  }
 }
 
 interface ConvertParams {

@@ -49,9 +49,10 @@ class AlignmentHandler {
 
     if (engine === "action") {
       dy = Utils.reverseCenterY(dy);
-      const transActHandler = new TransActionHandler();
+      const gTransAct = Utils.getGlobalTransActHandler();
+      const transActHandler = gTransAct || new TransActionHandler();
       transActHandler.move({ objects: [moving], x: dx, y: dy });
-      transActHandler.removeAll();
+      if (!gTransAct) transActHandler.removeAll();
     } else {
       // Move the item
       (moving as PageItem).translate(dx, dy);
@@ -167,9 +168,10 @@ class AlignmentHandler {
 
     if (engine === "action") {
       deltaY = Utils.reverseCenterY(deltaY);
-      const transActHandler = new TransActionHandler();
+      const gTransAct = Utils.getGlobalTransActHandler();
+      const transActHandler = gTransAct || new TransActionHandler();
       transActHandler.move({ objects, x: deltaX, y: deltaY });
-      transActHandler.removeAll();
+      if (!gTransAct) transActHandler.removeAll();
     } else {
       if (objects.length > 1) {
         const tempGroup = GroupManager.group(objects);
@@ -286,9 +288,10 @@ class AlignmentHandler {
 
     if (engine === "action") {
       deltaY = Utils.reverseCenterY(deltaY);
-      const transActHandler = new TransActionHandler();
+      const gTransAct = Utils.getGlobalTransActHandler();
+      const transActHandler = gTransAct || new TransActionHandler();
       transActHandler.move({ objects: [moving], x: deltaX, y: deltaY });
-      transActHandler.removeAll();
+      if (!gTransAct) transActHandler.removeAll();
     } else {
       // Move the item
       (moving as PageItem).translate(deltaX, deltaY);
@@ -310,7 +313,7 @@ class AlignmentHandler {
    *  - `"BC"` (Bottom-Center)
    *  - `"C"`  (Center both horizontally and vertically)
    */
-  static moveItemToCanvas = (
+  private static moveItemToCanvas = (
     item: PageItem,
     position: AlignPosition = "C",
   ): void => {
