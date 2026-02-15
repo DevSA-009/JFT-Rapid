@@ -147,8 +147,6 @@ type ThreadEngine = "script" | "action";
 
 type ApparelSize = BabySize | MensSize;
 
-interface ProcessBegin extends ProcessingOrder {}
-
 interface SelectItemsInDocParams {
   doc: Document;
   items: Selection;

@@ -55,7 +55,6 @@ enum JerseyType {
 enum SleeveType {
   SHORT = "SHORT",
   LONG = "LONG",
-  Both = "BOTH",
 }
 
 enum StackOrientations {
@@ -64,38 +63,31 @@ enum StackOrientations {
   "Vertical" = "vertical",
 }
 
-enum BodyType {
-  "BODY",
-}
-
-enum HamType {
-  None = "NONE",
+enum RIBType {
+  NO = "NO",
   RIB = "RIB",
   CUFF = "CUFF",
 }
+
 const stackTypesTuple: StackType[] = ["HH", "VV", "RHH", "RVV", "VRH"];
 
 enum SearchingKeywords {
   SIZE_TKN = "SIZE_TKN",
   FRONT = "FRONT",
+  NECK = "NECK",
   BACK = "BACK",
+  BODY = "BODY",
   LONG_SLV = "L_SLV",
+  SHORT_PANT = "S_PANT",
+  LONG_PANT = "L_PANT",
   SHORT_SLV = "S_SLV",
   SOLID = "SLD",
   COLLAR = "CLR",
   PLACKET = "PLC",
-  S_SLV_RIB = "S_RIB",
-  L_SLV_RIB = "L_RIB",
-  NO = "NO",
+  SHORT_SLV_RIB = "S_RIB",
+  LONG_SLV_RIB = "L_RIB",
+  NUMBER = "NUMBER",
   NAME = "NAME",
-}
-
-enum NANOBaseSize {
-  NAME = 9.7,
-  F_NO = 2.75,
-  NO = 9,
-  BASE_BODY = 19.5,
-  BASE_GAP = 0.5,
 }
 
 enum SearchingKeywordsForPant {
@@ -104,16 +96,3 @@ enum SearchingKeywordsForPant {
   PANT_B_L = "PANT_B_L",
   PANT_B_R = "PANT_B_R",
 }
-
-enum GridMode {
-  B = "B",
-  FB = "FB",
-  PANT = "PANT",
-}
-
-enum Orientation {
-  V = "VERTICAL",
-  H = "HORIZONTAL",
-}
-
-const processSeqOrder = [JerseyType, HamType, SleeveType];
