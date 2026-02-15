@@ -77,6 +77,8 @@ enum SearchingKeywords {
   NECK = "NECK",
   BACK = "BACK",
   BODY = "BODY",
+  PAIR = "PAIR",
+  DYNAMIC = "DYN",
   LONG_SLV = "L_SLV",
   SHORT_PANT = "S_PANT",
   LONG_PANT = "L_PANT",
@@ -89,6 +91,8 @@ enum SearchingKeywords {
   NUMBER = "NUMBER",
   NAME = "NAME",
 }
+
+const faceBasePair = [SearchingKeywords.BODY, SearchingKeywords.COLLAR];
 
 enum SearchingKeywordsForPant {
   PANT_F_L = "PANT_F_L",
