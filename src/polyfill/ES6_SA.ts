@@ -307,4 +307,58 @@ class ES6_SA {
 
     return false;
   }
+
+  /**
+   * Determines whether a string contains the characters of the specified search string.
+   *
+   * ES3-compatible replacement for `String.prototype.includes`.
+   *
+   * @param str - The string to search in
+   * @param search - The substring to search for
+   * @param position - Optional. The position within `str` at which to begin searching (default 0)
+   * @returns `true` if `search` is found anywhere within `str` starting from `position`; otherwise `false`
+   *
+   */
+  static stringIncludes(
+    str: string,
+    search: string,
+    position: number = 0,
+  ): boolean {
+    // Early exit for empty search string (matches ECMAScript behavior)
+    if (search === "") {
+      return true;
+    }
+
+    const len = str.length;
+    const searchLen = search.length;
+
+    // Invalid / out-of-range position handling
+    if (position < 0) {
+      position = 0;
+    }
+    if (position >= len) {
+      return false;
+    }
+
+    // No need to search if remaining length is too short
+    if (position + searchLen > len) {
+      return false;
+    }
+
+    for (let i = position; i <= len - searchLen; i++) {
+      // Check if substring starting at i matches search
+      let match = true;
+      for (let j = 0; j < searchLen; j++) {
+        if (str[i + j] !== search[j]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
