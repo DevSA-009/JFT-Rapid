@@ -1,5 +1,5 @@
 interface JFTRapid_Config {
-  readonly PAPER_MAX_SIZE: number;
+  PAPER_MAX_SIZE: number;
   Persist_Config: PersistConfig;
   Items_Gap: number;
   kidsinV: boolean;
@@ -41,10 +41,9 @@ interface SizeContainer {
   [key: string]: {
     [key in ApparelSize]: {
       BODY: DimensionObject;
-      SLEEVE: {
-        SHORT: DimensionObject;
-        LONG: DimensionObject;
-      };
+      SLEEVE: Record<"SHORT" | "LONG", Record<"SIZE" | "RIB", DimensionObject>>;
+      NECK_AREA: Record<"COLLAR" | "PLACKET" | "NECK", DimensionObject>;
+      PANT: Record<"SHORT" | "LONG", Record<"FRONT" | "BACK", DimensionObject>>;
     };
   };
 }
@@ -53,7 +52,8 @@ type PantItems = [PageItem, PageItem, PageItem, PageItem];
 
 interface PersistConfig {
   config: {
-    container: string;
+    sizeContainer: string;
+    paperMaxWidth: number;
   };
   sizes: {
     [key: string]: SizeContainer;

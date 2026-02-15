@@ -21,8 +21,6 @@ const CONFIG: JFTRapid_Config = {
 
 const globalTransActHandler = new TransActionHandler();
 
-
 // .... all task
 
-
-globalTransActHandler.removeAll()
+globalTransActHandler.removeAll();
