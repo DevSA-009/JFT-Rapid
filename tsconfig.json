@@ -3,7 +3,7 @@
     "target": "ES5",
     "noLib": true,
     "removeComments": true,
-    "outFile": "./HOST/script.js",
+    "outFile": "./HOST/jft_rapid.jsx",
     "strict": true,
     "allowJs": true
   },
