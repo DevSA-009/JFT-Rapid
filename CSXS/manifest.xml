@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ExtensionManifest Version="7.0" ExtensionBundleId="com.jftrapid.cep"
     ExtensionBundleVersion="1.0" ExtensionBundleName="JFT Rapid">
     <ExtensionList>
@@ -6,13 +6,13 @@
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>
-            <Host Name="ILST" Version="[24.0,99.9]" />
+            <Host Name="ILST" Version="[27.0,99.9]" />
         </HostList>
         <LocaleList>
             <Locale Code="All"/>
         </LocaleList>
         <RequiredRuntimeList>
-            <RequiredRuntime Name="CSXS" Version="11"/>
+            <RequiredRuntime Name="CSXS" Version="12"/>
         </RequiredRuntimeList>
     </ExecutionEnvironment>
     <DispatchInfoList>
