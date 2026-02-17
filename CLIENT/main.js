@@ -74,70 +74,17 @@ destroyObjKeyBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectKeyHandler(false)");
 };
 
-// ---------- patch Move After Button --------- \\
-const moveAfterLBtn = selectElementById(`moveAfterL`);
-const moveAfterTBtn = selectElementById(`moveAfterT`);
-const moveAfterRBtn = selectElementById(`moveAfterR`);
-const moveAfterBBtn = selectElementById(`moveAfterB`);
-
-moveAfterLBtn.onclick = () => {
-  csInterface.evalScript("Organizer.moveAfterItemUI('L')");
-};
-moveAfterTBtn.onclick = () => {
-  csInterface.evalScript("Organizer.moveAfterItemUI('T')");
-};
-moveAfterRBtn.onclick = () => {
-  csInterface.evalScript("Organizer.moveAfterItemUI('R')");
-};
-moveAfterBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.moveAfterItemUI('B')");
-};
-
 // ---------- patch Mark Buttons --------- \\
 const markFrontBtn = selectElementById(`markFront`);
 const markBackBtn = selectElementById(`markBack`);
-const markNABtn = selectElementById(`markNA`);
-const markNOBtn = selectElementById(`markNO`);
-const markGKBtn = selectElementById(`markGK`);
-const markPantFrontRBtn = selectElementById(`markPantFrontR`);
-const markPantFrontLBtn = selectElementById(`markPantFrontL`);
-const markPantBackRBtn = selectElementById(`markPantBackR`);
-const markPantBackLBtn = selectElementById(`markPantBackL`);
-const markOpacityMask = selectElementById(`markOpacityMask`);
-const markOpacityMaskInvert = selectElementById(`markOpacityMaskInvert`);
+const markLeftBtn = selectElementById(`markLeft`);
+const markRightbtn = selectElementById(`markRight`);
 
 markFrontBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('FRONT')");
 };
 markBackBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('BACK')");
-};
-markNABtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NAME')");
-};
-markNOBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NO')");
-};
-markGKBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('GK')");
-};
-markPantFrontRBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('PANT_F_R')");
-};
-markPantFrontLBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('PANT_F_L')");
-};
-markPantBackRBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('PANT_B_R')");
-};
-markPantBackLBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('PANT_B_L')");
-};
-markOpacityMask.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('OM-SA')");
-};
-markOpacityMaskInvert.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('OMI-SA')");
 };
 
 /**
