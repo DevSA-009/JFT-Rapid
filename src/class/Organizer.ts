@@ -1120,13 +1120,17 @@ class Organizer {
    * - No items are selected.
    */
   static resetObjectsName(): void {
-    const { selection } = this.selectionVerifyChain();
+    try {
+      const { selection } = this.selectionVerifyChain();
 
-    for (const element of selection) {
-      element.name = "";
+      for (const element of selection) {
+        element.name = "";
+      }
+
+      app.beep();
+    } catch (error: any) {
+      alertDialogSA(error.message);
     }
-
-    app.beep();
   }
 }
 
