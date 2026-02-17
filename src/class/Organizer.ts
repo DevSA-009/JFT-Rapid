@@ -9,10 +9,11 @@ class Organizer {
    * @returns {SelectionVerifyChainReturn} An object containing the active document and selection if valid; otherwise.
    */
   static selectionVerifyChain(): SelectionVerifyChainReturn {
-    const doc = app.activeDocument;
-    if (!doc) {
+    if (!app.documents.length) {
       throw new Error("No open document found.");
     }
+
+    const doc = app.activeDocument;
 
     const selection: Selection | undefined = doc.selection;
 
@@ -867,6 +868,13 @@ class Organizer {
       if (!actDoc) {
         throw new Error("No open document found.");
       }
+
+      if (!actDoc.path.fsName) {
+        throw new Error(
+          `Document must be saved first to determine its location.`,
+        );
+      }
+
       const fileNameWithoutExt = actDoc.fullName.name.replace(/\.[^.]+$/, "");
       const fileName = `${fileNameWithoutExt} Fixed`;
       const newDocHandler = new IllustratorDocument(fileName);
@@ -1014,6 +1022,10 @@ class Organizer {
    * select object by names method for CEP Button
    */
   static selectObjectsByNamesUI() {
+    if (!app.documents.length) {
+      alertDialogSA("No open document found.");
+      return;
+    }
     inputDialog(Organizer.selectObjectsByNames);
   }
 
@@ -1022,62 +1034,74 @@ class Organizer {
    * Useful for flattening, rasterizing or creating bitmap versions while keeping position.
    */
   static replaceSelectionWithEmbeddedTiffCopies() {
-    // Verify we have an active document and at least one selected item
-    const { doc, selection } = this.selectionVerifyChain();
+    try {
+      // Verify we have an active document and at least one selected item
+      const { doc, selection } = this.selectionVerifyChain();
 
-    // Loop through every selected object using its index as identifier
-    for (const index in selection) {
-      // Get reference to the current original vector object
-      const originalItem = selection[index];
+      if (!doc.path.fsName) {
+        throw new Error(
+          `Document must be saved first to determine its location.`,
+        );
+      }
 
-      // Create short, unique base name for temporary files (helps debugging)
-      const tempBaseName = `jft_rapid_devsa_009_temp_raster_${index}`;
+      // Loop through every selected object using its index as identifier
+      for (const index in selection) {
+        // Get reference to the current original vector object
+        const originalItem = selection[index];
 
-      // Remember in which folder the current Illustrator document lives
-      const folderPath = doc.path.fsName;
+        // Create short, unique base name for temporary files (helps debugging)
+        const tempBaseName = `jft_rapid_devsa_009_temp_raster_${index}`;
 
-      // Create helper object that will manage our short-lived temporary document
-      const tempDocument = new IllustratorDocument(tempBaseName);
+        // Remember in which folder the current Illustrator document lives
+        const folderPath = doc.path.fsName;
 
-      // Build brand new document containing **only** the current selected object
-      tempDocument.create([originalItem]);
+        // Create helper object that will manage our short-lived temporary document
+        const tempDocument = new IllustratorDocument(tempBaseName);
 
-      // Export that tiny document immediately as TIFF format
-      tempDocument.save({
-        filePath: folderPath, // save right next to original document
-        fileName: tempBaseName, // consistent naming
-        format: "TIFF", // raster format we want
-      });
+        // Build brand new document containing **only** the current selected object
+        tempDocument.create([originalItem]);
 
-      // Close temporary document right away – we don't need it open anymore
-      tempDocument.close();
+        // Export that tiny document immediately as TIFF format
+        tempDocument.save({
+          filePath: folderPath, // save right next to original document
+          fileName: tempBaseName, // consistent naming
+          format: "TIFF", // raster format we want
+        });
 
-      // Build File object pointing to the TIFF we just created
-      const tempTiffFile = new File(`${folderPath}/${tempBaseName}.tif`);
+        // Close temporary document right away – we don't need it open anymore
+        tempDocument.close();
 
-      // Create new placed item slot in the original document
-      const placedImage = doc.placedItems.add();
+        // Build File object pointing to the TIFF we just created
+        const tempTiffFile = new File(`${folderPath}/${tempBaseName}.tif`);
 
-      // Tell Illustrator to use our freshly saved TIFF file as content
-      placedImage.file = tempTiffFile;
+        // Create new placed item slot in the original document
+        const placedImage = doc.placedItems.add();
 
-      // Put the new placed image immediately after original item in stacking order
-      placedImage.move(originalItem, ElementPlacement.PLACEAFTER);
+        // Tell Illustrator to use our freshly saved TIFF file as content
+        placedImage.file = tempTiffFile;
 
-      // Perfectly align the new raster image with original vector object's position
-      AlignmentHandler.alignObject({
-        base: originalItem, // use original as reference
-        moving: placedImage, // move placed TIFF to match it
-      });
+        // Put the new placed image immediately after original item in stacking order
+        placedImage.move(originalItem, ElementPlacement.PLACEAFTER);
 
-      // Convert the linked TIFF into embedded image data (no external file dependency)
-      placedImage.embed();
+        // Perfectly align the new raster image with original vector object's position
+        AlignmentHandler.alignObject({
+          base: originalItem, // use original as reference
+          moving: placedImage, // move placed TIFF to match it
+        });
 
-      // Delete the temporary TIFF file from disk – cleanup
-      tempTiffFile.remove();
+        // Convert the linked TIFF into embedded image data (no external file dependency)
+        placedImage.embed();
 
-      // Remove the original vector object – we replaced it with raster version
-      originalItem.remove();
+        // Delete the temporary TIFF file from disk – cleanup
+        tempTiffFile.remove();
+
+        // Remove the original vector object – we replaced it with raster version
+        originalItem.remove();
+      }
+
+      alertDialogSA(`Objects TIF Done`);
+    } catch (error: any) {
+      alertDialogSA(error.message);
     }
   }
 }

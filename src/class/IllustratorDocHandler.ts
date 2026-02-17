@@ -29,10 +29,12 @@ class IllustratorDocument {
    * - Always creates document in Inches / CMYK color space
    * - Optionally copies provided page items and centers them on the artboard
    *
-   * @param objects - Optional array of `PageItem`s to duplicate into the center of the new document
-   * @returns The newly created `Document` object
+   * @param objects - Optional array of `PageItem`s to duplicate into the center of the new document.
+   * @param focus - Optional boolean to determine whether to activate the new document.
+   * @returns The newly created `Document` object.
    */
-  create(objects: PageItem[] | null = null): Document {
+  create(objects: PageItem[] | null = null, focus: boolean = true): Document {
+    const doc = app.activeDocument;
     const startPreset = app.startupPresetsList[0];
     const presetSettings = new DocumentPreset() as typeof DocumentPreset;
     presetSettings.width = Utils.convertLength({
@@ -52,6 +54,10 @@ class IllustratorDocument {
       startPreset,
       presetSettings,
     ));
+
+    if (!focus) {
+      doc.activate();
+    }
 
     if (objects && objects.length > 0) {
       this.copyItemsToCenter(objects);

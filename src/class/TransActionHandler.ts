@@ -337,6 +337,11 @@ class TransActionHandler {
    * @private
    */
   private changeRefPoint(ref: keyof typeof ReferencePoints): void {
+    if (!app.documents.length) {
+      alertDialogSA("No open document found.");
+      return;
+    }
+
     // Generate unique set name based on reference point
     const setName = `Trans_Change_Ref_In_${ref}`;
 
