@@ -17,7 +17,7 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
  */
 function inputDialog(callback, options = {}) {
   if (typeof callback !== "function") {
-    alert("First argument must be a function (callback)", "Error", true);
+    alertDialogSA(`First argument must be a function (callback)`);
     return;
   }
 
@@ -66,8 +66,10 @@ function inputDialog(callback, options = {}) {
     dialog.close(1);
   };
 
+  const result = dialog.show();
+
   // ─── Show dialog & process result ────────────────────────────
-  if (dialog.show() === 1) {
+  if (result === 1) {
     const value = input.text || "";
 
     if (!value) {

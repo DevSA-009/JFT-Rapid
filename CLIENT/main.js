@@ -23,25 +23,23 @@ gridLayoutBtn.onclick = () => {
   csInterface.evalScript("gridMenualInfoDialog()");
 };
 
-// ---------- patch Initiate Pant Button Layout Button --------- \\
-const pantInitBtn = selectElementById("pantInit");
-
-pantInitBtn.onclick = () => {
-  csInterface.evalScript("initiatePant()");
-};
-
 // ---------- patch Tweak Buttons --------- \\
-const selectClipPathBtn = selectElementById("selectClipPath");
+const addStrokeOutlineBtn = selectElementById("addStrokeOutline");
 const checkOpacityMaskBtn = selectElementById("checkOpacityMask");
 const repairDocBtn = selectElementById("repairDocument");
-const $2SetFSlv = selectElementById("2SetFSlv");
+const $2SetFSlvBtn = selectElementById("2SetFSlv");
+const arrangeObjectsAfterBtn = selectElementById("arrangeObjectsAfter");
+const tiffObjectsBtn = selectElementById("tiffObjects");
+const selectSametagNamesObjectsBtn = selectElementById(
+  "selectSametagNamesObjects",
+);
 
 // ---------- patch Object Key Handler Button --------- \\
 const makeObjKeyBtn = selectElementById("makeObjectKey");
 const destroyObjKeyBtn = selectElementById("destroyObjectKey");
 
-selectClipPathBtn.onclick = () => {
-  csInterface.evalScript("Organizer.selectTopClippingPath()");
+addStrokeOutlineBtn.onclick = () => {
+  csInterface.evalScript("Organizer.applyStrokeOnClipPath()");
 };
 
 repairDocBtn.onclick = () => {
@@ -52,8 +50,20 @@ checkOpacityMaskBtn.onclick = () => {
   csInterface.evalScript("Organizer.checkisOpacityMask()");
 };
 
-$2SetFSlv.onclick = () => {
+$2SetFSlvBtn.onclick = () => {
   csInterface.evalScript("Organizer.fSlv2SetInit()");
+};
+
+arrangeObjectsAfterBtn.onclick = () => {
+  csInterface.evalScript("Organizer.arrangeObjectsAfter()");
+};
+
+tiffObjectsBtn.onclick = () => {
+  csInterface.evalScript("Organizer.replaceSelectionWithEmbeddedTiffCopies()");
+};
+
+selectSametagNamesObjectsBtn.onclick = () => {
+  csInterface.evalScript("Organizer.selectObjectsByNamesUI()");
 };
 
 makeObjKeyBtn.onclick = () => {
