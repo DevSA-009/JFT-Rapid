@@ -885,15 +885,15 @@ class Organizer {
   }
 
   /**
-   * Arranges selected objects so they appear **immediately after** a designated "key object" in the stacking order (Z-order).
+   * Arranges selected objects so they appear **immediately before** a designated "key object" in the stacking order (Z-order).
    *
    * Useful for controlling appearance order (e.g., which object is in front/behind others) without changing layers.
    *
    * @throws {Error} With user-friendly message
    */
-  static arrangeObjectsAfter(): void {
+  static arrangeObjectsBefore(): void {
     try {
-      const { selection, doc } = this.selectionVerifyChain();
+      const { selection } = this.selectionVerifyChain();
 
       if (selection.length < 2) {
         throw new Error("Please select at least two objects");
@@ -917,7 +917,7 @@ class Organizer {
 
       // Move each item right after the key object
       ES6_SA.arrayForEach(itemsToArrange, (item) => {
-        item.move(keyObject, ElementPlacement.PLACEAFTER);
+        item.move(keyObject, ElementPlacement.PLACEBEFORE);
       });
 
       // reset key object
@@ -992,12 +992,16 @@ class Organizer {
    */
   private static selectObjectsByNames(names: string[]) {
     try {
-      const { selection } = this.selectionVerifyChain();
+      const { selection } = Organizer.selectionVerifyChain();
       const validName = ES6_SA.arrayFilter(names, (name) => !!name);
-      const matchedObjects = this.getObjectsByNames(selection, validName, true);
+      const matchedObjects = Organizer.getObjectsByNames(
+        selection,
+        validName,
+        true,
+      );
 
       if (!matchedObjects.length) throw new Error(`Matched objects not found`);
-      this.docSelectionHandler({
+      Organizer.docSelectionHandler({
         doc: app.activeDocument,
         objects: matchedObjects,
       });
@@ -1010,7 +1014,7 @@ class Organizer {
    * select object by names method for CEP Button
    */
   static selectObjectsByNamesUI() {
-    inputDialog(this.selectObjectsByNames);
+    inputDialog(Organizer.selectObjectsByNames);
   }
 
   /**

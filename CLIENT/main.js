@@ -28,7 +28,7 @@ const addStrokeOutlineBtn = selectElementById("addStrokeOutline");
 const checkOpacityMaskBtn = selectElementById("checkOpacityMask");
 const repairDocBtn = selectElementById("repairDocument");
 const $2SetFSlvBtn = selectElementById("2SetFSlv");
-const arrangeObjectsAfterBtn = selectElementById("arrangeObjectsAfter");
+const arrangeObjectsBeforeBtn = selectElementById("arrangeObjectsBefore");
 const tiffObjectsBtn = selectElementById("tiffObjects");
 const selectSametagNamesObjectsBtn = selectElementById(
   "selectSametagNamesObjects",
@@ -54,8 +54,8 @@ $2SetFSlvBtn.onclick = () => {
   csInterface.evalScript("Organizer.fSlv2SetInit()");
 };
 
-arrangeObjectsAfterBtn.onclick = () => {
-  csInterface.evalScript("Organizer.arrangeObjectsAfter()");
+arrangeObjectsBeforeBtn.onclick = () => {
+  csInterface.evalScript("Organizer.arrangeObjectsBefore()");
 };
 
 tiffObjectsBtn.onclick = () => {
