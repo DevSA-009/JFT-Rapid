@@ -30,6 +30,7 @@ const repairDocBtn = selectElementById("repairDocument");
 const $2SetFSlvBtn = selectElementById("2SetFSlv");
 const arrangeObjectsBeforeBtn = selectElementById("arrangeObjectsBefore");
 const tiffObjectsBtn = selectElementById("tiffObjects");
+const resetObjectsNameBtn = selectElementById("resetObjectsName");
 const selectSametagNamesObjectsBtn = selectElementById(
   "selectSametagNamesObjects",
 );
@@ -64,6 +65,10 @@ tiffObjectsBtn.onclick = () => {
 
 selectSametagNamesObjectsBtn.onclick = () => {
   csInterface.evalScript("Organizer.selectObjectsByNamesUI()");
+};
+
+resetObjectsNameBtn.onclick = () => {
+  csInterface.evalScript("Organizer.resetObjectsName()");
 };
 
 makeObjKeyBtn.onclick = () => {

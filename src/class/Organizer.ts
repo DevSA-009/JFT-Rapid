@@ -1104,6 +1104,30 @@ class Organizer {
       alertDialogSA(error.message);
     }
   }
+
+  /**
+   * Removes the custom name (mark) from all selected Illustrator objects.
+   *
+   * This method is useful for removing previously assigned tags from a selection.
+   *
+   * ### Workflow:
+   * 1. Verifies that a document is open and there is a valid selection.
+   * 2. Iterates over the selected items.
+   * 3. Sets the `.name` property of each item to an empty string.
+   *
+   * @throws Will throw an error if:
+   * - No document is open.
+   * - No items are selected.
+   */
+  static resetObjectsName(): void {
+    const { selection } = this.selectionVerifyChain();
+
+    for (const element of selection) {
+      element.name = "";
+    }
+
+    app.beep();
+  }
 }
 
 interface GetDirectoryFileInfoReturn {
