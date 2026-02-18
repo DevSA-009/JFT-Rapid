@@ -159,10 +159,6 @@ class ProcessOrderGenerator {
 
     let obj2 = objects[1];
 
-    if (!obj2 && !isObj1Dyn) {
-      obj2 = obj1.duplicate();
-    }
-
     const isObj2Dyn = obj2
       ? strInc(obj2.name, `_${BasicMarkers.DYNAMIC}_`)
       : false;
