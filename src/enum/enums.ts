@@ -71,10 +71,10 @@ enum RIBType {
 
 const stackTypesTuple: StackType[] = ["HH", "VV", "RHH", "RVV", "VRH"];
 
-enum ContainerMarkers {
-  BODY= "BODY",
-  SHORT_SLV= "S_SLV",
-  LONG_SLV= "L_SLV",
+enum PairObjectMarkers {
+  BODY = "BODY",
+  SHORT_SLV = "S_SLV",
+  LONG_SLV = "L_SLV",
   NECK = "NECK",
   COLLAR = "COLLAR",
   PLACKET = "PLACKET",
@@ -95,9 +95,9 @@ enum DirectionMarkers {
   FRONT = "FRONT",
   BACK = "BACK",
   LEFT = "LEFT",
-  RIGHT = "RIGHT"
+  RIGHT = "RIGHT",
 }
 
 const SIZE_TKN = "SIZE_TKN";
 
-const faceBasePair = [ContainerMarkers.BODY, ContainerMarkers.COLLAR];
+const faceBasePair = [PairObjectMarkers.BODY, PairObjectMarkers.COLLAR];

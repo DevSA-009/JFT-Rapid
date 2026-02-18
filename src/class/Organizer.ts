@@ -485,7 +485,10 @@ class Organizer {
     const selection = selectionVerifyChain.selection;
 
     for (const element of selection) {
-      element.name = mark;
+      const prevName = element
+        .replace(/__/g, "_") // step 1: replace double underscores
+        .replace(/^_+|_+$/g, ""); // step 2: remove leading/trailing underscores;
+      element.name = `_${prevName}_${mark}_`;
     }
   }
 
@@ -519,7 +522,7 @@ class Organizer {
    * IllustratorUtils.objectMarkByNameAsPair("arrow-group");
    * ```
    */
-  static objectMarkByNameAsPair(mark: string) {
+  static objectMarkByNameAsPair(mark: keyof typeof PairObjectMarkers) {
     try {
       const selectionVerifyChain = this.selectionVerifyChain();
       let selection = selectionVerifyChain.selection;
@@ -540,7 +543,7 @@ class Organizer {
       selection = app.activeDocument.selection;
 
       const groupObject = GroupManager.group(selection);
-      groupObject.name = mark;
+      groupObject.name = PairObjectMarkers[mark] || "";
 
       Organizer.docSelectionHandler({
         doc: app.activeDocument,

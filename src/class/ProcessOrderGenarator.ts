@@ -64,38 +64,38 @@ class ProcessOrderGenerator {
   private initOrder(): void {
     // 1. Neck area items
     if (this.jerseyType === JerseyType.POLO) {
-      this.workflow.push(ContainerMarkers.PLACKET, ContainerMarkers.COLLAR);
+      this.workflow.push(PairObjectMarkers.PLACKET, PairObjectMarkers.COLLAR);
     } else {
-      this.workflow.push(ContainerMarkers.NECK);
+      this.workflow.push(PairObjectMarkers.NECK);
     }
 
     // 2. Rib apply items (only if rib type is not "NO")
     if (this.rib.type !== RIBType.NO) {
       ES6_SA.arrayForEach(this.rib.apply, (slv) => {
-        const key = `${slv}_SLV_RIB` as keyof typeof ContainerMarkers;
+        const key = `${slv}_SLV_RIB` as keyof typeof PairObjectMarkers;
         // Only add if the keyword actually exists in the enum
-        if (key in ContainerMarkers) {
-          this.workflow.push(ContainerMarkers[key]);
+        if (key in PairObjectMarkers) {
+          this.workflow.push(PairObjectMarkers[key]);
         }
       });
     }
 
     // 3. Sleeve items
     ES6_SA.arrayForEach(this.sleeve, (slv) => {
-      const key = `${slv}_SLV` as keyof typeof ContainerMarkers;
-      if (key in ContainerMarkers) {
-        this.workflow.push(ContainerMarkers[key]);
+      const key = `${slv}_SLV` as keyof typeof PairObjectMarkers;
+      if (key in PairObjectMarkers) {
+        this.workflow.push(PairObjectMarkers[key]);
       }
     });
 
     // 4. Main body
-    this.workflow.push(ContainerMarkers.BODY);
+    this.workflow.push(PairObjectMarkers.BODY);
 
     // 5. Pant items
     ES6_SA.arrayForEach(this.pant, (slv) => {
-      const key = `${slv}_PANT` as keyof typeof ContainerMarkers;
-      if (key in ContainerMarkers) {
-        this.workflow.push(ContainerMarkers[key]);
+      const key = `${slv}_PANT` as keyof typeof PairObjectMarkers;
+      if (key in PairObjectMarkers) {
+        this.workflow.push(PairObjectMarkers[key]);
       }
     });
   }

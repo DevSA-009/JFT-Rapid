@@ -1,5 +1,5 @@
 /* 1) Create an instance of CSInterface. */
-var csInterface = new CSInterface();
+const csInterface = new CSInterface();
 
 /**
  *
@@ -11,13 +11,13 @@ const selectElementById = (id) => {
 };
 
 // ---------- patch Automate NANO Button --------- \\
-const autoNANOBtn = selectElementById("autoNANOBtn");
+const autoNANOBtn = selectElementById("autoNANO");
 autoNANOBtn.onclick = () => {
   csInterface.evalScript("automateInfoDialog()");
 };
 
 // ---------- patch Grid Layout Button --------- \\
-const gridLayoutBtn = selectElementById("gridLayoutBtn");
+const gridLayoutBtn = selectElementById("gridLayout");
 
 gridLayoutBtn.onclick = () => {
   csInterface.evalScript("gridMenualInfoDialog()");
@@ -31,9 +31,7 @@ const $2SetFSlvBtn = selectElementById("2SetFSlv");
 const arrangeObjectsBeforeBtn = selectElementById("arrangeObjectsBefore");
 const tiffObjectsBtn = selectElementById("tiffObjects");
 const resetObjectsNameBtn = selectElementById("resetObjectsName");
-const selectSametagNamesObjectsBtn = selectElementById(
-  "selectSametagNamesObjects",
-);
+const selectSametagNamesObjectsBtn = selectElementById("selectSametagNamesObjects");
 
 // ---------- patch Object Key Handler Button --------- \\
 const makeObjKeyBtn = selectElementById("makeObjectKey");
@@ -83,7 +81,21 @@ destroyObjKeyBtn.onclick = () => {
 const markFrontBtn = selectElementById(`markFront`);
 const markBackBtn = selectElementById(`markBack`);
 const markLeftBtn = selectElementById(`markLeft`);
-const markRightbtn = selectElementById(`markRight`);
+const markRightBtn = selectElementById(`markRight`);
+const markCollarBtn = selectElementById(`markCollar`);
+const markNeckBtn = selectElementById(`markNeck`);
+const markBodyBtn = selectElementById(`markBody`);
+const markPlacketBtn = selectElementById(`markPlacket`);
+const markShortSlvBtn = selectElementById(`markSSLV`);
+const markLongSlvBtn = selectElementById(`markLSLV`);
+const markShortRIBBtn = selectElementById(`markSRIB`);
+const markLongRIBBtn = selectElementById(`markLRIB`);
+const markShortPantBtn = selectElementById(`markSPant`);
+const markLongPantBtn = selectElementById(`markLPant`);
+const markNameBtn = selectElementById(`markName`);
+const markNumberBtn = selectElementById(`markNumber`);
+const markDynamicBtn = selectElementById(`markDynamic`);
+const markPairBtn = selectElementById(`markPair`);
 
 markFrontBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('FRONT')");
@@ -91,6 +103,57 @@ markFrontBtn.onclick = () => {
 markBackBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('BACK')");
 };
+
+markLeftBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByName('LEFT')");
+};
+markRightBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByName('RIGHT')");
+};
+
+markNameBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByName('NAME')")
+}
+markNumberBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByName('NUMBER')")
+}
+markDynamicBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByName('DYNAMIC')")
+}
+markPairBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByName('PAIR')")
+}
+
+markCollarBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('COLLAR')");
+};
+markNeckBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('NECK')");
+};
+markBodyBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('BODY')");
+};
+markPlacketBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('PLACKET')");
+};
+markShortSlvBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_SLV')");
+};
+markLongSlvBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_SLV')");
+};
+markShortRIBBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_SLV_RIB')");
+}
+markLongRIBBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_SLV_RIB')")
+}
+markShortPantBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_PANT')")
+}
+markLongPantBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_PANT')")
+}
 
 /**
  *
