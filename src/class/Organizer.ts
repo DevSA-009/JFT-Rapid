@@ -482,19 +482,18 @@ class Organizer {
    */
   static objectMarkByName(mark: string) {
     try {
-      const selectionVerifyChain = this.selectionVerifyChain();
-      const selection = selectionVerifyChain.selection;
+      const { selection } = this.selectionVerifyChain();
 
       for (const element of selection) {
-        const prevName = element
+        const prevName = element.name
           .replace(/__/g, "_") // step 1: replace double underscores
           .replace(/^_+|_+$/g, ""); // step 2: remove leading/trailing underscores;
 
-        if (ES6_SA.stringIncludes(prevName, `_${mark}_`)) {
+        if (ES6_SA.stringIncludes(prevName, mark)) {
           continue;
         }
 
-        element.name = `_${prevName}_${mark}_`;
+        element.name = `${prevName ? `_${prevName}` : prevName}_${mark}_`;
       }
     } catch (error: any) {
       alertDialogSA(error.message);
