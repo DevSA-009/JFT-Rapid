@@ -71,6 +71,12 @@ enum RIBType {
 
 const stackTypesTuple: StackType[] = ["HH", "VV", "RHH", "RVV", "VRH"];
 
+enum CountType {
+  SET = "SET",
+  PCS = "PCS",
+  CMD = "CMD",
+}
+
 enum PairObjectMarkers {
   BODY = "BODY",
   SHORT_SLV = "S_SLV",
