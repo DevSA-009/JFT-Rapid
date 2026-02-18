@@ -127,34 +127,34 @@ markPairBtn.onclick = () => {
 };
 
 markCollarBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('COLLAR')");
+  csInterface.evalScript("Organizer.objectMarkByName('COLLAR')");
 };
 markNeckBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('NECK')");
+  csInterface.evalScript("Organizer.objectMarkByName('NECK')");
 };
 markBodyBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('BODY')");
+  csInterface.evalScript("Organizer.objectMarkByName('BODY')");
 };
 markPlacketBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('PLACKET')");
+  csInterface.evalScript("Organizer.objectMarkByName('PLACKET')");
 };
 markShortSlvBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_SLV')");
+  csInterface.evalScript("Organizer.objectMarkByName('SHORT_SLV')");
 };
 markLongSlvBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_SLV')");
+  csInterface.evalScript("Organizer.objectMarkByName('LONG_SLV')");
 };
 markShortRIBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_SLV_RIB')");
+  csInterface.evalScript("Organizer.objectMarkByName('SHORT_SLV_RIB')");
 };
 markLongRIBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_SLV_RIB')");
+  csInterface.evalScript("Organizer.objectMarkByName('LONG_SLV_RIB')");
 };
 markShortPantBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_PANT')");
+  csInterface.evalScript("Organizer.objectMarkByName('SHORT_PANT')");
 };
 markLongPantBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_PANT')");
+  csInterface.evalScript("Organizer.objectMarkByName('LONG_PANT')");
 };
 
 /**

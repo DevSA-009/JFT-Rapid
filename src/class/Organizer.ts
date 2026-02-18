@@ -489,70 +489,13 @@ class Organizer {
         const prevName = element
           .replace(/__/g, "_") // step 1: replace double underscores
           .replace(/^_+|_+$/g, ""); // step 2: remove leading/trailing underscores;
+
+        if (ES6_SA.stringIncludes(prevName, `_${mark}_`)) {
+          continue;
+        }
+
         element.name = `_${prevName}_${mark}_`;
       }
-    } catch (error: any) {
-      alertDialogSA(error.message);
-    }
-  }
-
-  /**
-   * Assigns a custom name (mark) to selected Illustrator objects, ensuring they are grouped as a pair.
-   *
-   * Behavior:
-   * - If **exactly 1 object** is selected → duplicates it and groups the original + duplicate
-   * - If **exactly 2 objects** are selected → groups them directly
-   * - If **0 or >2 objects** are selected → throws an error
-   *
-   * After grouping, the resulting group receives the given `mark` as its `.name`.
-   * Finally, the group becomes the only selected object.
-   *
-   * Useful for quickly creating symmetrically named pairs (e.g. left/right, top/bottom, before/after states).
-   *
-   * @param {string} mark - The name/identifier to assign to the resulting group
-   *
-   * @throws {Error}
-   * - When no document is open
-   * - When selection is empty
-   * - When more than 2 objects are selected
-   * - When selection verification fails
-   *
-   * @example
-   * ```ts
-   * // Select one rectangle → creates duplicate + group named "button-pair"
-   * IllustratorUtils.objectMarkByNameAsPair("button-pair");
-   *
-   * // Select two paths → groups them and names the group "arrow-group"
-   * IllustratorUtils.objectMarkByNameAsPair("arrow-group");
-   * ```
-   */
-  static objectMarkByNameAsPair(mark: keyof typeof PairObjectMarkers) {
-    try {
-      const selectionVerifyChain = this.selectionVerifyChain();
-      let selection = selectionVerifyChain.selection;
-
-      if (selection.length > 2) {
-        throw new Error(`Select only 1 or 2 objects.`);
-      }
-
-      if (selection.length === 1) {
-        const dupObj = selection[0].duplicate();
-        Organizer.docSelectionHandler({
-          doc: app.activeDocument,
-          remaingExistSelection: true,
-          objects: [dupObj],
-        });
-      }
-
-      selection = app.activeDocument.selection;
-
-      const groupObject = GroupManager.group(selection);
-      groupObject.name = PairObjectMarkers[mark] || "";
-
-      Organizer.docSelectionHandler({
-        doc: app.activeDocument,
-        objects: [groupObject],
-      });
     } catch (error: any) {
       alertDialogSA(error.message);
     }
