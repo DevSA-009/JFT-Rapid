@@ -31,7 +31,9 @@ const $2SetFSlvBtn = selectElementById("2SetFSlv");
 const arrangeObjectsBeforeBtn = selectElementById("arrangeObjectsBefore");
 const tiffObjectsBtn = selectElementById("tiffObjects");
 const resetObjectsNameBtn = selectElementById("resetObjectsName");
-const selectSametagNamesObjectsBtn = selectElementById("selectSametagNamesObjects");
+const selectSametagNamesObjectsBtn = selectElementById(
+  "selectSametagNamesObjects",
+);
 
 // ---------- patch Object Key Handler Button --------- \\
 const makeObjKeyBtn = selectElementById("makeObjectKey");
@@ -112,17 +114,17 @@ markRightBtn.onclick = () => {
 };
 
 markNameBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NAME')")
-}
+  csInterface.evalScript("Organizer.objectMarkByName('NAME')");
+};
 markNumberBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NUMBER')")
-}
+  csInterface.evalScript("Organizer.objectMarkByName('NUMBER')");
+};
 markDynamicBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('DYNAMIC')")
-}
+  csInterface.evalScript("Organizer.objectMarkByName('DYNAMIC')");
+};
 markPairBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('PAIR')")
-}
+  csInterface.evalScript("Organizer.objectMarkByName('PAIR')");
+};
 
 markCollarBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByNameAsPair('COLLAR')");
@@ -144,16 +146,16 @@ markLongSlvBtn.onclick = () => {
 };
 markShortRIBBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_SLV_RIB')");
-}
+};
 markLongRIBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_SLV_RIB')")
-}
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_SLV_RIB')");
+};
 markShortPantBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_PANT')")
-}
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('SHORT_PANT')");
+};
 markLongPantBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_PANT')")
-}
+  csInterface.evalScript("Organizer.objectMarkByNameAsPair('LONG_PANT')");
+};
 
 /**
  *

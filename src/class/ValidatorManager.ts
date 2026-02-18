@@ -32,8 +32,7 @@ class ValidatorManager {
     const sizeTextFrame = ES6_SA.arrayFind(
       item.pageItems,
       (item) =>
-        item.typename === PageItemType.TextFrame &&
-        item.name === SIZE_TKN,
+        item.typename === PageItemType.TextFrame && item.name === SIZE_TKN,
     );
 
     if (!sizeTextFrame) {
