@@ -213,57 +213,6 @@ class Organizer {
   }
 
   /**
-   * Retrieves pant-related items from the document's active layer.
-   *
-   * This method looks for the following items by their names:
-   * - F_L
-   * - F_R
-   * - B_L
-   * - B_R
-   *
-   * If any of these are missing, it throws an Error with a list of missing item names.
-   *
-   * @param {Document} doc - The document from which to retrieve pant items.
-   * @returns {PantItems} An array of pant-related items tuple.
-   * @throws {Error} If any pant items are missing.
-   */
-  static getPantItems(container: PageItem[]): PantItems {
-    const pageItems = container;
-
-    const F_L = ES6_SA.arrayFind(
-      pageItems,
-      (item) => item.name === SearchingKeywordsForPant.PANT_F_L,
-    );
-    const F_R = ES6_SA.arrayFind(
-      pageItems,
-      (item) => item.name === SearchingKeywordsForPant.PANT_F_R,
-    );
-    const B_L = ES6_SA.arrayFind(
-      pageItems,
-      (item) => item.name === SearchingKeywordsForPant.PANT_B_L,
-    );
-    const B_R = ES6_SA.arrayFind(
-      pageItems,
-      (item) => item.name === SearchingKeywordsForPant.PANT_B_R,
-    );
-
-    const missing = [];
-
-    if (!F_L) missing.push(SearchingKeywordsForPant.PANT_F_L);
-    if (!F_R) missing.push(SearchingKeywordsForPant.PANT_F_R);
-    if (!B_L) missing.push(SearchingKeywordsForPant.PANT_B_L);
-    if (!B_R) missing.push(SearchingKeywordsForPant.PANT_B_R);
-
-    if (missing.length > 0) {
-      throw new Error(
-        `Can't find pant items: missing [${missing.join(", ")}].`,
-      );
-    }
-
-    return [F_L as PageItem, F_R as PageItem, B_L as PageItem, B_R as PageItem];
-  }
-
-  /**
    * Handles the key object selection logic.
    *
    * This static method checks the current document and selection, and either sets or removes

@@ -33,7 +33,7 @@ class ValidatorManager {
       item.pageItems,
       (item) =>
         item.typename === PageItemType.TextFrame &&
-        item.name === SearchingKeywords.SIZE_TKN,
+        item.name === SIZE_TKN,
     );
 
     if (!sizeTextFrame) {

@@ -71,32 +71,33 @@ enum RIBType {
 
 const stackTypesTuple: StackType[] = ["HH", "VV", "RHH", "RVV", "VRH"];
 
-enum SearchingKeywords {
-  SIZE_TKN = "SIZE_TKN",
-  FRONT = "FRONT",
+enum ContainerMarkers {
+  BODY= "BODY",
+  SHORT_SLV= "S_SLV",
+  LONG_SLV= "L_SLV",
   NECK = "NECK",
-  BACK = "BACK",
-  BODY = "BODY",
-  PAIR = "PAIR",
-  DYNAMIC = "DYN",
-  LONG_SLV = "L_SLV",
+  COLLAR = "COLLAR",
+  PLACKET = "PLACKET",
   SHORT_PANT = "S_PANT",
   LONG_PANT = "L_PANT",
-  SHORT_SLV = "S_SLV",
-  SOLID = "SLD",
-  COLLAR = "CLR",
-  PLACKET = "PLC",
   SHORT_SLV_RIB = "S_RIB",
   LONG_SLV_RIB = "L_RIB",
-  NUMBER = "NUMBER",
+}
+
+enum BasicMarkers {
   NAME = "NAME",
+  NUMBER = "NUMBER",
+  DYNAMIC = "DYNAMIC",
+  PAIR = "PAIR",
 }
 
-const faceBasePair = [SearchingKeywords.BODY, SearchingKeywords.COLLAR];
-
-enum SearchingKeywordsForPant {
-  PANT_F_L = "PANT_F_L",
-  PANT_F_R = "PANT_F_R",
-  PANT_B_L = "PANT_B_L",
-  PANT_B_R = "PANT_B_R",
+enum DirectionMarkers {
+  FRONT = "FRONT",
+  BACK = "BACK",
+  LEFT = "LEFT",
+  RIGHT = "RIGHT"
 }
+
+const SIZE_TKN = "SIZE_TKN";
+
+const faceBasePair = [ContainerMarkers.BODY, ContainerMarkers.COLLAR];
