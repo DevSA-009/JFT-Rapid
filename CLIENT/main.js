@@ -117,44 +117,44 @@ markNameBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('NAME')");
 };
 markNumberBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NUMBER')");
+  csInterface.evalScript("Organizer.objectMarkByName('NO')");
 };
 markDynamicBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('DYNAMIC')");
+  csInterface.evalScript("Organizer.objectMarkByName('DYN')");
 };
 markPairBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('PAIR')");
 };
 
 markCollarBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('COLLAR')");
+  csInterface.evalScript("Organizer.objectMarkByName('CLR')");
 };
 markNeckBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NECK')");
+  csInterface.evalScript("Organizer.objectMarkByName('NCK')");
 };
 markBodyBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('BODY')");
 };
 markPlacketBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('PLACKET')");
+  csInterface.evalScript("Organizer.objectMarkByName('PLK')");
 };
 markShortSlvBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('SHORT_SLV')");
+  csInterface.evalScript("Organizer.objectMarkByName('S_SLV')");
 };
 markLongSlvBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('LONG_SLV')");
+  csInterface.evalScript("Organizer.objectMarkByName('L_SLV')");
 };
 markShortRIBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('SHORT_SLV_RIB')");
+  csInterface.evalScript("Organizer.objectMarkByName('S_RIB')");
 };
 markLongRIBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('LONG_SLV_RIB')");
+  csInterface.evalScript("Organizer.objectMarkByName('L_RIB')");
 };
 markShortPantBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('SHORT_PANT')");
+  csInterface.evalScript("Organizer.objectMarkByName('S_PANT')");
 };
 markLongPantBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('LONG_PANT')");
+  csInterface.evalScript("Organizer.objectMarkByName('L_PANT')");
 };
 
 /**

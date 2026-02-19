@@ -81,9 +81,9 @@ enum PairObjectMarkers {
   BODY = "BODY",
   SHORT_SLV = "S_SLV",
   LONG_SLV = "L_SLV",
-  NECK = "NECK",
-  COLLAR = "COLLAR",
-  PLACKET = "PLACKET",
+  NECK = "NCK",
+  COLLAR = "CLR",
+  PLACKET = "PLK",
   SHORT_PANT = "S_PANT",
   LONG_PANT = "L_PANT",
   SHORT_SLV_RIB = "S_RIB",
@@ -92,8 +92,8 @@ enum PairObjectMarkers {
 
 enum BasicMarkers {
   NAME = "NAME",
-  NUMBER = "NUMBER",
-  DYNAMIC = "DYNAMIC",
+  NUMBER = "NO",
+  DYNAMIC = "DYN",
   PAIR = "PAIR",
 }
 

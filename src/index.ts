@@ -1,9 +1,9 @@
 const JFT_CONF_PRODUCTION_PATH =
-  "C:\\Users\\Admin\\AppData\\Roaming\\Adobe\\CEP\\extensions\\com.jftrapid.cep\\jft.conf";
+	"C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\com.jftrapid.cep\\jft.conf";
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
-const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_DEV_PATH);
+const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH);
 
 // for globally handler progressbar
 // const progressWindow = createProgressWindow();
