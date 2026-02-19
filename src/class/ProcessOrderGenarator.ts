@@ -1,7 +1,7 @@
 /**
  * Parameters required to generate a processing order for garment decoration workflow
  */
-interface ProcessOrderGeneratorParams {
+interface JFTProcessOrderGeneratorParams {
   /** Type of jersey (determines neck/collar/placket requirements) */
   readonly jerseyType: keyof typeof JerseyType;
 
@@ -31,6 +31,11 @@ interface ItemsInfo {
   items: ItemInfoEntry[];
 }
 
+interface FindItems {
+  status: boolean;
+  item: PageItem | null;
+}
+
 /**
  * Generates ordered list of processing steps (search keywords) for garment production
  * based on jersey type, sleeve variations, rib configuration and pant types.
@@ -38,11 +43,11 @@ interface ItemsInfo {
  * Used to determine the sequence in which named items should be searched/processed
  * in an Adobe Illustrator document (typically for apparel decoration workflows).
  */
-class ProcessOrderGenerator {
-  private readonly jerseyType: ProcessOrderGeneratorParams["jerseyType"];
-  private readonly rib: ProcessOrderGeneratorParams["rib"];
-  private readonly sleeve: ProcessOrderGeneratorParams["sleeve"];
-  private readonly pant: ProcessOrderGeneratorParams["pant"];
+class JFTProcessOrderGenerator {
+  private readonly jerseyType: JFTProcessOrderGeneratorParams["jerseyType"];
+  private readonly rib: JFTProcessOrderGeneratorParams["rib"];
+  private readonly sleeve: JFTProcessOrderGeneratorParams["sleeve"];
+  private readonly pant: JFTProcessOrderGeneratorParams["pant"];
 
   /** Ordered list of search keywords that define the processing sequence */
   private workflow: string[] = [];
@@ -51,7 +56,7 @@ class ProcessOrderGenerator {
    * Creates a new process order generator instance
    * @param params - Configuration object defining the garment specifications
    */
-  constructor(params: ProcessOrderGeneratorParams) {
+  constructor(params: JFTProcessOrderGeneratorParams) {
     this.jerseyType = params.jerseyType;
     this.rib = params.rib;
     this.sleeve = params.sleeve;
@@ -112,24 +117,30 @@ class ProcessOrderGenerator {
   }
 
   /**
-   * Finds a named page item in the active layer of the active Illustrator document
+   * find JFT items from active document & layer pageitems
    *
-   * @param name - The exact name of the page item to find
-   * @returns Object containing status and the found item (or undefined)
+   * @returns {FindItems[]} array of items object that contain status and items ( or null)
    */
-  static findItem(name: string): {
-    status: boolean;
-    item: PageItem | undefined;
-  } {
+  public findItems(): FindItems[] {
     const pageItems = Organizer.pageItemsToArray(
       app.activeDocument.activeLayer.pageItems,
     );
 
-    const item = ES6_SA.arrayFind(pageItems, (item) =>
-      ES6_SA.stringIncludes(item.name, `_${name}_`),
-    );
+    return ES6_SA.arrayMap(this.workflow, (name) => {
+      const matches = ES6_SA.arrayFilter(pageItems, (item) => {
+        return ES6_SA.stringIncludes(item.name, `_${name}_`) && !item.locked;
+      });
 
-    return { status: !!item, item };
+      const count = matches.length;
+      const maxAllowed = name === PairObjectMarkers.NECK ? 1 : 2;
+
+      const isValid = count > 0 && count <= maxAllowed;
+
+      return {
+        status: isValid,
+        item: isValid ? matches[0] : null,
+      };
+    });
   }
 
   /**

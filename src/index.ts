@@ -23,11 +23,14 @@ const globalTransActHandler = new TransActionHandler();
 
 // .... all task
 
-// new ProcessOrderGenerator({
-//   jerseyType: JerseyType.POLO,
-//   rib: { type: "RIB", apply: [SleeveType.SHORT] },
-//   pant: [],
-//   sleeve: [SleeveType.SHORT],
-// });
+const processOrder = new JFTProcessOrderGenerator({
+  jerseyType: JerseyType.POLO,
+  rib: { type: "RIB", apply: [SleeveType.SHORT] },
+  pant: [],
+  sleeve: [SleeveType.SHORT],
+})
+
+const items = processOrder.findItems();
+
 
 globalTransActHandler.removeAll();
