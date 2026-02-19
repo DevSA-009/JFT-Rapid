@@ -33,7 +33,7 @@ interface ItemsInfo {
 
 interface FindItems {
   status: boolean;
-  item: PageItem | null;
+  items: PageItem[] | null;
 }
 
 /**
@@ -127,22 +127,26 @@ class JFTProcessOrderGenerator {
     );
 
     const collected = ES6_SA.arrayMap(this.workflow, (name) => {
-			const matches = ES6_SA.arrayFilter(pageItems, (item) => {
-				return ES6_SA.stringIncludes(item.name, `_${name}_`) && !item.locked;
-			});
+      let matches = ES6_SA.arrayFilter(pageItems, (item) => {
+        return ES6_SA.stringIncludes(item.name, `_${name}_`) && !item.locked;
+      });
 
-			const count = matches.length;
-			const maxAllowed = name === PairObjectMarkers.NECK ? 1 : 2;
+      const count = matches.length;
+      const maxAllowed = name === PairObjectMarkers.NECK ? 1 : 2;
 
-			const isValid = count > 0 && count <= maxAllowed;
+      if (count > maxAllowed) {
+        matches = matches.slice(0, maxAllowed);
+      }
 
-			return {
-				status: isValid,
-				item: isValid ? matches[0] : null,
-			};
-		});
+      return {
+        status: !!count,
+        items: count ? matches : null,
+      };
+    });
 
-    return !collected.length ? [] : ES6_SA.arrayFilter(collected,elm => elm.status);
+    return !collected.length
+      ? []
+      : ES6_SA.arrayFilter(collected, (elm) => elm.status);
   }
 
   /**
