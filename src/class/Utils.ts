@@ -718,6 +718,121 @@ class Utils {
       return null;
     }
   }
+  /**
+   * Determines if the given PathItem is a **strict rectangle shape**.
+   *
+   * A valid rectangle must satisfy **all** of these rules:
+   * - Is closed
+   * - Has exactly 4 path points
+   * - All segments are horizontal or vertical (axis-aligned)
+   * - All corners have no Bezier handles (straight corners only — not rounded or edited)
+   * - Small floating-point tolerance is allowed for manual drawing / import errors
+   *
+   * @remarks
+   * - This detects **axis-aligned** rectangles only.
+   * - Rounded rectangles return `false` (because of Bezier handles).
+   * - Rotated rectangles return `false` (diagonal segments).
+   *
+   * @param path - The PathItem to test (e.g. from selection[0] if it's a single path)
+   * @returns `true` only if it matches a perfect / near-perfect rectangle shape
+   */
+  static isRectangleShape(path: PathItem): boolean {
+    if (!path.closed) return false;
+    if (path.pathPoints.length !== 4) return false;
+
+    const points = path.pathPoints;
+    const TOLERANCE = 0.35; // pt tolerance for "almost horizontal/vertical"
+
+    // Check 1: All segments must be horizontal or vertical
+    for (let i = 0; i < 4; i++) {
+      const p1 = points[i].anchor;
+      const p2 = points[(i + 1) % 4].anchor;
+
+      const dx = Math.abs(p2[0] - p1[0]);
+      const dy = Math.abs(p2[1] - p1[1]);
+
+      // If both dx and dy are significant → diagonal → not rectangle
+      if (dx > TOLERANCE && dy > TOLERANCE) {
+        return false;
+      }
+    }
+
+    // Check 2: No Bezier handles (straight corners only)
+    for (let i = 0; i < 4; i++) {
+      const pt = points[i];
+
+      // leftDirection and rightDirection must match anchor exactly
+      if (
+        pt.leftDirection[0] !== pt.anchor[0] ||
+        pt.leftDirection[1] !== pt.anchor[1] ||
+        pt.rightDirection[0] !== pt.anchor[0] ||
+        pt.rightDirection[1] !== pt.anchor[1]
+      ) {
+        return false; // has curve handles → rounded / modified
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Checks if the fill color of the given PathItem is **white** (or equivalent to white).
+   *
+   * Returns `true` if:
+   * - The path is filled
+   * - Fill color is RGB(255,255,255), CMYK(0,0,0,0), or Gray(0)
+   *
+   * Returns `false` if:
+   * - Not filled
+   * - Fill is NoColor
+   * - Any other color (Spot, Gradient, Pattern, non-white values)
+   *
+   * @param path - The PathItem to check
+   * @returns `true` if filled with white, `false` otherwise
+   */
+  static isWhiteFill(path: PathItem): boolean {
+    if (!path.filled) {
+      return false;
+    }
+
+    const fillColor = path.fillColor;
+
+    if (fillColor.typename === "NoColor") {
+      return false;
+    }
+
+    let isWhite = false;
+
+    switch (fillColor.typename) {
+      case "RGBColor": {
+        const rgb = fillColor as RGBColor;
+        isWhite = rgb.red === 255 && rgb.green === 255 && rgb.blue === 255;
+        break;
+      }
+
+      case "CMYKColor": {
+        const cmyk = fillColor as CMYKColor;
+        isWhite =
+          cmyk.cyan === 0 &&
+          cmyk.magenta === 0 &&
+          cmyk.yellow === 0 &&
+          cmyk.black === 0;
+        break;
+      }
+
+      case "GrayColor": {
+        const gray = fillColor as GrayColor;
+        isWhite = gray.gray === 0; // 0 = white in Gray mode
+        break;
+      }
+
+      // Spot, Lab, Gradient, Pattern → treat as non-white
+      default:
+        isWhite = false;
+    }
+
+    return isWhite;
+  }
 }
 
 interface ConvertParams {
