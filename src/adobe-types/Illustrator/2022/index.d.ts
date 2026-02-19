@@ -6531,7 +6531,13 @@ declare class ExportOptionsTIFF {
 /**
  * The parent class for all color values used in Illustrator. See the specific color classes for more information.
  */
-declare class Color {}
+declare class Color {
+    /** Read-only class identifier (e.g. "RGBColor", "CMYKColor", etc.) */
+    readonly typename: string;
+
+    // No common properties across ALL color types
+    // (each subtype has its own component properties)
+}
 
 /**
  * An Lab color specification.
@@ -6551,6 +6557,8 @@ declare class LabColor extends Color {
    * The L color value (between 0.0 and 100.0)
    */
   l: number
+
+  readonly typename: "LabColor";
 }
 
 /**
@@ -6586,6 +6594,8 @@ declare class RGBColor extends Color {
    * The red color value (between 0.0 and 255.0)
    */
   red: number
+
+  readonly typename: "RGBColor";
 }
 
 /**
@@ -6611,6 +6621,8 @@ declare class CMYKColor extends Color {
    * The yellow color value (between 0.0 and 100.0)
    */
   yellow: number
+
+  readonly typename: "CMYKColor";
 }
 
 /**
@@ -6621,12 +6633,16 @@ declare class GrayColor extends Color {
    * The gray value (between 0.0 and 100.0)
    */
   gray: number
+
+  readonly typename: "GrayColor";
 }
 
 /**
  * Represents the 'none' color.
  */
-declare class NoColor extends Color {}
+declare class NoColor extends Color {
+  readonly typename: "NoColor";
+}
 
 /**
  * Information about the spot color.
@@ -6641,6 +6657,8 @@ declare class SpotColor extends Color {
    * Percentage level of tint to be applied to the spot color.
    */
   tint: number
+
+  readonly typename: "SpotColor";
 }
 
 /**
@@ -6696,6 +6714,8 @@ declare class PatternColor extends Color {
    * The distance to translate the (unscaled) prototype before filling.
    */
   shiftDistance: number
+
+  readonly typename: "PatternColor";
 }
 
 /**
@@ -6736,6 +6756,8 @@ declare class GradientColor extends Color {
    * The gradient vector origin.
    */
   origin: Point | [number, number]
+
+  readonly typename: "GradientColor";
 }
 
 /**
