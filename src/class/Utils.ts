@@ -833,6 +833,29 @@ class Utils {
 
     return isWhite;
   }
+
+  /**
+   * Finds the key in a string-mapped object whose value equals the input.
+   *
+   * @template T - A record with string literal values
+   * @param enumObj - The source object (enum or `as const`)
+   * @param value - A value that should exist in `enumObj`
+   * @returns The corresponding key, or `undefined` if no match is found
+   */
+  static getKeyFromEnumValue<
+    T extends Record<string, string>,
+    V extends T[keyof T],
+  >(
+    enumObj: T,
+    value: V,
+  ):
+    | Extract<keyof T, { [K in keyof T]: T[K] extends V ? K : never }[keyof T]>
+    | undefined {
+    for (const [k, v] of ES6_SA.objectEntries(enumObj)) {
+      if (v === value) return k as any; // type assertion needed due to current TS limitations
+    }
+    return undefined;
+  }
 }
 
 interface ConvertParams {
