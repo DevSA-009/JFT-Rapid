@@ -1,5 +1,5 @@
 const JFT_CONF_PRODUCTION_PATH =
-	"C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\com.jftrapid.cep\\jft.conf";
+  "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\com.jftrapid.cep\\jft.conf";
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
@@ -28,9 +28,11 @@ const processOrder = new JFTProcessOrderGenerator({
   rib: { type: "RIB", apply: [SleeveType.SHORT] },
   pant: [],
   sleeve: [SleeveType.SHORT],
-})
+});
 
-const items = processOrder.findItems();
+const test = () => {
+  const items = processOrder.jftItems();
+};
 
-
+test();
 globalTransActHandler.removeAll();

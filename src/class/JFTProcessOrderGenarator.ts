@@ -32,8 +32,8 @@ interface ItemsInfo {
 }
 
 interface FindItems {
-  status: boolean;
-  items: PageItem[] | null;
+  order: string;
+  items: ItemInfoEntry[];
 }
 
 /**
@@ -117,36 +117,49 @@ class JFTProcessOrderGenerator {
   }
 
   /**
-   * find JFT items from active document & layer pageitems
+   * find JFT items & info from active document & layer pageitems
    *
-   * @returns {FindItems[]} array of items object that contain status and items ( or null)
+   * @returns {FindItems[]} array of items object that contain order type and items
    */
-  public findItems(): FindItems[] {
+  public jftItems(): FindItems[] {
     const pageItems = Organizer.pageItemsToArray(
       app.activeDocument.activeLayer.pageItems,
     );
 
-    const collected = ES6_SA.arrayMap(this.workflow, (name) => {
+    const collected = ES6_SA.arrayMap(this.workflow, (order) => {
       let matches = ES6_SA.arrayFilter(pageItems, (item) => {
-        return ES6_SA.stringIncludes(item.name, `_${name}_`) && !item.locked;
+        return ES6_SA.stringIncludes(item.name, `_${order}_`) && !item.locked;
       });
 
       const count = matches.length;
-      const maxAllowed = name === PairObjectMarkers.NECK ? 1 : 2;
+      const maxAllowed = order === PairObjectMarkers.NECK ? 1 : 2;
 
       if (count > maxAllowed) {
         matches = matches.slice(0, maxAllowed);
       }
 
+      const finalItems = !!count ? matches : null;
+
+      if (!finalItems) {
+        return null;
+      }
+
+      const { items, countType, pair } = this.itemInfo(finalItems);
+
       return {
-        status: !!count,
-        items: count ? matches : null,
+        order:
+          Utils.getKeyFromEnumValue(
+            PairObjectMarkers,
+            order as PairObjectMarkers,
+          ) || order,
+        info: { countType, pair },
+        items,
       };
     });
 
-    return !collected.length
-      ? []
-      : ES6_SA.arrayFilter(collected, (elm) => elm.status);
+    const cleanCollec = ES6_SA.arrayFilter(collected, (item) => !!item);
+
+    return cleanCollec.length ? (cleanCollec as FindItems[]) : [];
   }
 
   /**
@@ -159,7 +172,7 @@ class JFTProcessOrderGenerator {
    *   - countType: An enumeration indicating the type of count to perform on the pair.
    *   - items: An array of objects containing the PageItem and a boolean indicating whether it is dynamic.
    */
-  static itemInfo(objects: [PageItem, PageItem | null]) {
+  private itemInfo(objects: PageItem[]) {
     const strInc = ES6_SA.stringIncludes;
 
     const itemsInfo: ItemsInfo = {
@@ -174,7 +187,7 @@ class JFTProcessOrderGenerator {
 
     const isObj1Pair = strInc(obj1.name, `_${BasicMarkers.PAIR}_`);
 
-    let obj2 = objects[1];
+    const obj2 = objects[1] || null;
 
     const isObj2Dyn = obj2
       ? strInc(obj2.name, `_${BasicMarkers.DYNAMIC}_`)
