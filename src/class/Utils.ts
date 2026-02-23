@@ -772,6 +772,10 @@ class Utils {
       }
     }
 
+    if (this.isWhiteFill(path)) {
+      return false;
+    }
+
     return true;
   }
 
