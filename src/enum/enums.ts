@@ -92,9 +92,10 @@ enum PairObjectMarkers {
 
 enum BasicMarkers {
   NAME = "NAME",
-  NUMBER = "NO",
+  NUMBER = "NUMBER",
   DYNAMIC = "DYN",
   PAIR = "PAIR",
+  FIXED_SIZE = "FSZ"
 }
 
 enum DirectionMarkers {

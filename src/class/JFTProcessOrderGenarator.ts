@@ -3,7 +3,7 @@
  */
 interface JFTProcessOrderGeneratorParams {
   /** Type of jersey (determines neck/collar/placket requirements) */
-  readonly jerseyType: keyof typeof JerseyType;
+  readonly type: keyof typeof JerseyType;
 
   /** List of sleeve variations present in the design */
   readonly sleeve: SleeveType[];
@@ -18,21 +18,27 @@ interface JFTProcessOrderGeneratorParams {
 
   /** List of pant variations present in the design */
   readonly pant: SleeveType[];
+
+  /** Total quantity  */
+  readonly total: number;
 }
 
 interface ItemInfoEntry {
   object: PageItem;
   isDynamic: boolean;
+  isFillRec: boolean;
 }
 
 interface ItemsInfo {
   pair: boolean;
   countType: CountType;
   items: ItemInfoEntry[];
+  fixedSize: boolean;
 }
 
 interface FindItems {
   order: string;
+  info: Omit<ItemsInfo, "items">;
   items: ItemInfoEntry[];
 }
 
@@ -44,10 +50,11 @@ interface FindItems {
  * in an Adobe Illustrator document (typically for apparel decoration workflows).
  */
 class JFTProcessOrderGenerator {
-  private readonly jerseyType: JFTProcessOrderGeneratorParams["jerseyType"];
+  private readonly jerseyType: JFTProcessOrderGeneratorParams["type"];
   private readonly rib: JFTProcessOrderGeneratorParams["rib"];
   private readonly sleeve: JFTProcessOrderGeneratorParams["sleeve"];
   private readonly pant: JFTProcessOrderGeneratorParams["pant"];
+  private readonly totalQTY: JFTProcessOrderGeneratorParams["total"];
 
   /** Ordered list of search keywords that define the processing sequence */
   private workflow: string[] = [];
@@ -57,10 +64,11 @@ class JFTProcessOrderGenerator {
    * @param params - Configuration object defining the garment specifications
    */
   constructor(params: JFTProcessOrderGeneratorParams) {
-    this.jerseyType = params.jerseyType;
+    this.jerseyType = params.type;
     this.rib = params.rib;
     this.sleeve = params.sleeve;
     this.pant = params.pant;
+    this.totalQTY = params.total;
 
     this.initOrder();
   }
@@ -144,7 +152,7 @@ class JFTProcessOrderGenerator {
         return null;
       }
 
-      const { items, countType, pair } = this.itemInfo(finalItems);
+      const { items, countType, pair, fixedSize } = this.itemInfo(finalItems);
 
       return {
         order:
@@ -152,7 +160,7 @@ class JFTProcessOrderGenerator {
             PairObjectMarkers,
             order as PairObjectMarkers,
           ) || order,
-        info: { countType, pair },
+        info: { countType, pair, fixedSize },
         items,
       };
     });
@@ -179,6 +187,7 @@ class JFTProcessOrderGenerator {
       pair: false,
       countType: CountType.PCS,
       items: [],
+      fixedSize: false,
     };
 
     const obj1 = objects[0];
@@ -186,6 +195,8 @@ class JFTProcessOrderGenerator {
     const isObj1Dyn = strInc(obj1.name, `_${BasicMarkers.DYNAMIC}_`);
 
     const isObj1Pair = strInc(obj1.name, `_${BasicMarkers.PAIR}_`);
+
+    const isObj1Fsz = strInc(obj1.name, `_${BasicMarkers.FIXED_SIZE}_`);
 
     const obj2 = objects[1] || null;
 
@@ -197,16 +208,42 @@ class JFTProcessOrderGenerator {
       ? strInc(obj2.name, `_${BasicMarkers.PAIR}_`)
       : false;
 
+    const isObj2Fsz = strInc(obj2.name, `_${BasicMarkers.FIXED_SIZE}_`);
+
     // detarmine if the items are a pair
     if ((isObj1Pair && obj2) || isObj2Pair || (isObj1Dyn && isObj2Dyn)) {
       itemsInfo.pair = true;
       itemsInfo.countType = CountType.SET;
     }
 
-    itemsInfo.items.push({ object: obj1, isDynamic: isObj1Dyn });
+    // determine if the items are fixed size
+    if (isObj1Fsz || isObj2Fsz) {
+      itemsInfo.fixedSize = true;
+    }
+
+    const items1 = {
+      object: obj1,
+      isDynamic: isObj1Dyn,
+      isFillRec: false,
+    };
+
+    if (obj1.typename === PageItemType.PathItem) {
+      items1.isFillRec = Utils.isRectangleShape(obj1 as PathItem);
+    }
+
+    itemsInfo.items.push(items1);
 
     if (obj2) {
-      itemsInfo.items.push({ object: obj2, isDynamic: isObj2Dyn });
+      const items2 = {
+        object: obj2,
+        isDynamic: isObj2Dyn,
+        isFillRec: false,
+      };
+
+      if (obj2.typename === PageItemType.PathItem) {
+        items2.isFillRec = Utils.isRectangleShape(obj2 as PathItem);
+      }
+      itemsInfo.items.push(items2);
     }
 
     return itemsInfo;

@@ -152,3 +152,23 @@ interface SelectItemsInDocParams {
   items: Selection;
   clear?: boolean;
 }
+
+interface AutomateData {
+  basic: {
+    type: JerseyType;
+    sleeve: SleeveType[];
+    rib: { type: RIBType; apply: SleeveType[] };
+    pant: SleeveType[];
+    total:number
+  };
+  details: {
+    [key in ApparelSize]: {
+      SUMMARY: Record<
+        "SLEEVE" | "PANT",
+        Record<SleeveType.LONG | SleeveType.SHORT, number>
+      >;
+      DATA: (Record<BasicMarkers.NAME | BasicMarkers.NUMBER, string> &
+        Record<string, string>)[];
+    };
+  };
+}
