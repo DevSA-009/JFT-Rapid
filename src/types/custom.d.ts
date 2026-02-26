@@ -1,12 +1,15 @@
 interface JFTRapid_Config {
   PAPER_MAX_SIZE: number;
-  Persist_Config: PersistConfig;
-  Items_Gap: number;
-  kidsinV: boolean;
-  orientation: StackOrientation;
-  perDoc: number;
-  outlineNANO: boolean;
-  opacityMask: boolean;
+  JFT_CONF: PersistConfig;
+  CONFIG: PersistConfig["config"];
+  SIZES_DETAILS: SizesDetails;
+  ITEMS_GAP: number;
+  KIDSINV: boolean;
+  ORIENTATION: StackOrientation;
+  PER_DOC: number;
+  BRAND: string;
+  OUTLINE_TEXT: boolean;
+  THREAD_ENGINE: ThreadEngine;
 }
 
 /**
@@ -37,15 +40,17 @@ type AlignPosition =
   | "CX"
   | "CY";
 
-interface SizeContainer {
-  [key: string]: {
-    [key in ApparelSize]: {
-      BODY: DimensionObject;
-      SLEEVE: Record<"SHORT" | "LONG", Record<"SIZE" | "RIB", DimensionObject>>;
-      NECK_AREA: Record<"COLLAR" | "PLACKET" | "NECK", DimensionObject>;
-      PANT: Record<"SHORT" | "LONG", Record<"FRONT" | "BACK", DimensionObject>>;
-    };
+type SizesDetails = {
+  [key in ApparelSize]: {
+    BODY: DimensionObject;
+    SLEEVE: Record<"SHORT" | "LONG", Record<"SIZE" | "RIB", DimensionObject>>;
+    NECK_AREA: Record<"COLLAR" | "PLACKET" | "NECK", DimensionObject>;
+    PANT: Record<"SHORT" | "LONG", Record<"FRONT" | "BACK", DimensionObject>>;
   };
+};
+
+interface SizeContainer {
+  [key: string]: SizesDetails;
 }
 
 type PantItems = [PageItem, PageItem, PageItem, PageItem];
@@ -159,7 +164,7 @@ interface AutomateData {
     sleeve: SleeveType[];
     rib: { type: RIBType; apply: SleeveType[] };
     pant: SleeveType[];
-    total:number
+    total: number;
   };
   details: {
     [key in ApparelSize]: {

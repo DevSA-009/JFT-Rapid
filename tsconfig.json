@@ -16,6 +16,7 @@
     "src/utils/**/*.ts",
     "src/class/Utils.ts",
     "src/class/GridCalculator.ts",
+    "src/class/GridLayoutGenerator.ts",
     "src/class/JSONFileHandler.ts",
     "src/class/JFTProcessOrderGenarator.ts",
     "src/class/AlignmentHandler.ts",

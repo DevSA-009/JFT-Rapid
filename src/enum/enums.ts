@@ -90,12 +90,20 @@ enum PairObjectMarkers {
   LONG_SLV_RIB = "L_RIB",
 }
 
+enum JFTCONFKeywords {
+  SLEEVE = "SLEEVE",
+  BODY = "BODY",
+  COLLAR = "COLLAR",
+  PLACKET = "PLACKET",
+  NECK = "NECK",
+}
+
 enum BasicMarkers {
   NAME = "NAME",
   NUMBER = "NUMBER",
   DYNAMIC = "DYN",
   PAIR = "PAIR",
-  FIXED_SIZE = "FSZ"
+  FIXED_SIZE = "FSZ",
 }
 
 enum DirectionMarkers {

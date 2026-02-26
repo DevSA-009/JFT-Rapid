@@ -8,16 +8,25 @@ const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH);
 // for globally handler progressbar
 // const progressWindow = createProgressWindow();
 
+const JFT_CONF = JFTPersistConfigFetch.read() as PersistConfig;
+
 const CONFIG: JFTRapid_Config = {
-  Items_Gap: 0.1,
-  outlineNANO: false,
+  ITEMS_GAP: 0.1,
+  OUTLINE_TEXT: false,
   PAPER_MAX_SIZE: 63.25,
-  Persist_Config: JFTPersistConfigFetch.read() as PersistConfig,
-  kidsinV: false,
-  perDoc: 0,
-  opacityMask: false,
-  orientation: "auto",
+  JFT_CONF,
+  CONFIG: JFT_CONF.config,
+  SIZES_DETAILS: JFT_CONF.sizes["JFT"] as unknown as SizesDetails,
+  BRAND: "JFT",
+  KIDSINV: false,
+  PER_DOC: 0,
+  THREAD_ENGINE: "script",
+  ORIENTATION: "auto",
 };
+
+CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
+  CONFIG.BRAND
+] as unknown as SizesDetails;
 
 const globalTransActHandler = new TransActionHandler();
 
@@ -27,7 +36,7 @@ const data: AutomateData = {
     sleeve: [SleeveType.SHORT],
     rib: { type: RIBType.RIB, apply: [SleeveType.SHORT] },
     pant: [],
-    total:5
+    total: 5,
   },
   details: {
     "2": {
@@ -102,35 +111,18 @@ const data: AutomateData = {
       SUMMARY: { SLEEVE: { LONG: 0, SHORT: 0 }, PANT: { LONG: 0, SHORT: 0 } },
       DATA: [],
     },
-  }
+  },
 };
 
 // .... all task
 
 const startAutomate = () => {
-
-  const {basic,details} = data;
+  const { basic, details } = data;
 
   const gap = 0.1;
 
   const maxColsInDoc = 5;
-
-  const jftProcess = new JFTProcessOrderGenerator(basic);
-
-  const jftItems = jftProcess.jftItems();
-
-  const fszItems = ES6_SA.arrayFilter(jftItems,item => item.info.fixedSize);
-
-  const nonFszItems = ES6_SA.arrayFilter(jftItems,item => !item.info.fixedSize);
-
-  const z = nonFszItems[0];
-
-  ES6_SA.arrayForEach(jftItems,item => {
-    const {info,items,order} = item;
-    const objectSize = Utils.getDimension(Utils.getObjectBounds(items[0].object));
-    
-  })
 };
 
-startAutomate()
+startAutomate();
 globalTransActHandler.removeAll();
