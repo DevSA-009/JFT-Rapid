@@ -388,12 +388,7 @@ class GridCalculator {
     docsNeeded = Math.ceil(neededCols / colsPerDoc);
 
     if (maxColsInDoc) {
-      if (maxColsInDoc > colsPerDoc) {
-        throw new Error(
-          `max cols in doc exceeded Canva height.\n\nPlease use ${colsPerDoc} for max`,
-        );
-      }
-      colsPerDoc = maxColsInDoc;
+      colsPerDoc = maxColsInDoc > colsPerDoc ? colsPerDoc : maxColsInDoc;
       docsNeeded = Math.ceil(neededCols / colsPerDoc);
     }
 
