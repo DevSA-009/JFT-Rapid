@@ -553,46 +553,79 @@ class Utils {
   };
 
   /**
-   * Rotate a items by degrees
-   * @param {Selection | PageItem} items
-   * @param {90 | -90 | 180 | 0 | -180} deg
+   * Rotates one or more PageItems by the given angle (degrees) while preserving
+   * their original geometric center position.
+   *
+   * Why this method exists:
+   * Illustrator's native `PageItem.rotate(deg)` rotates around the **top-left corner**
+   * by default, which shifts the visual center of the object(s).
+   * This utility compensates for that shift by:
+   * 1. Capturing the original center
+   * 2. Rotating
+   * 3. Calculating the new center
+   * 4. Translating back to restore original center
+   *
+   * Behavior notes:
+   * - If multiple items are passed → they are temporarily grouped, rotated together,
+   *   then ungrouped to preserve relative positions.
+   * - Single item → rotated directly (no temporary group created).
+   * - Works correctly with rotated/compound/masked artwork as long as `getObjectBounds`
+   *   returns accurate geometric bounds.
+   *
+   * @param items - One or more PageItems (or Selection array) to rotate
+   * @param deg    - Rotation angle in degrees. Common values: 90, -90, 180, -180, 0.
+   *                 Any number is accepted (e.g. 45, -22.5).
    */
-  static rotateItems = (
-    items: Selection | PageItem,
-    deg: RotateDegrees | number,
-  ) => {
-    let groupManager: GroupManager | null = null;
+  static rotateItems(items: Selection, deg: RotateDegrees | number): void {
+    // Early return if nothing to process (defensive)
+    if (!items || items.length === 0) return;
 
-    let item = items;
+    let target: PageItem | GroupItem = items[0];
+    let wasTemporaryGroupCreated = false;
 
-    if (ES6_SA.isArray(items)) {
-      item = GroupManager.group(items as Selection);
+    // If more than one item → group them so they rotate as a single rigid unit
+    if (items.length > 1) {
+      target = GroupManager.group(items);
+      wasTemporaryGroupCreated = true;
     }
 
-    // Get original bounds
-    const { left, top, right, bottom } = this.getObjectBounds(item);
-    const originalCenterX = (left + right) / 2;
-    const originalCenterY = (top + bottom) / 2;
+    // ────────────────────────────────────────────────
+    // 1. Capture geometric center BEFORE rotation
+    // ────────────────────────────────────────────────
+    const originalBounds = this.getObjectBounds(target);
+    const originalCenterX = (originalBounds.left + originalBounds.right) / 2;
+    const originalCenterY = (originalBounds.top + originalBounds.bottom) / 2;
 
-    // Rotate the object
-    (item as PageItem).rotate(deg);
+    // ────────────────────────────────────────────────
+    // 2. Apply rotation (Illustrator rotates around top-left by default)
+    // ────────────────────────────────────────────────
+    target.rotate(deg);
 
-    // Get new bounds after rotation
-    const newBounds = this.getObjectBounds(item);
+    // ────────────────────────────────────────────────
+    // 3. Get new bounds and calculate new center AFTER rotation
+    // ────────────────────────────────────────────────
+    const newBounds = this.getObjectBounds(target);
     const newCenterX = (newBounds.left + newBounds.right) / 2;
     const newCenterY = (newBounds.top + newBounds.bottom) / 2;
 
-    // Calculate the translation needed to keep it centered
+    // ────────────────────────────────────────────────
+    // 4. Compute how much we need to translate to restore original center
+    // ────────────────────────────────────────────────
     const deltaX = originalCenterX - newCenterX;
     const deltaY = originalCenterY - newCenterY;
 
-    // Move object back to original center position
-    (item as PageItem).translate(deltaX, deltaY);
+    // ────────────────────────────────────────────────
+    // 5. Translate back to keep visual center unchanged
+    // ────────────────────────────────────────────────
+    target.translate(deltaX, deltaY);
 
-    if (groupManager) {
-      GroupManager.ungroup(item as GroupItem);
+    // ────────────────────────────────────────────────
+    // 6. Clean up: ungroup if we created a temporary group
+    // ────────────────────────────────────────────────
+    if (wasTemporaryGroupCreated) {
+      GroupManager.ungroup(target as GroupItem);
     }
-  };
+  }
 
   /**
    * get object width and height value in `POINT` Unit
