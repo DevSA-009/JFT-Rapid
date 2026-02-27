@@ -2,5 +2,8 @@
   "scripts": {
     "build": "tsc",
     "format": "npx prettier . --write"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }
