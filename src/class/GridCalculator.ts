@@ -24,20 +24,20 @@ class GridCalculator {
         height: widthOfVRH,
       },
       HH: {
-        width: itemW * horizontalMultiplier + gap,
+        width: itemW * horizontalMultiplier + (pair ? gap : 0),
         height: itemH,
       },
       RHH: {
-        width: rotatedW * horizontalMultiplier + gap,
+        width: rotatedW * horizontalMultiplier + (pair ? gap : 0),
         height: rotatedH,
       },
       VV: {
         width: itemW,
-        height: itemH * 2 + gap,
+        height: itemH * 2 + (pair ? gap : 0),
       },
       RVV: {
         width: rotatedW,
-        height: rotatedH * 2 + gap,
+        height: rotatedH * 2 + (pair ? gap : 0),
       },
     };
 
@@ -116,24 +116,25 @@ class GridCalculator {
    * @param params.quantity - Total number of items to place (default: 1)
    * @param params.fitRow - Maximum number of items that fit in a single row
    * @returns Object containing:
-   *   - rows: Number of rows required to place the items
+   *   - cols: Number of rows required to place the items
    *   - remainder: Items left after filling full rows
    */
   static getColsByStack(params: RowByStack) {
     const { fitRow, quantity = 1 } = params;
 
     // if can't fit items then all are remainder
-    if (fitRow === 0 || fitRow === 1)
+    if (fitRow === 0) {
       return {
-        cols: quantity,
-        remainder: 0,
+        cols: 0,
+        remainder: quantity,
       };
+    }
 
     const remainder = quantity % fitRow;
-    const rowsNeed = Math.floor(quantity / fitRow);
+    const cols = Math.floor(quantity / fitRow);
 
     return {
-      cols: rowsNeed,
+      cols,
       remainder,
     };
   }
@@ -187,11 +188,24 @@ class GridCalculator {
         gap,
       });
 
+      // VRH special handling: it holds 2 items per square
+      let adjustedQuantity = quantity;
+      if (type === "VRH") {
+        // For VRH, each "stack" holds 2 items
+        // So we calculate based on number of VRH squares needed
+        adjustedQuantity = Math.floor(quantity / 2); // Only full VRH squares for main
+      }
+
       const neededCols = this.getColsByStack({
         fitRow,
-        quantity:
-          type !== "VRH" ? quantity : Math.max(1, Math.ceil(quantity / 2)),
+        quantity: adjustedQuantity,
       });
+
+      // VRH remainder calculation: leftover items that don't fill a VRH square
+      let actualRemainder = neededCols.remainder;
+      if (type === "VRH") {
+        actualRemainder = quantity % 2; // 1 if odd, 0 if even
+      }
 
       const heightByCols = this.getHeightByCols({
         count: neededCols.cols,
@@ -211,7 +225,10 @@ class GridCalculator {
 
       stacksInfo[type] = {
         fitRow,
-        neededCols,
+        neededCols: {
+          cols: neededCols.cols,
+          remainder: actualRemainder,
+        },
         heightByCols,
         stackSize,
         requiredDocs,
@@ -314,7 +331,7 @@ class GridCalculator {
           mainFitRow: mainInfo.fitRow,
           remainderFitRow: remInfo.fitRow,
           remainderCols: mainInfo.neededCols.remainder > 0 ? 1 : 0,
-          requiredDocs: mainInfo.requiredDocs, // remainder always can fit one document
+          requiredDocs: mainInfo.requiredDocs,
         });
       }
     }
@@ -331,12 +348,12 @@ class GridCalculator {
       remainderStack: "HH",
       totalHeight: 0,
       hasRemainder: false,
-      mainRows: 0,
+      mainCols: 0,
       remainderItems: 0,
       mainFitRow: 0,
       remainderFitRow: 0,
-      remainderRows: 0,
-      allCombinations: [],
+      remainderCols: 0,
+      requiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
     };
 
     return {
@@ -350,7 +367,6 @@ class GridCalculator {
       remainderFitRow: best.remainderFitRow,
       remainderCols: best.remainderCols,
       requiredDocs: best.requiredDocs,
-      // allCombinations: validCombinations,
     };
   }
 
@@ -359,19 +375,17 @@ class GridCalculator {
    * Determines either:
    * - Documents needed when limited by maximum canvas height (inches), or
    * - Documents needed when using fixed columns-per-document configuration
+   * - If the colsPerDocConfig exceeded the canvas height size
    *
    * @returns {RequiredDocReturn} Object containing:
    *   - docsNeeded: Total number of documents required
    *   - colsPerDoc: Maximum columns that can fit in each document
-   *
-   * * @throws {Error} If the colsPerDocConfig execeeded the canva height size
    */
   private static requiredDocs(params: RequiredDocArg): RequiredDocReturn {
     const CANVAS_MAX_HEIGHT = 210;
     const { dimension, neededCols, gap, maxColsInDoc } = params;
 
     let docsNeeded: number;
-
     let colsPerDoc: number;
 
     // Calculate how many columns can fit within the canvas height constraint
@@ -395,6 +409,8 @@ class GridCalculator {
     return { docsNeeded, colsPerDoc };
   }
 }
+
+// ... (interface definitions remain the same)
 
 /** Input parameters for stack size calculation */
 interface StackSizeParams {
