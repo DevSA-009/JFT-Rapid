@@ -324,6 +324,7 @@ class GridCalculator {
           remainderFitRow: mainInfo.fitRow,
           remainderCols: 0,
           requiredDocs: mainInfo.requiredDocs,
+          remainderRequiredDocs: { docsNeeded: 0, colsPerDoc: 0 }, // ✅ NEW
         });
         continue;
       }
@@ -340,6 +341,17 @@ class GridCalculator {
         const totalHeight =
           mainHeight + (mainHeight > 0 ? gap : 0) + remainderHeight;
 
+        // ✅ Calculate remainder docs (always 1 col since it's a single remainder row)
+        const remainderRequiredDocs = this.requiredDocs({
+          dimension: {
+            width: remInfo.stackSize.width,
+            height: remInfo.stackSize.height,
+          },
+          gap,
+          maxColsInDoc,
+          neededCols: 1, // Remainder is always 1 col
+        });
+
         validCombinations.push({
           mainStack: mainType,
           remainderStack: remType,
@@ -354,6 +366,7 @@ class GridCalculator {
           remainderFitRow: remInfo.fitRow,
           remainderCols: mainInfo.neededCols.remainder > 0 ? 1 : 0,
           requiredDocs: mainInfo.requiredDocs,
+          remainderRequiredDocs, // ✅ NEW
         });
       }
     }
@@ -376,6 +389,7 @@ class GridCalculator {
       remainderFitRow: 0,
       remainderCols: 0,
       requiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
+      remainderRequiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
     };
 
     return {
@@ -389,6 +403,7 @@ class GridCalculator {
       remainderFitRow: best.remainderFitRow,
       remainderCols: best.remainderCols,
       requiredDocs: best.requiredDocs,
+      remainderRequiredDocs: best.remainderRequiredDocs, // ✅ NEW
     };
   }
 
@@ -513,6 +528,7 @@ interface CombinationScore {
   remainderFitRow: number;
   remainderCols: number;
   requiredDocs: RequiredDocReturn;
+  remainderRequiredDocs: RequiredDocReturn; // ✅ NEW
 }
 
 /** Result from getRecommendedStacks */
@@ -535,10 +551,10 @@ interface RecommendedStacksResult {
   remainderFitRow: number;
   /** Number of remainder rows (always 0 or 1) */
   remainderCols: number;
-  /** info about each doc fittable cols */
+  /** info about main stack docs */
   requiredDocs: RequiredDocReturn;
-  /** All valid combinations (sorted by score) */
-  // allCombinations: CombinationScore[];
+  /** info about remainder stack docs */ // ✅ NEW
+  remainderRequiredDocs: RequiredDocReturn;
 }
 
 interface RequiredDocArg {
