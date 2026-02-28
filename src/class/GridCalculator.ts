@@ -188,12 +188,35 @@ class GridCalculator {
         gap,
       });
 
-      // VRH special handling: it holds 2 items per square
+      // VRH special handling: capacity depends on pair value
       let adjustedQuantity = quantity;
+      let actualRemainder = 0;
+
       if (type === "VRH") {
-        // For VRH, each "stack" holds 2 items
-        // So we calculate based on number of VRH squares needed
-        adjustedQuantity = Math.floor(quantity / 2); // Only full VRH squares for main
+        // ✅ NEW LOGIC: VRH capacity depends on pair
+        const itemsPerVRH = pair ? 2 : 4;
+
+        // Skip VRH if quantity < itemsPerVRH (can't make even 1 full square)
+        if (quantity < itemsPerVRH) {
+          stacksInfo[type] = {
+            fitRow: 0,
+            neededCols: {
+              cols: 0,
+              remainder: quantity,
+            },
+            heightByCols: {
+              mainStack: 0,
+              remainderStack: stackSize.height,
+            },
+            stackSize,
+            requiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
+          };
+          continue;
+        }
+
+        // Calculate full VRH squares and remainder
+        adjustedQuantity = Math.floor(quantity / itemsPerVRH);
+        actualRemainder = quantity % itemsPerVRH;
       }
 
       const neededCols = this.getColsByStack({
@@ -201,10 +224,9 @@ class GridCalculator {
         quantity: adjustedQuantity,
       });
 
-      // VRH remainder calculation: leftover items that don't fill a VRH square
-      let actualRemainder = neededCols.remainder;
-      if (type === "VRH") {
-        actualRemainder = quantity % 2; // 1 if odd, 0 if even
+      // Update remainder for non-VRH types
+      if (type !== "VRH") {
+        actualRemainder = neededCols.remainder;
       }
 
       const heightByCols = this.getHeightByCols({
