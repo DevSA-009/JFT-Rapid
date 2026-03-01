@@ -76,6 +76,7 @@ class JFTProcessOrderGenerator {
     this.pant = data.basic.pant;
     this.totalQTY = data.basic.total;
     this.data = data.details;
+    this.startAutomate();
   }
 
   /**
@@ -158,11 +159,11 @@ class JFTProcessOrderGenerator {
       // 4. Main body
       const bodyItem = this.jftItem(PairObjectMarkers.BODY);
       if (bodyItem) {
-        // this.processNeckAreaItem({
-        //   jftItem: bodyItem,
-        //   itemType: JFTCONFKeywords.BODY,
-        //   sizeChar
-        // });
+        this.processBodyItem({
+          jftItem: bodyItem,
+          itemType: JFTCONFKeywords.BODY,
+          sizeChar,
+        });
       }
     }
   }
@@ -182,7 +183,7 @@ class JFTProcessOrderGenerator {
     });
 
     const count = collected.length;
-    const maxAllowed = order === PairObjectMarkers.NECK ? 1 : 2;
+    const maxAllowed = 2;
 
     if (count > maxAllowed) {
       collected = collected.slice(0, maxAllowed);
@@ -210,7 +211,7 @@ class JFTProcessOrderGenerator {
   /**
    * Extracts information from the given PageItem(s).
    * Always returns exactly two ItemInfoEntry objects (duplicates obj1 if only one was found).
-   * Assigns/derives direction for each item (either from name or auto-assigned during mirroring).
+   * Assigns/derives direction for each item (either from name or auto-assigned during duplicate).
    *
    * @param objects - Array of PageItem(s) — usually 1 or 2 items
    * @returns ItemsInfo object with pair info, count type, fixedSize flag, and exactly 2 items
@@ -220,13 +221,9 @@ class JFTProcessOrderGenerator {
     // Helpers
     // ────────────────────────────────────────────────
 
-    // Shorthand for string includes check (used frequently)
     const strInc = ES6_SA.stringIncludes;
-
-    // All possible direction markers (LEFT, RIGHT, FRONT, BACK)
     const directionsArr = ES6_SA.objectKeys(DirectionMarkers);
 
-    // Returns the last (most specific) direction marker found in the name
     function getLastMatch(str: string): string {
       let lastMatch = "";
       let lastIndex = -1;
@@ -238,10 +235,9 @@ class JFTProcessOrderGenerator {
           lastMatch = dir;
         }
       }
-      return lastMatch; // "" if no direction marker exists
+      return lastMatch;
     }
 
-    // Returns the opposite direction or null if no logical opposite
     function getOppositeDirection(dir: string): string | null {
       if (dir === DirectionMarkers.LEFT) return DirectionMarkers.RIGHT;
       if (dir === DirectionMarkers.RIGHT) return DirectionMarkers.LEFT;
@@ -251,18 +247,18 @@ class JFTProcessOrderGenerator {
     }
 
     // ────────────────────────────────────────────────
-    // 1. Prepare the two objects (handle case of only one item found)
+    // 1. Prepare the two objects
     // ────────────────────────────────────────────────
-    let obj1 = objects[0]; // guaranteed to exist
-    let obj2 = objects[1] || null; // may be missing
+    let obj1 = objects[0];
+    let obj2 = objects[1];
 
-    const wasSingleItem = !obj2; // true → we will treat as mirrored pair
+    const wasSingleItem = !obj2;
     if (wasSingleItem) {
-      obj2 = obj1; // reference same object (common mirroring pattern)
+      obj2 = obj1.duplicate(); // force mirror: same object reference
     }
 
     // ────────────────────────────────────────────────
-    // 2. Detect current directions from object names
+    // 2. Detect current directions
     // ────────────────────────────────────────────────
     let obj1Direction = getLastMatch(obj1.name);
     let obj2Direction = getLastMatch(obj2.name);
@@ -271,7 +267,7 @@ class JFTProcessOrderGenerator {
     const hasDirection2 = !!obj2Direction;
 
     // ────────────────────────────────────────────────
-    // 3. Warn only when dynamic object is being auto-mirrored
+    // 3. Dynamic object warning (only when auto-duplicating)
     // ────────────────────────────────────────────────
     const isObj1Dyn = strInc(obj1.name, `_${BasicMarkers.DYNAMIC}_`);
 
@@ -280,34 +276,36 @@ class JFTProcessOrderGenerator {
     }
 
     // ────────────────────────────────────────────────
-    // 4. Auto-assign LEFT / RIGHT when single item + no direction present
-    //    (most apparel symmetric parts without explicit side are left+right)
+    // 4. When single item → ALWAYS assign opposite directions
     // ────────────────────────────────────────────────
-    if (wasSingleItem && !hasDirection1) {
-      const baseName = obj1.name; // preserve original name without direction
+    if (wasSingleItem) {
+      const baseName = obj1.name;
 
-      // WARNING: This modifies the actual PageItem.name in the document!
-      obj1.name = baseName + `_${DirectionMarkers.LEFT}_`;
-      obj2.name = baseName + `_${DirectionMarkers.RIGHT}_`;
+      if (hasDirection1) {
+        // obj1 already has direction → give obj2 the opposite
+        const opposite = getOppositeDirection(obj1Direction);
+        if (opposite) {
+          // Only rename if obj2 doesn't already have correct direction
+          if (!hasDirection2 || obj2Direction !== opposite) {
+            obj2.name = obj1.name.replace(
+              `_${obj1Direction}_`,
+              `_${opposite}_`,
+            );
+            obj2Direction = opposite;
+          }
+        }
+      } else {
+        // No direction on obj1 → default to symmetric LEFT / RIGHT
+        obj1.name = baseName + `_${DirectionMarkers.LEFT}_`;
+        obj2.name = baseName + `_${DirectionMarkers.RIGHT}_`;
 
-      // Update local direction variables after renaming
-      obj1Direction = DirectionMarkers.LEFT;
-      obj2Direction = DirectionMarkers.RIGHT;
-    }
-
-    // Optional: auto-correct opposite direction if one side has it and the other doesn't
-    // (currently disabled — uncomment if desired)
-
-    if (hasDirection1 && !hasDirection2 && wasSingleItem) {
-      const opposite = getOppositeDirection(obj1Direction);
-      if (opposite) {
-        obj2.name = obj1.name.replace(`_${obj1Direction}_`, `_${opposite}_`);
-        obj2Direction = opposite;
+        obj1Direction = DirectionMarkers.LEFT;
+        obj2Direction = DirectionMarkers.RIGHT;
       }
     }
 
     // ────────────────────────────────────────────────
-    // 5. Collect all relevant classification flags
+    // 5. Collect classification flags (after possible renaming)
     // ────────────────────────────────────────────────
     const isObj1Pair = strInc(obj1.name, `_${BasicMarkers.PAIR}_`);
     const isObj1Fsz = strInc(obj1.name, `_${BasicMarkers.FIXED_SIZE}_`);
@@ -317,36 +315,31 @@ class JFTProcessOrderGenerator {
     const isObj2Fsz = strInc(obj2.name, `_${BasicMarkers.FIXED_SIZE}_`);
 
     // ────────────────────────────────────────────────
-    // 6. Decide whether this is a paired/set item
+    // 6. Decide pair / count type
     // ────────────────────────────────────────────────
     const itemsInfo: ItemsInfo = {
       pair: false,
-      countType: CountType.PCS, // default: count individual pieces
+      countType: CountType.PCS,
       items: [],
       fixedSize: false,
     };
 
-    // Activate pair/SET mode for these common cases
     if (
       isObj1Pair ||
-      isObj2Pair || // explicit PAIR marker
-      isObj1Dyn ||
-      isObj2Dyn || // dynamic → usually mirrored
-      obj1 !== obj2 || // originally two distinct objects
-      wasSingleItem // we forced mirroring
+      isObj2Pair ||
+      (isObj1Dyn && isObj2Dyn) ||
+      !wasSingleItem
     ) {
       itemsInfo.pair = true;
-      itemsInfo.countType = CountType.SET; // count as matched left+right pair
+      itemsInfo.countType = CountType.SET;
     }
 
-    // Fixed-size flag (affects quantity calculation later)
     if (isObj1Fsz || isObj2Fsz) {
       itemsInfo.fixedSize = true;
     }
 
     // ────────────────────────────────────────────────
-    // 7. Build the items array — always exactly two entries
-    //    Now includes the new 'direction' property
+    // 7. Build result with direction property
     // ────────────────────────────────────────────────
     const item1: ItemInfoEntry = {
       object: obj1,
@@ -354,7 +347,7 @@ class JFTProcessOrderGenerator {
       isFillRec:
         obj1.typename === "PathItem" &&
         Utils.isRectangleShape(obj1 as PathItem),
-      direction: obj1Direction as keyof typeof DirectionMarkers | "", // "" if no direction
+      direction: obj1Direction as keyof typeof DirectionMarkers | "",
     };
     itemsInfo.items.push(item1);
 
@@ -374,13 +367,9 @@ class JFTProcessOrderGenerator {
   private processNeckAreaItem(params: ProcessItemParams) {
     const { jftItem, itemType, sizeChar } = params;
 
-    // const { height, width } = sizeInfo[order as keyof typeof sizeInfo];
-
     const { fixedSize } = jftItem.info;
 
-    const qty =
-      this.data[sizeChar].SUMMARY.SLEEVE.LONG +
-      this.data[sizeChar].SUMMARY.SLEEVE.SHORT;
+    const qty = this.data[sizeChar].DATA.length;
 
     const quantity = fixedSize ? this.totalQTY : qty;
 
@@ -388,6 +377,26 @@ class JFTProcessOrderGenerator {
 
     const sizeInfo = CONFIG.SIZES_DETAILS[finalSizeChar].NECK_AREA;
     const dimension = sizeInfo[itemType as keyof typeof sizeInfo];
+
+    const gridLayoutGen = new GridLayoutGenerator({
+      dimension,
+      quantity,
+      sizeChar: finalSizeChar,
+      jftItem,
+    });
+  }
+  private processBodyItem(params: ProcessItemParams) {
+    const { jftItem, itemType, sizeChar } = params;
+
+    const { fixedSize } = jftItem.info;
+
+    const qty = this.data[sizeChar].DATA.length;
+
+    const quantity = fixedSize ? this.totalQTY : qty;
+
+    const finalSizeChar = fixedSize ? "L" : sizeChar;
+
+    const dimension = CONFIG.SIZES_DETAILS[finalSizeChar].BODY;
 
     const gridLayoutGen = new GridLayoutGenerator({
       dimension,
