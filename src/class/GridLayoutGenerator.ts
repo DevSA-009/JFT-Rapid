@@ -8,7 +8,14 @@ interface GridLayoutGeneratorParams {
 type ProcessDocAndLayout = Record<"rows" | "cols", number> & {
   reqDocs: RequiredDocReturn;
 };
+type ProcessDocAndLayoutDync = ProcessDocAndLayout & {
+  direction?: DirectionMarkers;
+  dynamicItem: PageItem;
+};
 
+/**
+ * Parameters for creating a grid layout inside a document.
+ */
 type CreateGrid = Omit<ProcessDocAndLayout, "reqDocs"> & {
   maxCol: number;
   doc: Document;
@@ -32,6 +39,11 @@ class GridLayoutGenerator {
   private initiatedItem: GroupItem | null = null;
   private singleItem = false;
   private readonly folderPath = app.activeDocument.path.fsName;
+  private tempStackInfo: {
+    type: "main" | "rem";
+    tempQty: number;
+    targetqQty: number;
+  } = { targetqQty: 0, tempQty: 0, type: "main" };
 
   constructor(params: GridLayoutGeneratorParams) {
     this.sizeChar = params.sizeChar;
@@ -81,10 +93,17 @@ class GridLayoutGenerator {
       gap: this.gap,
     }).getItem();
 
+    this.tempStackInfo = {
+      type: "main",
+      targetqQty: this.recommendStackInfo.mainQuantityOccupied,
+      tempQty: 0,
+    };
     this.begin("main");
 
     if (this.recommendStackInfo.hasRemainder) {
       this.initiatedItem!.remove();
+      this.pair = true;
+      this.countType = CountType.SET;
       this.initiatedItem = new ItemsInitiater({
         dimension: this.dimension,
         items: this.items,
@@ -93,6 +112,12 @@ class GridLayoutGenerator {
         stack: this.recommendStackInfo.remainderStack,
         gap: this.gap,
       }).getItem();
+
+      this.tempStackInfo = {
+        type: "rem",
+        targetqQty: this.recommendStackInfo.remainderQuantityOccupied,
+        tempQty: 0,
+      };
 
       this.begin("rem");
     } else {
@@ -125,14 +150,6 @@ class GridLayoutGenerator {
     });
   }
 
-  private countTypeRevalid() {
-    const { mainStack } = this.recommendStackInfo!;
-
-    if (mainStack === "VRH") {
-      this.countType = CountType.CMD;
-    }
-  }
-
   private padZero(number: number) {
     return !number ? "" : number < 10 ? `0${number}` : number.toString();
   }
@@ -149,10 +166,13 @@ class GridLayoutGenerator {
     return false;
   }
 
-  private createDocName(direction: DirectionMarkers | "" = ""): string {
+  private createDocName(
+    direction: DirectionMarkers | null = null,
+    forceNonDync = false,
+  ): string {
     const sizeChar = this.jftItem.info.fixedSize ? "" : this.sizeChar;
 
-    let qty = `-${this.quantity.toString()}`;
+    let qty = `-${this.tempStackInfo.targetqQty.toString()}`;
 
     const isDocDyn = this.isDocDyn();
 
@@ -160,80 +180,17 @@ class GridLayoutGenerator {
 
     let fileOrder = `${this.jftItem.order}-`;
 
-    if (isDocDyn) {
+    const size = `-${sizeChar}`;
+
+    if (!forceNonDync && isDocDyn) {
       qty = "";
       countType = "" as CountType.CMD;
     }
 
     if (!this.pair) {
-      fileOrder = `${fileOrder}${direction ? `-${direction}` : ""}-`;
+      fileOrder = `${this.jftItem.order}${direction ? `-${direction}` : ""}`;
     }
-    return `${fileOrder}${sizeChar}${qty}${countType}`;
-  }
-
-  private createGrid(params: CreateGrid & { item: GroupItem | PageItem }) {
-    const { cols, maxCol, rows, doc, item } = params;
-
-    // Use initiatedItem as fallback if no explicit item passed
-    const reference = item;
-
-    // How many items we actually want to place in *this* document
-    const itemsPerDoc = maxCol;
-
-    const placedItems: PageItem[] = []; // track all duplicates we create here
-
-    const { moveObjectAfter } = AlignmentHandler;
-
-    let prevItem = reference.duplicate();
-    let prevRowFirstItem = prevItem;
-
-    placedItems.push(prevItem);
-
-    // Main duplication + positioning loop
-    for (let col = 1; col <= itemsPerDoc; col++) {
-      for (let row = 1; row <= rows; row++) {
-        if (row === rows) {
-          this.modifyTextFramesInItem(prevItem);
-          continue;
-        }
-
-        const curItem = prevItem.duplicate();
-        placedItems.push(curItem);
-        prevItem = curItem;
-        moveObjectAfter({
-          base: prevItem,
-          moving: curItem,
-          gap: Utils.convertLength({ value: this.gap, from: "inch", to: "pt" }),
-          position: "R",
-          engine: CONFIG.THREAD_ENGINE,
-        });
-        this.modifyTextFramesInItem(prevItem);
-        prevItem = curItem;
-      }
-      if (col !== itemsPerDoc) {
-        prevItem = reference.duplicate();
-        moveObjectAfter({
-          base: prevRowFirstItem,
-          moving: prevItem,
-          gap: Utils.convertLength({ value: this.gap, from: "inch", to: "pt" }),
-          position: "B",
-          engine: CONFIG.THREAD_ENGINE,
-        });
-        prevRowFirstItem = prevItem;
-      }
-    }
-
-    // ────────────────────────────────────────────────
-    // Cleanup: remove the original reference copy
-    // (we don't want it staying in the final document)
-    // ────────────────────────────────────────────────
-    // It was duplicated into this doc → safe to remove
-    reference.remove();
-
-    // Optional: group all placed items (if your workflow expects one big group)
-    // if (placedItems.length > 1) {
-    //   GroupManager.group(placedItems as Selection);
-    // }
+    return `${fileOrder}${size}${qty}${countType}`;
   }
 
   /**
@@ -258,19 +215,127 @@ class GridLayoutGenerator {
     // ... also dynamic number, player name, visibility of back/front, etc.
   }
 
-  private processDynamicPart(
-    param: ProcessDocAndLayout,
-    dynamicItem: PageItem,
-  ) {
-    const { cols, reqDocs, rows } = param;
+  /**
+   * Creates a grid of duplicated items inside the target document.
+   * Duplicates are placed column-by-column, row-by-row using AlignmentHandler.
+   * Text frames are modified **after** each duplication (except the very last item in row).
+   * The original reference copy is removed at the end.
+   *
+   * @param params - Grid configuration and reference item
+   */
+  private createGrid(params: CreateGrid) {
+    const { cols, maxCol, rows, doc, item: reference } = params;
 
-    for (let doc = 1; doc <= reqDocs.docsNeeded; doc++) {
-      const docTitle = `${this.padZero(this.fileIndex)}-${this.createDocName()}`;
+    // Number of items to place in this document (limited by maxCol)
+    const itemsPerDoc = maxCol;
+
+    const placedItems: PageItem[] = [];
+
+    const gapInPoints = Utils.convertLength({
+      value: this.gap,
+      from: "inch",
+      to: "pt",
+    });
+
+    // Start with first duplicate (will become the top-left item)
+    let prevItem = reference.duplicate();
+    let prevRowFirstItem = prevItem;
+
+    placedItems.push(prevItem);
+    this.tempStackInfo.tempQty++;
+
+    // ────────────────────────────────────────────────
+    // Main grid loop — column by column
+    // ────────────────────────────────────────────────
+    for (let col = 1; col <= itemsPerDoc; col++) {
+      if (this.tempStackInfo.tempQty === this.tempStackInfo.targetqQty) {
+        this.modifyTextFramesInItem(prevItem);
+        break;
+      }
+      for (let row = 1; row <= rows; row++) {
+        if (this.tempStackInfo.tempQty === this.tempStackInfo.targetqQty) {
+          break;
+        }
+
+        // Last item in the row — modify text but don't duplicate further in this column
+        if (row === rows) {
+          this.modifyTextFramesInItem(prevItem);
+          continue;
+        }
+
+        // Duplicate current item → place it to the right
+        const curItem = prevItem.duplicate();
+        placedItems.push(curItem);
+        this.tempStackInfo.tempQty++;
+
+        AlignmentHandler.moveObjectAfter({
+          base: prevItem,
+          moving: curItem,
+          position: "R",
+          gap: gapInPoints,
+          engine: CONFIG.THREAD_ENGINE,
+        });
+
+        // Modify text frames of the **just placed** item
+        this.modifyTextFramesInItem(curItem);
+
+        // Prepare for next iteration
+        prevItem = curItem;
+      }
+
+      // After finishing a column — if not last column, start new column below first item of previous row
+
+      if (this.tempStackInfo.tempQty === this.tempStackInfo.targetqQty) {
+        this.modifyTextFramesInItem(prevItem);
+        break;
+      }
+
+      if (col !== itemsPerDoc) {
+        prevItem = reference.duplicate();
+        AlignmentHandler.moveObjectAfter({
+          base: prevRowFirstItem,
+          moving: prevItem,
+          position: "B",
+          gap: gapInPoints,
+          engine: CONFIG.THREAD_ENGINE,
+        });
+        prevRowFirstItem = prevItem;
+        placedItems.push(prevItem);
+        this.tempStackInfo.tempQty++;
+      }
+    }
+
+    // ────────────────────────────────────────────────
+    // Cleanup phase
+    // ────────────────────────────────────────────────
+    // Remove the original reference item that was duplicated into this document
+    if (reference.parent === doc) {
+      reference.remove();
+    }
+
+    // Optional final alignment / grouping of the entire grid
+    if (placedItems.length > 1) {
+      this.alignAllItemsCenter(doc, placedItems as Selection);
+    }
+  }
+
+  /**
+   * Handles dynamic-only content across one or more documents.
+   * Each document gets its own grid built from the provided dynamic item.
+   *
+   * @param param - Layout parameters (rows, cols, required docs info)
+   * @param dynamicItem - The source item to duplicate from
+   */
+  private processDynamicPart(param: ProcessDocAndLayoutDync) {
+    const { cols, reqDocs, rows, dynamicItem, direction = null } = param;
+
+    for (let docNum = 1; docNum <= reqDocs.docsNeeded; docNum++) {
+      const docTitle = `${this.padZero(this.fileIndex)}-${this.createDocName(direction)}`;
       const docHandler = new IllustratorDocument(docTitle);
 
-      // Only duplicate/place the dynamic item
+      // Create fresh document and place single copy of dynamic item
       const docIns = docHandler.create([dynamicItem]);
-      const placed = docIns.activeLayer.pageItems[0];
+      const placed = docIns.activeLayer.pageItems[0] as PageItem;
 
       this.createGrid({
         cols,
@@ -280,119 +345,105 @@ class GridLayoutGenerator {
         rows,
       });
 
+      placed.remove();
+
       docHandler.save({ filePath: this.folderPath, format: "EPS" });
+      docHandler.close();
       this.fileIndex++;
 
-      if (!this.isDocDyn()) break;
+      if (!this.isDocDyn()) {
+        break;
+      }
     }
   }
 
-  private alignAllItemsCenter(doc: Document) {
-    // Place only once — centered or at fixed position
-    // (you probably want to adjust position logic here)
+  /**
+   * Centers all given items (or all items in active layer) to the artboard.
+   *
+   * @param doc - Target document
+   * @param items - Optional specific items to align (falls back to all in active layer)
+   */
+  private alignAllItemsCenter(doc: Document, items?: Selection | PageItem[]) {
+    const objects =
+      items ?? Organizer.pageItemsToArray(doc.activeLayer.pageItems);
+
+    if (!objects.length) return;
+
     AlignmentHandler.alignPageItemsToArtboard({
-      doc: doc,
-      objects: Organizer.pageItemsToArray(doc.activeLayer.pageItems),
+      doc,
+      objects: objects as Selection,
+      position: "C", // Center
       engine: CONFIG.THREAD_ENGINE,
     });
   }
 
+  /**
+   * Main entry point for processing layout in one or more documents.
+   * Handles special case (one static + one dynamic item when pair=false)
+   * and delegates normal/dynamic cases to processDynamicPart.
+   *
+   * @param param - Layout parameters (rows, cols, required docs)
+   */
   private processDocAndLayout(param: ProcessDocAndLayout) {
     const { cols, reqDocs, rows } = param;
-    const z = this;
 
     // ────────────────────────────────────────────────
-    //  Special case: pair=false + exactly one dynamic item
+    // Special case: non-paired item with exactly one dynamic part
     // ────────────────────────────────────────────────
     if (!this.pair && !this.singleItem) {
       const item1 = this.jftItem.items[0];
       const item2 = this.jftItem.items[1];
 
-      const oneIsDynamic = item1.isDynamic !== item2.isDynamic;
-      const hasStaticItem = !item1.isDynamic || !item2.isDynamic;
+      if (item1.isDynamic !== item2.isDynamic) {
+        // Determine static and dynamic
+        const staticEntry = item1.isDynamic ? item2 : item1;
+        const dynamicEntry = item1.isDynamic ? item1 : item2;
 
-      if (oneIsDynamic && hasStaticItem) {
-        // Identify which is static / which is dynamic
-        const staticItem = item1.isDynamic
-          ? ES6_SA.arrayFind(
-              this.initiatedItem!.pageItems,
-              (itm) => itm.name === item2.object.name,
-            )
-          : ES6_SA.arrayFind(
-              this.initiatedItem!.pageItems,
-              (itm) => itm.name === item1.object.name,
-            );
-        const dynamicItem = item1.isDynamic
-          ? ES6_SA.arrayFind(
-              this.initiatedItem!.pageItems,
-              (itm) => itm.name === item1.object.name,
-            )
-          : ES6_SA.arrayFind(
-              this.initiatedItem!.pageItems,
-              (itm) => itm.name === item2.object.name,
-            );
+        const staticItem = ES6_SA.arrayFind(
+          this.initiatedItem!.pageItems,
+          (itm) => itm.name === staticEntry.object.name,
+        );
 
-        // ── 1. Handle STATIC item → always only 1 document ───────
-        const staticDocName = `${this.padZero(this.fileIndex)}-${this.createDocName()}`;
+        const dynamicItem = ES6_SA.arrayFind(
+          this.initiatedItem!.pageItems,
+          (itm) => itm.name === dynamicEntry.object.name,
+        );
+
+        if (!staticItem || !dynamicItem) {
+          throw new Error(
+            "Could not locate static or dynamic item in initiated group",
+          );
+        }
+
+        // ── Static part → single document ───────────────────────────────
+        const staticDocName = `${this.padZero(this.fileIndex)}-${this.createDocName(staticEntry.direction as DirectionMarkers, true)}`;
         const staticDocHandler = new IllustratorDocument(staticDocName);
-        const staticDoc = staticDocHandler.create([staticItem!]);
+        const staticDoc = staticDocHandler.create([staticItem]);
 
         this.alignAllItemsCenter(staticDoc);
 
         staticDocHandler.save({ filePath: this.folderPath, format: "EPS" });
-        staticDocHandler.close(); // optional — depends if you want to keep open
-        staticItem!.remove();
+        staticDocHandler.close();
 
-        // Important: increment file index so dynamic docs continue numbering
+        staticItem.remove();
         this.fileIndex++;
 
-        // ── 2. Now handle DYNAMIC item normally (may need multiple docs) ──
-        // Reuse the original reqDocs / rows / cols logic, but only for dynamic
-        const dynamicReqInfo: ProcessDocAndLayout = {
-          rows,
-          cols,
-          reqDocs, // ← still use the full quantity-based calculation
-        };
+        // ── Dynamic part → normal multi-document flow ───────────────────
+        this.processDynamicPart({ cols, reqDocs, rows, dynamicItem });
 
-        this.processDynamicPart(dynamicReqInfo, dynamicItem!);
-
-        return; // ← exit early — we handled both parts
+        return; // Exit — special case fully handled
       }
     }
 
-    this.processDynamicPart({ cols, reqDocs, rows }, this.initiatedItem!);
-
     // ────────────────────────────────────────────────
-    // Normal flow (both dynamic, both static, paired, single, etc.)
+    // Normal flow (paired, both dynamic, single item, etc.)
     // ────────────────────────────────────────────────
-    // for (let doc = 1; doc <= reqDocs.docsNeeded; doc++) {
-    //   const isLastDoc = doc === reqDocs.docsNeeded;
-
-    //   let docTitle = `${this.padZero(this.fileIndex)}-${this.createDocName()}`;
-
-    //   // Optional: last doc can have special name / reduced cols if you want
-    //   // if (isLastDoc && this.recommendStackInfo?.hasRemainder) { ... }
-
-    //   const docHandler = new IllustratorDocument(docTitle);
-    //   const docIns = docHandler.create([this.initiatedItem!]);
-
-    //   this.createGrid({
-    //     cols,
-    //     doc: docIns,
-    //     maxCol: reqDocs.colsPerDoc,
-    //     rows,
-    //     item: this.initiatedItem!,
-    //   });
-
-    //   docHandler.save({ filePath: this.folderPath, format: "EPS" });
-
-    //   this.fileIndex++;
-
-    //   // If not dynamic document → usually only one doc needed
-    //   if (!this.isDocDyn()) {
-    //     break;
-    //   }
-    // }
+    this.processDynamicPart({
+      cols,
+      reqDocs,
+      rows,
+      dynamicItem: this.initiatedItem!,
+    });
   }
 
   private begin(layout: "main" | "rem") {
@@ -415,5 +466,6 @@ class GridLayoutGenerator {
           };
 
     this.processDocAndLayout(reqInfo);
+    this.initiatedItem;
   }
 }
