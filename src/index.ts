@@ -28,8 +28,9 @@ CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
   CONFIG.BRAND
 ] as unknown as SizesDetails;
 
-const globalTransActHandler = new TransActionHandler();
+// const globalTransActHandler = new TransActionHandler();
 
+/*
 const data: AutomateData = {
   basic: {
     type: JerseyType.POLO,
@@ -122,7 +123,64 @@ const startAutomate = () => {
   const gap = 0.1;
 
   const maxColsInDoc = 5;
+
+  new JFTProcessOrderGenerator(data);
 };
 
 startAutomate();
-globalTransActHandler.removeAll();
+
+*/
+
+// new ItemsInitiater({
+//   dimension:{width:19.5,height:29},
+//   gap:0.1,
+//   items:[app.activeDocument.selection[0],app.activeDocument.selection[1]],
+//   fixedSize:false,
+//   sizeChar:"M",
+//   stack:"VRH"
+// })
+
+const sel = app.activeDocument.selection;
+
+
+new GridLayoutGenerator({
+  dimension: { width: 19.5, height: 29 },
+  jftItem: {
+    info: { countType: CountType.PCS, fixedSize: false, pair: false },
+    items: [
+      {
+        direction: DirectionMarkers.FRONT,
+        isDynamic: false,
+        isFillRec: false,
+        object: sel[0],
+      },
+      {
+        direction: DirectionMarkers.BACK,
+        isDynamic: true,
+        isFillRec: false,
+        object: sel[1],
+      },
+    ],
+    order:JFTCONFKeywords.BODY
+  },
+  quantity:8,
+  sizeChar:"M"
+  
+});
+
+/*
+const $1z = GridCalculator.getRecommendedStacks({
+  gap:0.1,
+  maxColsInDoc:0,
+  quantity:3,
+  pair:false,
+  size:{width:23.5,height:33},
+  pairGap:0.1,
+  heightPreference:"Less",
+  stackOrientation:"auto"
+})
+*/
+
+const z = "";
+
+// globalTransActHandler.removeAll();

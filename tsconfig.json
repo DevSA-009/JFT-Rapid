@@ -24,7 +24,7 @@
     "src/class/ValidatorManager.ts",
     "src/class/GroupManager.ts",
     "src/class/Organizer.ts",
-    // "src/class/ItemsInitiater.ts",
+    "src/class/ItemsInitiater.ts",
     "src/scriptUI/**/*.js",
     "src/class/ArtboardManager.ts",
     "src/class/IllustratorDocHandler.ts",

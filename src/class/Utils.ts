@@ -746,7 +746,7 @@ class Utils {
    */
   static getGlobalTransActHandler(): TransActionHandler | null {
     try {
-      return globalTransActHandler || null;
+      return null;
     } catch (error) {
       return null;
     }

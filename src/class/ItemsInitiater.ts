@@ -49,7 +49,7 @@ class ItemsInitiater {
 
   /** Handler for action-based transformations (used when THREAD_ENGINE = "action") */
   private readonly transAct =
-    Utils.getGlobalTransActHandler() as TransActionHandler || new TransActionHandler();
+    Utils.getGlobalTransActHandler() as TransActionHandler;
 
   /**
    * @param params Configuration object with target size, stacking type and source items
