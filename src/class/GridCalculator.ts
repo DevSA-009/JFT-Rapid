@@ -293,9 +293,9 @@ class GridCalculator {
     let stackTypes: StackType[] = stackTypesTuple;
 
     if (stackOrientation === "vertical") {
-      stackTypes = ["HH", "VV"]; // Normal orientations only
+      stackTypes = ["HH", "VV"];
     } else if (stackOrientation === "horizontal") {
-      stackTypes = ["RHH", "RVV"]; // Rotated orientations only
+      stackTypes = ["RHH", "RVV"];
     }
 
     const validCombinations: CombinationScore[] = [];
@@ -310,6 +310,12 @@ class GridCalculator {
       // If no remainder, only main stack needed
       if (mainInfo.neededCols.remainder === 0) {
         const totalHeight = mainInfo.heightByCols.mainStack;
+        // ✅ Calculate items per VRH square for quantity occupied
+        const itemsPerMainStack =
+          mainType === "VRH" ? (pair ? 2 : 4) : mainInfo.fitRow;
+        const mainQuantityOccupied =
+          mainInfo.neededCols.cols * itemsPerMainStack;
+
         validCombinations.push({
           mainStack: mainType,
           remainderStack: mainType,
@@ -317,14 +323,16 @@ class GridCalculator {
           hasRemainder: false,
           score: totalHeight,
           mainCols: mainInfo.neededCols.cols,
+          mainQuantityOccupied, // ✅ NEW
           remainderItems: 0,
+          remainderQuantityOccupied: 0, // ✅ NEW
           mainHeight: mainInfo.heightByCols.mainStack,
           remainderHeight: 0,
           mainFitRow: mainInfo.fitRow,
           remainderFitRow: mainInfo.fitRow,
           remainderCols: 0,
           requiredDocs: mainInfo.requiredDocs,
-          remainderRequiredDocs: { docsNeeded: 0, colsPerDoc: 0 }, // ✅ NEW
+          remainderRequiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
         });
         continue;
       }
@@ -341,7 +349,16 @@ class GridCalculator {
         const totalHeight =
           mainHeight + (mainHeight > 0 ? gap : 0) + remainderHeight;
 
-        // ✅ Calculate remainder docs (always 1 col since it's a single remainder row)
+        // ✅ Calculate quantity occupied for main and remainder
+        const itemsPerMainStack =
+          mainType === "VRH" ? (pair ? 2 : 4) : mainInfo.fitRow;
+        const mainQuantityOccupied =
+          mainInfo.neededCols.cols * itemsPerMainStack;
+        const itemsPerRemStack =
+          remType === "VRH" ? (pair ? 2 : 4) : remInfo.fitRow;
+        const remainderQuantityOccupied = mainInfo.neededCols.remainder;
+
+        // Calculate remainder docs
         const remainderRequiredDocs = this.requiredDocs({
           dimension: {
             width: remInfo.stackSize.width,
@@ -349,7 +366,7 @@ class GridCalculator {
           },
           gap,
           maxColsInDoc,
-          neededCols: 1, // Remainder is always 1 col
+          neededCols: 1,
         });
 
         validCombinations.push({
@@ -359,14 +376,16 @@ class GridCalculator {
           hasRemainder: true,
           score: totalHeight,
           mainCols: mainInfo.neededCols.cols,
+          mainQuantityOccupied, // ✅ NEW
           remainderItems: mainInfo.neededCols.remainder,
+          remainderQuantityOccupied, // ✅ NEW
           mainHeight,
           remainderHeight,
           mainFitRow: mainInfo.fitRow,
           remainderFitRow: remInfo.fitRow,
           remainderCols: mainInfo.neededCols.remainder > 0 ? 1 : 0,
           requiredDocs: mainInfo.requiredDocs,
-          remainderRequiredDocs, // ✅ NEW
+          remainderRequiredDocs,
         });
       }
     }
@@ -384,7 +403,9 @@ class GridCalculator {
       totalHeight: 0,
       hasRemainder: false,
       mainCols: 0,
+      mainQuantityOccupied: 0,
       remainderItems: 0,
+      remainderQuantityOccupied: 0,
       mainFitRow: 0,
       remainderFitRow: 0,
       remainderCols: 0,
@@ -398,12 +419,15 @@ class GridCalculator {
       totalHeight: best.totalHeight,
       hasRemainder: best.hasRemainder,
       mainCols: best.mainCols,
+      mainQuantityOccupied: best.mainQuantityOccupied, // ✅ NEW
       remainderItems: best.remainderItems,
+      remainderQuantityOccupied: best.remainderQuantityOccupied, // ✅ NEW
       mainFitRow: best.mainFitRow,
       remainderFitRow: best.remainderFitRow,
       remainderCols: best.remainderCols,
       requiredDocs: best.requiredDocs,
-      remainderRequiredDocs: best.remainderRequiredDocs, // ✅ NEW
+      remainderRequiredDocs: best.remainderRequiredDocs,
+      allCombinations: validCombinations,
     };
   }
 
@@ -521,40 +545,52 @@ interface CombinationScore {
   hasRemainder: boolean;
   score: number;
   mainCols: number;
+  mainQuantityOccupied: number; // ✅ NEW
   remainderItems: number;
+  remainderQuantityOccupied: number; // ✅ NEW
   mainHeight: number;
   remainderHeight: number;
   mainFitRow: number;
   remainderFitRow: number;
   remainderCols: number;
   requiredDocs: RequiredDocReturn;
-  remainderRequiredDocs: RequiredDocReturn; // ✅ NEW
+  remainderRequiredDocs: RequiredDocReturn;
 }
 
 /** Result from getRecommendedStacks */
 interface RecommendedStacksResult {
-  /** Recommended stack type for main rows */
   mainStack: StackType;
-  /** Recommended stack type for remainder row */
   remainderStack: StackType;
-  /** Total height (main + remainder + gaps) */
   totalHeight: number;
-  /** Whether remainder exists */
   hasRemainder: boolean;
-  /** Number of main cols */
   mainCols: number;
-  /** Number of remainder items */
+  mainQuantityOccupied: number;
   remainderItems: number;
-  /** Number of items that fit per row in main stack */
+  remainderQuantityOccupied: number;
   mainFitRow: number;
-  /** Number of items that fit per row in remainder stack */
   remainderFitRow: number;
-  /** Number of remainder rows (always 0 or 1) */
   remainderCols: number;
-  /** info about main stack docs */
   requiredDocs: RequiredDocReturn;
-  /** info about remainder stack docs */ // ✅ NEW
   remainderRequiredDocs: RequiredDocReturn;
+  allCombinations?: CombinationScore[];
+}
+
+/** Result from getRecommendedStacks */
+interface RecommendedStacksResult {
+  mainStack: StackType;
+  remainderStack: StackType;
+  totalHeight: number;
+  hasRemainder: boolean;
+  mainCols: number;
+  mainQuantityOccupied: number;
+  remainderItems: number;
+  remainderQuantityOccupied: number;
+  mainFitRow: number;
+  remainderFitRow: number;
+  remainderCols: number;
+  requiredDocs: RequiredDocReturn;
+  remainderRequiredDocs: RequiredDocReturn;
+  allCombinations?: CombinationScore[];
 }
 
 interface RequiredDocArg {
