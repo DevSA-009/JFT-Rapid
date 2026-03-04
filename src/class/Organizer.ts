@@ -360,8 +360,7 @@ class Organizer {
         to: "pt",
       });
 
-      const gTransAct = Utils.getGlobalTransActHandler();
-      const transActHandler = gTransAct || new TransActionHandler();
+      const transActHandler = new TransActionHandler();
 
       // Align duplicated items to center (both horizontal and vertical)
       AlignmentHandler.alignObject({
@@ -456,7 +455,7 @@ class Organizer {
       obj2.remove();
 
       // clean action
-      if (!gTransAct) transActHandler.removeAll();
+      transActHandler.removeAll();
     } catch (error: any) {
       // Show error message via custom alert
       alertDialogSA(error.message);

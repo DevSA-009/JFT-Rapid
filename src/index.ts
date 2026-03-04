@@ -20,15 +20,13 @@ const CONFIG: JFTRapid_Config = {
   BRAND: "JFT",
   KIDSINV: false,
   PER_DOC: 0,
-  THREAD_ENGINE: "script",
+  THREAD_ENGINE: "action",
   ORIENTATION: "auto",
 };
 
 CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
   CONFIG.BRAND
 ] as unknown as SizesDetails;
-
-// const globalTransActHandler = new TransActionHandler();
 
 /*
 const data: AutomateData = {
@@ -140,7 +138,7 @@ startAutomate();
 //   stack:"VRH"
 // })
 
-const sel = app.activeDocument.selection;
+const sel = app.activeDocument.activeLayer.pageItems;
 
 
 new GridLayoutGenerator({
@@ -168,6 +166,7 @@ new GridLayoutGenerator({
   
 });
 
+
 /*
 const $1z = GridCalculator.getRecommendedStacks({
   gap:0.1,
@@ -182,5 +181,3 @@ const $1z = GridCalculator.getRecommendedStacks({
 */
 
 const z = "";
-
-// globalTransActHandler.removeAll();

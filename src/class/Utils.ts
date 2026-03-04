@@ -738,19 +738,7 @@ class Utils {
       }
     }
   }
-
-  /**
-   * get globally declared TransActHandler instance
-   *
-   * @returns {TransActionHandler | null} - error occur or not declared return null
-   */
-  static getGlobalTransActHandler(): TransActionHandler | null {
-    try {
-      return null;
-    } catch (error) {
-      return null;
-    }
-  }
+  
   /**
    * Determines if the given PathItem is a **strict rectangle shape**.
    *
