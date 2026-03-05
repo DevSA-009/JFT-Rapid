@@ -48,12 +48,16 @@ class ItemsInitiater {
   private groupedItem = null as unknown as GroupItem;
 
   /** Handler for action-based transformations (used when THREAD_ENGINE = "action") */
-  private readonly transAct = new TransActionHandler();
+  private readonly transAct: TransActionHandler | null = null;
 
   /**
    * @param params Configuration object with target size, stacking type and source items
    */
   constructor(params: ItemsInitiaterParams) {
+    if (Utils.isActionThreadEngine()) {
+      this.transAct = new TransActionHandler();
+    }
+
     // Convert target dimensions from user-friendly inches to Illustrator internal points
     this.dimension = {
       width: Utils.convertLength({
@@ -98,7 +102,9 @@ class ItemsInitiater {
     }
     this[this.stack]();
 
-    this.transAct.removeAll();
+    if (this.transAct) {
+      this.transAct.removeAll();
+    }
   }
 
   /**
@@ -132,9 +138,9 @@ class ItemsInitiater {
    * @private
    */
   private resize(): void {
-    if (CONFIG.THREAD_ENGINE === "action") {
+    if (Utils.isActionThreadEngine()) {
       // Action-based resize — usually safer with complex artwork
-      this.transAct.resize({
+      this.transAct!.resize({
         width: this.dimension.width,
         height: this.dimension.height,
         objects: !this.singleItem ? [this.item1, this.item2] : [this.item1],
@@ -155,8 +161,8 @@ class ItemsInitiater {
    * @private
    */
   private rotate({ deg, objects }: { deg: number; objects: PageItem[] }): void {
-    if (CONFIG.THREAD_ENGINE === "action") {
-      this.transAct.rotate({ deg, objects });
+    if (Utils.isActionThreadEngine()) {
+      this.transAct!.rotate({ deg, objects });
     } else {
       Utils.rotateItems(objects, deg);
     }
@@ -255,6 +261,7 @@ class ItemsInitiater {
     // ── Single-item fallback: duplicate item1 to allow mirroring ─────
     if (this.singleItem) {
       this.item2 = this.item1.duplicate() as GroupItem;
+      this.singleItem = false;
     }
 
     // Step 1: Apply orientation rotations

@@ -738,7 +738,7 @@ class Utils {
       }
     }
   }
-  
+
   /**
    * Determines if the given PathItem is a **strict rectangle shape**.
    *
@@ -880,6 +880,15 @@ class Utils {
       if (v === value) return k as any; // type assertion needed due to current TS limitations
     }
     return undefined;
+  }
+
+  /**
+   * Checks whether the current thread engine is set to "action" mode
+   *
+   * @returns `true` if CONFIG.THREAD_ENGINE === "action", `false` otherwise
+   */
+  static isActionThreadEngine() {
+    return CONFIG.THREAD_ENGINE === "action";
   }
 }
 
