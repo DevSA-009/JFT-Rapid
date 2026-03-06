@@ -342,6 +342,7 @@ class GridCalculator {
         const remInfo = allStacksInfo[remType];
 
         // Check: remainder stack must fit at least the remainder items
+        // Just ensure at least 1 stack can fit in row
         if (remInfo.fitRow < mainInfo.neededCols.remainder) continue;
 
         const mainHeight = mainInfo.heightByCols.mainStack;
@@ -358,6 +359,10 @@ class GridCalculator {
           remType === "VRH" ? (pair ? 2 : 4) : remInfo.fitRow;
         const remainderQuantityOccupied = mainInfo.neededCols.remainder;
 
+        const remainderItems = mainInfo.neededCols.remainder;
+
+        const remainderCols = Math.ceil(remainderItems / remInfo.fitRow);
+
         // Calculate remainder docs
         const remainderRequiredDocs = this.requiredDocs({
           dimension: {
@@ -366,7 +371,7 @@ class GridCalculator {
           },
           gap,
           maxColsInDoc,
-          neededCols: 1,
+          neededCols: remainderCols,
         });
 
         validCombinations.push({
@@ -383,7 +388,7 @@ class GridCalculator {
           remainderHeight,
           mainFitRow: mainInfo.fitRow,
           remainderFitRow: remInfo.fitRow,
-          remainderCols: mainInfo.neededCols.remainder > 0 ? 1 : 0,
+          remainderCols: remainderCols,
           requiredDocs: mainInfo.requiredDocs,
           remainderRequiredDocs,
         });

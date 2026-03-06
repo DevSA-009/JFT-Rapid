@@ -22,6 +22,15 @@ type CreateGrid = Omit<ProcessDocAndLayout, "reqDocs"> & {
   item: PageItem;
 };
 
+interface TempStackInfo {
+  type: "main" | "rem";
+  tempQty: number;
+  targetqQty: number;
+  stack: StackType;
+  rows: number;
+  cols: number;
+}
+
 class GridLayoutGenerator {
   private readonly sizeChar: GridLayoutGeneratorParams["sizeChar"];
   private quantity: GridLayoutGeneratorParams["quantity"];
@@ -33,17 +42,21 @@ class GridLayoutGenerator {
   private readonly jftItem: JFTItem;
   private items: PageItem[];
   private recommendStackInfo: RecommendedStacksResult | null = null;
-  private fileIndex = Math.abs(
-    Organizer.getDirectoryFileInfo().nexFileIndex - 1,
+  private fileIndex = Math.max(
+    1,
+    Math.abs(Organizer.getDirectoryFileInfo().nexFileIndex - 1),
   );
   private initiatedItem: GroupItem | null = null;
   private singleItem = false;
   private readonly folderPath = app.activeDocument.path.fsName;
-  private tempStackInfo: {
-    type: "main" | "rem";
-    tempQty: number;
-    targetqQty: number;
-  } = { targetqQty: 0, tempQty: 0, type: "main" };
+  private tempStackInfo: TempStackInfo = {
+    targetqQty: 0,
+    tempQty: 0,
+    type: "main",
+    stack: "HH",
+    rows: 0,
+    cols: 0,
+  };
 
   constructor(params: GridLayoutGeneratorParams) {
     this.sizeChar = params.sizeChar;
@@ -97,13 +110,36 @@ class GridLayoutGenerator {
       type: "main",
       targetqQty: this.recommendStackInfo.mainQuantityOccupied,
       tempQty: 0,
+      stack: this.recommendStackInfo.mainStack,
+      rows: this.recommendStackInfo.mainFitRow,
+      cols: this.recommendStackInfo.mainCols,
     };
     this.begin("main");
 
+    this.initiatedItem!.remove();
+
     if (this.recommendStackInfo.hasRemainder) {
-      this.initiatedItem!.remove();
+      this.items = [
+        this.jftItem.items[0].object.duplicate(),
+        this.jftItem.items[1].object.duplicate() || null,
+      ];
+
       this.pair = true;
       this.countType = CountType.SET;
+
+      this.cleanWhiteFillItem();
+
+      this.recommendStackInfo = GridCalculator.getRecommendedStacks({
+        gap: this.gap,
+        maxColsInDoc: CONFIG.PER_DOC,
+        quantity: this.quantity,
+        size: this.dimension,
+        pair: this.pair,
+        pairGap: this.gap,
+        heightPreference: "Less",
+        stackOrientation: this.orientation,
+      });
+
       this.initiatedItem = new ItemsInitiater({
         dimension: this.dimension,
         items: this.items,
@@ -117,10 +153,13 @@ class GridLayoutGenerator {
         type: "rem",
         targetqQty: this.recommendStackInfo.remainderQuantityOccupied,
         tempQty: 0,
+        stack: this.recommendStackInfo.remainderStack,
+        rows: this.recommendStackInfo.remainderFitRow,
+        cols: this.recommendStackInfo.remainderCols,
       };
 
       this.begin("rem");
-    } else {
+
       this.initiatedItem!.remove();
     }
   }
@@ -137,15 +176,16 @@ class GridLayoutGenerator {
   }
 
   private cleanWhiteFillItem() {
-    ES6_SA.arrayForEach(this.jftItem.items, (item, idx) => {
+    ES6_SA.arrayForEach(this.items, (item, idx) => {
       if (
         item &&
-        item.object.typename === PageItemType.PathItem &&
-        Utils.isWhiteFill(item.object as PathItem)
+        item.typename === PageItemType.PathItem &&
+        Utils.isWhiteFill(item as PathItem)
       ) {
         this.items.splice(idx, 1);
         this.pair = false;
         this.countType = CountType.PCS;
+        item.remove();
       }
     });
   }
@@ -178,11 +218,20 @@ class GridLayoutGenerator {
 
     let countType = ` ${this.countType}`;
 
-    let fileOrder = `${this.jftItem.order}-`;
+    let fileOrder = `${this.jftItem.order}`;
 
     const size = `-${sizeChar}`;
 
-    if (!forceNonDync && isDocDyn) {
+    if (this.tempStackInfo.rows === 1 && this.tempStackInfo.cols !== 1) {
+      qty = `-${this.tempStackInfo.cols.toString()}`;
+      countType = ` ${CountType.CMD}`;
+    }
+
+    if (
+      (!forceNonDync && isDocDyn) ||
+      (this.tempStackInfo.rows === 1 && this.tempStackInfo.cols === 1) ||
+      (this.singleItem && this.tempStackInfo.cols === 1)
+    ) {
       qty = "";
       countType = "" as CountType.CMD;
     }
@@ -190,6 +239,7 @@ class GridLayoutGenerator {
     if (!this.pair) {
       fileOrder = `${this.jftItem.order}${direction ? `-${direction}` : ""}`;
     }
+
     return `${fileOrder}${size}${qty}${countType}`;
   }
 
@@ -224,7 +274,7 @@ class GridLayoutGenerator {
    * @param params - Grid configuration and reference item
    */
   private createGrid(params: CreateGrid) {
-    const { cols, maxCol, rows, doc, item: reference } = params;
+    const { maxCol, rows, doc, item: reference } = params;
 
     // Number of items to place in this document (limited by maxCol)
     const itemsPerDoc = maxCol;
@@ -242,13 +292,17 @@ class GridLayoutGenerator {
     let prevRowFirstItem = prevItem;
 
     placedItems.push(prevItem);
+
     this.tempStackInfo.tempQty++;
+    if (this.tempStackInfo.stack === "VRH") {
+      this.tempStackInfo.tempQty++;
+    }
 
     // ────────────────────────────────────────────────
     // Main grid loop — column by column
     // ────────────────────────────────────────────────
     for (let col = 1; col <= itemsPerDoc; col++) {
-      if (this.tempStackInfo.tempQty === this.tempStackInfo.targetqQty) {
+      if (this.tempStackInfo.tempQty >= this.tempStackInfo.targetqQty) {
         this.modifyTextFramesInItem(prevItem);
         break;
       }
@@ -267,6 +321,9 @@ class GridLayoutGenerator {
         const curItem = prevItem.duplicate();
         placedItems.push(curItem);
         this.tempStackInfo.tempQty++;
+        if (this.tempStackInfo.stack === "VRH") {
+          this.tempStackInfo.tempQty++;
+        }
 
         AlignmentHandler.moveObjectAfter({
           base: prevItem,
@@ -302,6 +359,9 @@ class GridLayoutGenerator {
         prevRowFirstItem = prevItem;
         placedItems.push(prevItem);
         this.tempStackInfo.tempQty++;
+        if (this.tempStackInfo.stack === "VRH") {
+          this.tempStackInfo.tempQty++;
+        }
       }
     }
 
@@ -314,7 +374,7 @@ class GridLayoutGenerator {
     }
 
     // Optional final alignment / grouping of the entire grid
-    if (placedItems.length > 1) {
+    if (placedItems.length) {
       this.alignAllItemsCenter(doc, placedItems as Selection);
     }
   }
@@ -337,21 +397,27 @@ class GridLayoutGenerator {
       const docIns = docHandler.create([dynamicItem]);
       const placed = docIns.activeLayer.pageItems[0] as PageItem;
 
-      this.createGrid({
-        cols,
-        doc: docIns,
-        maxCol: reqDocs.colsPerDoc,
-        item: placed,
-        rows,
-      });
+      const isDocDync = this.isDocDyn();
 
-      placed.remove();
+      if (isDocDync) {
+        this.createGrid({
+          cols,
+          doc: docIns,
+          maxCol: reqDocs.colsPerDoc,
+          item: placed,
+          rows,
+        });
+      }
+
+      if (isDocDync) {
+        placed.remove();
+      }
 
       docHandler.save({ filePath: this.folderPath, format: "EPS" });
       docHandler.close();
       this.fileIndex++;
 
-      if (!this.isDocDyn()) {
+      if (!isDocDync) {
         break;
       }
     }
@@ -375,6 +441,8 @@ class GridLayoutGenerator {
       position: "C", // Center
       engine: CONFIG.THREAD_ENGINE,
     });
+
+    Organizer.smallArtboard(doc);
   }
 
   /**
@@ -390,7 +458,7 @@ class GridLayoutGenerator {
     // ────────────────────────────────────────────────
     // Special case: non-paired item with exactly one dynamic part
     // ────────────────────────────────────────────────
-    if (!this.pair && !this.singleItem) {
+    if (!this.pair && !this.singleItem && this.tempStackInfo.stack !== "VRH") {
       const item1 = this.jftItem.items[0];
       const item2 = this.jftItem.items[1];
 
@@ -429,7 +497,70 @@ class GridLayoutGenerator {
         this.fileIndex++;
 
         // ── Dynamic part → normal multi-document flow ───────────────────
-        this.processDynamicPart({ cols, reqDocs, rows, dynamicItem });
+        this.processDynamicPart({
+          cols,
+          reqDocs,
+          rows,
+          dynamicItem,
+          direction: dynamicEntry.direction as DirectionMarkers,
+        });
+
+        return; // Exit — special case fully handled
+      }
+    } else if (
+      !this.pair &&
+      !this.singleItem &&
+      this.tempStackInfo.stack === "VRH"
+    ) {
+      this.initiatedItem!.remove();
+
+      const item1 = this.jftItem.items[0];
+      const item2 = this.jftItem.items[1];
+
+      if (item1.isDynamic !== item2.isDynamic) {
+        // Determine static and dynamic
+        const staticEntry = item1.isDynamic ? item2 : item1;
+        const dynamicEntry = item1.isDynamic ? item1 : item2;
+
+        this.initiatedItem = new ItemsInitiater({
+          dimension: this.dimension,
+          items: [staticEntry.object.duplicate()],
+          fixedSize: this.jftItem.info.fixedSize,
+          sizeChar: this.sizeChar,
+          stack: "VRH",
+          gap: this.gap,
+        }).getItem();
+
+        // ── Static part → single document ───────────────────────────────
+        const staticDocName = `${this.padZero(this.fileIndex)}-${this.createDocName(staticEntry.direction as DirectionMarkers, true)}`;
+        const staticDocHandler = new IllustratorDocument(staticDocName);
+        const staticDoc = staticDocHandler.create([this.initiatedItem]);
+
+        this.alignAllItemsCenter(staticDoc);
+
+        staticDocHandler.save({ filePath: this.folderPath, format: "EPS" });
+        staticDocHandler.close();
+
+        this.initiatedItem.remove();
+        this.fileIndex++;
+
+        this.initiatedItem = new ItemsInitiater({
+          dimension: this.dimension,
+          items: [dynamicEntry.object.duplicate()],
+          fixedSize: this.jftItem.info.fixedSize,
+          sizeChar: this.sizeChar,
+          stack: "VRH",
+          gap: this.gap,
+        }).getItem();
+
+        // ── Dynamic part → normal multi-document flow ───────────────────
+        this.processDynamicPart({
+          cols,
+          reqDocs,
+          rows,
+          dynamicItem: this.initiatedItem,
+          direction: dynamicEntry.direction as DirectionMarkers,
+        });
 
         return; // Exit — special case fully handled
       }
