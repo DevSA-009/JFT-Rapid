@@ -304,9 +304,10 @@ class ItemsInitiater {
       gap: this.gap,
       engine: CONFIG.THREAD_ENGINE,
     });
+    
 
     // Return final grouped result (contains original + mirrored side)
-    this.groupedItem = GroupManager.group([this.pairGroup(), mirroredGroup]);
+    this.groupedItem = GroupManager.group([...GroupManager.ungroup(this.pairGroup()), ...GroupManager.ungroup(mirroredGroup)]);
   }
 
   /**
