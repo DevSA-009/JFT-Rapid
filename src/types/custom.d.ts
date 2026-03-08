@@ -10,6 +10,7 @@ interface JFTRapid_Config {
   BRAND: string;
   OUTLINE_TEXT: boolean;
   THREAD_ENGINE: ThreadEngine;
+  WRAP_TEXT:boolean;
 }
 
 /**

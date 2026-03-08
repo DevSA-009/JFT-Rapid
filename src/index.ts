@@ -20,8 +20,9 @@ const CONFIG: JFTRapid_Config = {
   BRAND: "JFT",
   KIDSINV: false,
   PER_DOC: 0,
-  THREAD_ENGINE: "action",
+  THREAD_ENGINE: "script",
   ORIENTATION: "auto",
+  WRAP_TEXT:false
 };
 
 CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
@@ -140,11 +141,10 @@ startAutomate();
 
 const sel = app.activeDocument.activeLayer.pageItems;
 
-
 new GridLayoutGenerator({
-  dimension: { width: 19.5, height: 29 },
+  dimension: { width: 23.5, height: 33 },
   jftItem: {
-    info: { countType: CountType.PCS, fixedSize: false, pair: false },
+    info: { countType: CountType.SET, fixedSize: false, pair: true },
     items: [
       {
         direction: DirectionMarkers.FRONT,
@@ -154,30 +154,18 @@ new GridLayoutGenerator({
       },
       {
         direction: DirectionMarkers.BACK,
-        isDynamic: true,
+        isDynamic: false,
         isFillRec: false,
         object: sel[1],
       },
     ],
-    order:JFTCONFKeywords.BODY
+    order: JFTCONFKeywords.BODY,
   },
-  quantity:8,
-  sizeChar:"M"
-  
+  quantity: 5,
+  sizeChar: "3XL",
+  orientation: CONFIG.ORIENTATION,
+  data:null
 });
 
-
-/*
-const $1z = GridCalculator.getRecommendedStacks({
-  gap:0.1,
-  maxColsInDoc:0,
-  quantity:3,
-  pair:false,
-  size:{width:23.5,height:33},
-  pairGap:0.1,
-  heightPreference:"Less",
-  stackOrientation:"auto"
-})
-*/
 
 const z = "";
