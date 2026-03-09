@@ -1,64 +1,151 @@
+
 /**
- * Parameters required to initialize an {@link ItemsInitiater}.
+ * Parameters required to initialise an {@link ItemsInitiater}.
  */
 interface ItemsInitiaterParams {
-  /** Target dimensions after resizing (values in inches) */
+  /** Target artwork dimensions in **inches** — converted to points internally. */
   readonly dimension: DimensionObject;
 
-  /** Apparel size identifier to be written into SIZE_TKN text frames */
+  /** Apparel size identifier written into `SIZE_TKN` text frames. */
   readonly sizeChar: ApparelSize;
 
-  /** Desired final stacking/arrangement pattern */
+  /** Desired stacking / arrangement pattern for the composed group. */
   readonly stack: StackType;
 
-  /** Exactly two page items — typically front & back or left & right parts */
+  /**
+   * One or two source PageItems — typically front + back or left + right.
+   * When only one item is provided, `isSingleItem` is set and the second slot
+   * is handled per stacking method (VRH auto-duplicates; others operate as-is).
+   */
   readonly items: PageItem[];
 
-  /** Indicates whether this size uses fixed (non-size-specific) dimensions */
+  /**
+   * When `true`, the item uses a fixed template size and SIZE_TKN frames
+   * should **not** be updated (they already carry the correct label).
+   */
   readonly fixedSize: boolean;
 
-  /** Spacing between items when placed side-by-side or stacked (in inches) */
+  /** Gap between items when placed side-by-side or stacked, in **inches**. */
   readonly gap: number;
-}
-
-/**
- * Prepares a pair of apparel artwork groups (usually front + back or left + right)
- * for later grid / n-up duplication.
- *
- * Execution order (critical):
- * 1. Convert dimensions from inches to points
- * 2. Center-align item2 on item1
- * 3. Resize both items to target dimensions + update size tokens
- * 4. Apply requested stacking pattern (HH / VV / RHH / RVV / VRH)
- *
- * Important invariants:
- * - Expects **exactly two** items in params.items
- * - Both items are assumed to already be GroupItem (unsafe cast)
- * - Y-axis points **downward** (Illustrator coordinate system)
- * - Transformation engine is controlled by global CONFIG.THREAD_ENGINE
- */
-class ItemsInitiater {
-  private readonly dimension: DimensionObject;
-  private readonly sizeChar: ApparelSize;
-  private readonly stack: StackType;
-  private readonly item1: PageItem;
-  private item2: PageItem = null as unknown as PageItem;
-  private readonly gap: number;
-  private singleItem = false;
-  private groupedItem = null as unknown as GroupItem;
-
-  /** Handler for action-based transformations (used when THREAD_ENGINE = "action") */
-  private readonly transAct: TransActionHandler | null = null;
 
   /**
-   * @param params Configuration object with target size, stacking type and source items
+   * Whether the two items form a paired set (e.g. front + back of a garment).
+   *
+   * Controls how {@link buildGroup} wraps the items:
+   *
+   * - `true`  — items are **never** individually wrapped before combining,
+   *   regardless of the `wrapEach` argument.  The pair is always merged
+   *   directly into one group.
+   * - `false` — normal wrapping logic applies: each item is first wrapped in
+   *   its own single-item group (`wrapEach = true`) before the two wrappers
+   *   are combined.  During wrapping the item's original name is captured,
+   *   the item's name is cleared, and the name is transferred to its wrapper
+   *   group to prevent duplicate-name confusion in the document.
+   */
+  readonly pairable: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CLASS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Prepares a pair (or single) of apparel artwork groups for later grid /
+ * n-up duplication by executing the following pipeline in strict order:
+ *
+ * ```
+ * constructor(params)
+ *   │
+ *   ├── 1. alignCenter()        — overlay item2 on item1 (skipped for single)
+ *   ├── 2. resize()             — scale both to target dimensions
+ *   ├── 3. updateSizeTokens()   — replace SIZE_TKN text (skipped when fixedSize)
+ *   └── 4. this[stack]()        — apply the chosen stacking pattern
+ *         HH  · item2 right of item1
+ *         VV  · item2 below item1
+ *         RHH · item1 −90°, item2 +90°, then HH
+ *         RVV · both +90°, then VV
+ *         VRH · mirrored symmetric layout (see {@link VRH})
+ * ```
+ *
+ * ### `pairable` and `wrapEach` interaction
+ * When `pairable = true`, {@link buildGroup} **never** wraps items individually —
+ * the pair is always merged directly, regardless of the `wrapEach` argument.
+ * When `pairable = false`, items are each wrapped first (`wrapEach = true`),
+ * with their original names preserved on the wrapper groups.
+ *
+ * ### SIZE_TKN auto-creation
+ * When `updateSizeTokens` cannot find a `SIZE_TKN` frame inside an item,
+ * {@link createSizeToken} is called automatically to insert one.  The token is
+ * a text frame centred over a backing rectangle, aligned to the bottom-centre
+ * of the host item, then ungrouped in-place.
+ *
+ * ### Bugs fixed over the original
+ * - **RHH / RVV double-group** — original called `HH()` / `VV()` then
+ *   `buildGroup()` again, leaving an orphaned `GroupItem` in the document.
+ *   Fixed: `HH` / `VV` own all grouping; `RHH` / `RVV` delegate entirely.
+ * - **RVV null crash** — `[item1, item2]` passed `null` when `isSingleItem`.
+ *   Fixed with a single-item guard.
+ * - **Unsafe null casts** replaced with proper nullable types.
+ */
+class ItemsInitiater {
+  // ─── Immutable configuration ────────────────────────────────────────────
+
+  /** Target dimensions in **points** (converted from params inches). */
+  private readonly dimension: DimensionObject;
+
+  /** Apparel size character forwarded to SIZE_TKN text-frame replacement. */
+  private readonly sizeChar: ApparelSize;
+
+  /** Stacking pattern — `"HH" | "VV" | "RHH" | "RVV" | "VRH"`. */
+  private readonly stack: StackType;
+
+  /** Gap between items in **points** (converted from params inches). */
+  private readonly gap: number;
+
+  /**
+   * When `true`, items are never individually wrapped in {@link buildGroup}.
+   * Mirrors the `pairable` field from {@link ItemsInitiaterParams}.
+   */
+  private readonly pairable: boolean;
+
+  // ─── Mutable state ───────────────────────────────────────────────────────
+
+  /** Primary artwork item — always present. */
+  private readonly item1: PageItem;
+
+  /**
+   * Secondary artwork item — `null` when only one item was supplied.
+   * VRH auto-creates a duplicate when `null`.
+   */
+  private item2: PageItem | null;
+
+  /** `true` when only one item was supplied in `params.items`. */
+  private isSingleItem: boolean;
+
+  /**
+   * Final composed `GroupItem` — `null` until the stacking method completes;
+   * guaranteed non-null by the time {@link getItem} is called.
+   */
+  private composedGroup: GroupItem | null = null;
+
+  /**
+   * Action-based transform handler — instantiated only when
+   * `CONFIG.THREAD_ENGINE === "action"`, `null` otherwise.
+   */
+  private readonly actionHandler: TransActionHandler | null;
+
+  // ─── Constructor ─────────────────────────────────────────────────────────
+
+  /**
+   * Constructs and immediately runs the full preparation pipeline.
+   *
+   * @param params - Source items, target size, stack type and layout options.
    */
   constructor(params: ItemsInitiaterParams) {
-    if (Utils.isActionThreadEngine()) {
-      this.transAct = new TransActionHandler();
-    }
+    this.actionHandler = Utils.isActionThreadEngine()
+      ? new TransActionHandler()
+      : null;
 
-    // Convert target dimensions from user-friendly inches to Illustrator internal points
     this.dimension = {
       width: Utils.convertLength({
         value: params.dimension.width,
@@ -72,47 +159,44 @@ class ItemsInitiater {
       }),
     };
 
-    this.sizeChar = params.sizeChar;
-    this.stack = params.stack;
-
-    // Assumption: caller already validated that exactly two GroupItems are passed
-    this.item1 = params.items[0] as GroupItem;
-    if (params.items.length === 1) {
-      this.singleItem = true;
-    } else {
-      this.item2 = params.items[1] as GroupItem;
-    }
-
-    // Convert gap from inches → points (used in positioning calls)
     this.gap = Utils.convertLength({
       value: params.gap,
       from: "inch",
       to: "pt",
     });
+    this.sizeChar = params.sizeChar;
+    this.stack = params.stack;
+    this.pairable = params.pairable;
 
-    // Important sequence:
-    // 1. Align centers
-    // 2. Resize
-    // 3. update SIZE_TKN if fixed size=false
-    // 3. Apply final layout pattern
+    this.item1 = params.items[0] as GroupItem;
+    this.isSingleItem = params.items.length === 1;
+    this.item2 = this.isSingleItem ? null : (params.items[1] as GroupItem);
+
+    // ── Pipeline (order is critical) ─────────────────────────────────────
     this.alignCenter();
     this.resize();
+
     if (!params.fixedSize) {
-      this.renameSizeToken();
+      this.updateSizeTokens();
     }
+
     this[this.stack]();
 
-    if (this.transAct) {
-      this.transAct.removeAll();
+    if (this.actionHandler) {
+      this.actionHandler.removeAll();
     }
   }
 
+  // ─── Private: Preparation pipeline ───────────────────────────────────────
+
   /**
-   * Centers item2 exactly on top of item1 (geometric center alignment)
+   * Overlays `item2` exactly on top of `item1` (geometric centre alignment).
+   * No-op when `isSingleItem`.
    * @private
    */
   private alignCenter(): void {
-    if (this.singleItem) return;
+    if (this.isSingleItem || !this.item2) return;
+
     AlignmentHandler.alignObject({
       base: this.item1,
       moving: this.item2,
@@ -121,73 +205,276 @@ class ItemsInitiater {
   }
 
   /**
-   * Updates all text frames named SIZE_TKN in both groups to current size
-   * @private
-   */
-  private renameSizeToken(): void {
-    Utils.renameSizeTKN(this.item1 as GroupItem, this.sizeChar);
-    if (this.singleItem) return;
-    Utils.renameSizeTKN(this.item2 as GroupItem, this.sizeChar);
-  }
-
-  /**
-   * Resizes both groups to target dimensions (in points).
-   * Uses action engine when available (more reliable with masks/compound paths),
-   * otherwise uses script-level resize.
-   * Updates size tokens after resize.
+   * Scales both items to `this.dimension` (points).
+   * Prefers the action engine for reliability with masks and compound paths.
    * @private
    */
   private resize(): void {
-    if (Utils.isActionThreadEngine()) {
-      // Action-based resize — usually safer with complex artwork
-      this.transAct!.resize({
+    const targets: PageItem[] =
+      this.isSingleItem || !this.item2
+        ? [this.item1]
+        : [this.item1, this.item2];
+
+    if (this.actionHandler) {
+      this.actionHandler.resize({
         width: this.dimension.width,
         height: this.dimension.height,
-        objects: !this.singleItem ? [this.item1, this.item2] : [this.item1],
+        objects: targets,
       });
     } else {
-      // Script-level fallback resize
-      Utils.resizeObject(
-        !this.singleItem ? [this.item1, this.item2] : [this.item1],
-        this.dimension.width,
-        this.dimension.height,
-      );
+      Utils.resizeObject(targets, this.dimension.width, this.dimension.height);
     }
   }
 
   /**
-   * Rotates given objects by specified angle using current engine
-   * @param params Rotation parameters
+   * Replaces the `SIZE_TKN` placeholder in both items with `this.sizeChar`.
+   *
+   * When a `SIZE_TKN` frame is **not found** inside an item,
+   * {@link createSizeToken} is called first to inject one automatically —
+   * so the token always exists before the rename runs.
+   *
+   * Skipped entirely when `fixedSize` is `true`.
+   *
    * @private
    */
-  private rotate({ deg, objects }: { deg: number; objects: PageItem[] }): void {
-    if (Utils.isActionThreadEngine()) {
-      this.transAct!.rotate({ deg, objects });
+  private updateSizeTokens(): void {
+    this.ensureAndRenameSizeToken(this.item1 as GroupItem);
+
+    if (!this.isSingleItem && this.item2) {
+      this.ensureAndRenameSizeToken(this.item2 as GroupItem);
+    }
+  }
+
+  /**
+   * Ensures a `SIZE_TKN` frame exists inside `item` — creating one via
+   * {@link createSizeToken} if absent — then sets its contents to the
+   * formatted size label.
+   *
+   * @param item - The `GroupItem` to check and update.
+   * @throws {Error} When `item` is not a `GroupItem`.
+   * @private
+   */
+  private ensureAndRenameSizeToken(item: GroupItem): void {
+    if (item.typename !== PageItemType.GroupItem) {
+      throw new Error(
+        `SIZE_TKN target must be a GroupItem — received "${item.typename}" ("${item.name}").`,
+      );
+    }
+
+    const tokenExists = !!ES6_SA.arrayFind(
+      item.pageItems,
+      (child) =>
+        child.typename === PageItemType.TextFrame && child.name === SIZE_TKN,
+    );
+
+    if (!tokenExists) {
+      this.createSizeToken(item);
+    }
+
+    Utils.renameSizeTKN(item, this.sizeChar);
+  }
+
+  // ─── Private: SIZE_TKN factory ────────────────────────────────────────────
+
+  /**
+   * Creates a `SIZE_TKN` composite and injects it into `hostItem`.
+   *
+   * ### Composite structure
+   * ```
+   * ┌──────────────────────────┐  ← rect      1.00 × 0.20 inch
+   * │      [SIZE_TKN text]     │  ← textFrame  0.55 × 0.17 inch, centred on rect
+   * └──────────────────────────┘
+   * ```
+   *
+   * ### Colours
+   * | Element    | Fill                       | Stroke                         |
+   * |------------|----------------------------|--------------------------------|
+   * | Rectangle  | CMYK white (0 / 0 / 0 / 0) | 0.5 pt · CMYK 75 / 75 / 67 / 100 |
+   * | Text frame | CMYK 75 / 75 / 67 / 100    | none                           |
+   *
+   * ### Font
+   * **Sakana Bold** is applied when available; the document default is used as
+   * a silent fallback when the font is not installed.
+   *
+   * ### Placement sequence
+   * 1. Build the composite group (textFrame + rect).
+   * 2. Move the group into `hostItem` so it shares the same coordinate space.
+   * 3. Align the group to the **bottom-centre** (`"BC"`) of `hostItem` via
+   *    {@link AlignmentHandler.alignObject}.
+   * 4. Ungroup via {@link GroupManager.ungroup} — children are promoted
+   *    directly into `hostItem`'s page-item list and the container is removed.
+   *
+   * @param hostItem - The `GroupItem` that will receive the composite.
+   * @throws {Error} When `hostItem` is not a `GroupItem`.
+   * @private
+   */
+  private createSizeToken(hostItem: GroupItem): void {
+    if (hostItem.typename !== PageItemType.GroupItem) {
+      throw new Error(
+        `createSizeToken requires a GroupItem — received "${hostItem.typename}" ("${hostItem.name}").`,
+      );
+    }
+
+    const doc = app.activeDocument;
+
+    // ── Dimensions: inches → points ──────────────────────────────────────
+    const rectW = Utils.convertLength({ value: 1.0, from: "inch", to: "pt" });
+    const rectH = Utils.convertLength({ value: 0.2, from: "inch", to: "pt" });
+    const textW = Utils.convertLength({ value: 0.55, from: "inch", to: "pt" });
+    const textH = Utils.convertLength({ value: 0.17, from: "inch", to: "pt" });
+
+    // ── Shared dark ink colour: CMYK 75 / 75 / 67 / 100 ──────────────────
+    const inkColor = new CMYKColor();
+    inkColor.cyan = 75;
+    inkColor.magenta = 75;
+    inkColor.yellow = 67;
+    inkColor.black = 100;
+
+    // ── White fill for the rectangle ─────────────────────────────────────
+    const whiteColor = new CMYKColor();
+    whiteColor.cyan = 0;
+    whiteColor.magenta = 0;
+    whiteColor.yellow = 0;
+    whiteColor.black = 0;
+
+    // ── 1. Backing rectangle ─────────────────────────────────────────────
+    // Created at origin; final position is set by alignObject in step 3
+    const rect = doc.activeLayer.pathItems.rectangle(0, 0, rectW, rectH);
+    rect.filled = true;
+    rect.fillColor = whiteColor;
+    rect.stroked = true;
+    rect.strokeWidth = 0.5;
+    rect.strokeColor = inkColor;
+
+    // ── 2. Text frame ─────────────────────────────────────────────────────
+    const textFrame = doc.activeLayer.textFrames.add();
+    textFrame.contents = SIZE_TKN;
+    textFrame.name = SIZE_TKN;
+    textFrame.width = textW;
+    textFrame.textRange.paragraphAttributes.justification =
+      Justification.CENTER;
+    textFrame.height = textH;
+
+    // Apply font with silent fallback
+    try {
+      textFrame.textRange.characterAttributes.textFont =
+        app.textFonts.getByName(SIZE_TKN_FONT);
+    } catch (_) {
+      // Sakana Bold not installed — document default font remains in effect
+    }
+
+    textFrame.textRange.characterAttributes.fillColor = inkColor;
+
+    // ── 3. Centre text frame over the rectangle ───────────────────────────
+    AlignmentHandler.alignObject({
+      base: rect,
+      moving: textFrame,
+      engine: "script",
+    });
+
+    // ── 4. Group composite (text on top of rect in stacking order) ────────
+    const tokenGroup = GroupManager.group([textFrame, rect]);
+
+    // align bottom-centre
+    AlignmentHandler.alignObject({
+      base: hostItem,
+      moving: tokenGroup,
+      position: "BC",
+      engine: "script",
+    });
+
+    // ── 5. Place inside hostItem and  ──────────────────
+    // Moving into hostItem ensures both share the same coordinate space
+    // before the alignment call
+    tokenGroup.move(hostItem, ElementPlacement.INSIDE);
+
+    // ── 6. Ungroup — promote children into hostItem's page-item list ──────
+    // GroupManager.ungroup removes the container and returns the released
+    // children, which are now direct members of hostItem
+    GroupManager.ungroup(tokenGroup);
+  }
+
+  // ─── Private: Shared transform helper ────────────────────────────────────
+
+  /**
+   * Rotates `objects` by `deg` degrees using the active engine.
+   *
+   * Positive = counter-clockwise in Illustrator.
+   * Negative = clockwise (e.g. −90° = rotate right).
+   *
+   * @param deg     - Rotation angle in degrees.
+   * @param objects - Items to rotate.
+   * @private
+   */
+  private rotate(deg: number, objects: PageItem[]): void {
+    if (this.actionHandler) {
+      this.actionHandler.rotate({ deg, objects });
     } else {
       Utils.rotateItems(objects, deg);
     }
   }
 
+  // ─── Private: Group builder ───────────────────────────────────────────────
+
   /**
-   * Groups item1 and item2 into one GroupItem
-   * (currently unused in public API)
+   * Combines `item1` and `item2` into a single `GroupItem`.
+   *
+   * ### `pairable` override
+   * When `this.pairable = true`, items are **always** merged directly —
+   * the `wrapEach` argument is ignored and individual wrapping never occurs.
+   *
+   * ### `wrapEach` behaviour (active only when `pairable = false`)
+   * - `true` **(default)**: each item's name is captured and cleared, the item
+   *   is wrapped in its own single-item group, and the captured name is set on
+   *   the wrapper.  The two named wrappers are then combined into the outer group.
+   * - `false`: items are merged directly without per-item wrappers.
+   *   Used by {@link VRH} to flatten the base pair alongside a mirrored group.
+   *
+   * Returns `item1` as-is when `isSingleItem` is `true`.
+   *
+   * @param wrapEach - Wrap each item individually (ignored when `pairable = true`).
+   * @returns The composed `GroupItem`.
    * @private
    */
-  private pairGroup(): GroupItem {
-    return GroupManager.group(
-      !this.singleItem ? [this.item1, this.item2] : [this.item1],
-    );
+  private buildGroup(wrapEach: boolean = true): GroupItem {
+    if (this.isSingleItem || !this.item2) {
+      return this.item1 as GroupItem;
+    }
+
+    // pairable=true → always direct merge, wrapEach has no effect
+    const shouldWrap = !this.pairable && wrapEach;
+
+    if (shouldWrap) {
+      // Capture names — wrapper groups inherit them, items' names are cleared
+      // to prevent duplicate-name confusion at the document level
+      const name1 = this.item1.name;
+      const name2 = this.item2.name;
+
+      this.item1.name = "";
+      this.item2.name = "";
+
+      const wrapper1 = GroupManager.group([this.item1]);
+      const wrapper2 = GroupManager.group([this.item2]);
+
+      wrapper1.name = name1;
+      wrapper2.name = name2;
+
+      return GroupManager.group([wrapper1, wrapper2]);
+    }
+
+    // Direct merge — no per-item wrappers
+    return GroupManager.group([this.item1, this.item2]);
   }
 
-  // ────────────────────────────────────────────────
-  //              Stacking pattern methods
-  // ────────────────────────────────────────────────
+  // ─── Private: Stacking pattern methods ───────────────────────────────────
 
   /**
-   * HH — places item2 to the right of item1 with gap
+   * **HH** — Horizontal-Horizontal.
+   * Places `item2` to the right of `item1` with `this.gap`, then groups both.
+   * @private
    */
   private HH(): void {
-    if (!this.singleItem) {
+    if (!this.isSingleItem && this.item2) {
       AlignmentHandler.moveObjectAfter({
         base: this.item1,
         moving: this.item2,
@@ -196,14 +483,17 @@ class ItemsInitiater {
         engine: CONFIG.THREAD_ENGINE,
       });
     }
-    this.groupedItem = this.pairGroup();
+
+    this.composedGroup = this.buildGroup();
   }
 
   /**
-   * VV — places item2 below item1 with gap
+   * **VV** — Vertical-Vertical.
+   * Places `item2` below `item1` with `this.gap`, then groups both.
+   * @private
    */
   private VV(): void {
-    if (!this.singleItem) {
+    if (!this.isSingleItem && this.item2) {
       AlignmentHandler.moveObjectAfter({
         base: this.item1,
         moving: this.item2,
@@ -212,109 +502,130 @@ class ItemsInitiater {
         engine: CONFIG.THREAD_ENGINE,
       });
     }
-    this.groupedItem = this.pairGroup();
+
+    this.composedGroup = this.buildGroup();
   }
 
   /**
-   * RHH — rotates item1 clockwise 90°, item2 counter-clockwise 90°, then HH
+   * **RHH** — Rotated-Horizontal-Horizontal.
+   * Rotates `item1` −90°, `item2` +90°, then delegates to {@link HH}.
+   * @private
    */
   private RHH(): void {
-    this.rotate({ deg: -90, objects: [this.item1] });
-    if (!this.singleItem) {
-      this.rotate({ deg: 90, objects: [this.item2] });
-      this.HH();
+    this.rotate(-90, [this.item1]);
+
+    if (!this.isSingleItem && this.item2) {
+      this.rotate(90, [this.item2]);
     }
-    this.groupedItem = this.pairGroup();
+
+    // HH owns positioning AND grouping — no additional buildGroup() needed
+    this.HH();
   }
 
   /**
-   * RVV — rotates both items counter-clockwise 90°, then VV
+   * **RVV** — Rotated-Vertical-Vertical.
+   * Rotates both items +90°, then delegates to {@link VV}.
+   * Single-item guard prevents passing `null` to the rotate call.
+   * @private
    */
   private RVV(): void {
-    this.rotate({ deg: 90, objects: [this.item1, this.item2] });
-    if (!this.singleItem) {
-      this.VV();
-    }
-    this.groupedItem = this.pairGroup();
+    const targets: PageItem[] =
+      this.isSingleItem || !this.item2
+        ? [this.item1]
+        : [this.item1, this.item2];
+
+    this.rotate(90, targets);
+
+    // VV owns positioning AND grouping — no additional buildGroup() needed
+    this.VV();
   }
 
   /**
-   * **VRH** — Vertical-Rotated-Horizontal (mirrored / symmetric layout)
+   * **VRH** — Vertical-Rotated-Horizontal (mirrored symmetric layout).
    *
-   * Special layout often used in apparel gang-run production.
-   * Creates a mirrored pair suitable for certain folding/cutting workflows.
+   * Gang-run layout where the substrate is folded along the vertical axis.
    *
-   * Behavior in single-item mode:
-   *   Duplicates the single item and treats it as item2
+   * ### Steps
+   * 1. Auto-duplicate `item1` → `item2` when `isSingleItem`.
+   * 2. Rotate `item1` 180°, `item2` −90°.
+   * 3. Align left edges (shared left boundary).
+   * 4. Stack `item2` below `item1` with gap.
+   * 5. Duplicate both → group → rotate −180° → `mirroredGroup`.
+   * 6. Place `mirroredGroup` to the right of the portrait/landscape anchor.
+   * 7. Flatten base pair + mirrored group into `composedGroup`.
    *
-   * Steps:
-   * 1. Rotate item1 180° (upside down), item2 –90° (clockwise 90°)
-   * 2. Align left edges of both items
-   * 3. Stack item2 below item1 with gap
-   * 4. Duplicate both items → group duplicates
-   * 5. Rotate duplicate group 180° (creates mirror)
-   * 6. Place mirrored group to the right of the taller/wider base item
+   * {@link GroupManager.ungroup} removes intermediate containers so no orphaned
+   * groups accumulate in the document.
    *
-   * @returns Final grouped artwork (usually already contains mirrored pair)
+   * @private
    */
   private VRH(): void {
-    // ── Single-item fallback: duplicate item1 to allow mirroring ─────
-    if (this.singleItem) {
+    // Step 1 — VRH always needs two items
+    if (this.isSingleItem) {
       this.item2 = this.item1.duplicate() as GroupItem;
-      this.singleItem = false;
+      this.isSingleItem = false;
     }
 
-    // Step 1: Apply orientation rotations
-    this.rotate({ deg: 180, objects: [this.item1] });
-    this.rotate({ deg: -90, objects: [this.item2] });
+    const item2 = this.item2!;
 
-    // Step 2: Decide which item should be the reference for right-side placement
-    const heightIsLargerOrEqual = this.dimension.height >= this.dimension.width;
+    // Step 2
+    this.rotate(180, [this.item1]);
+    this.rotate(-90, [item2]);
 
-    // Step 3: Align left edges (create common left boundary)
+    // Step 3
     AlignmentHandler.alignObject({
       base: this.item1,
-      moving: this.item2,
+      moving: item2,
       position: "L",
       engine: CONFIG.THREAD_ENGINE,
     });
 
-    // Step 4: Stack second item below first with configured gap
+    // Step 4
     AlignmentHandler.moveObjectAfter({
       base: this.item1,
-      moving: this.item2,
+      moving: item2,
       position: "B",
       gap: this.gap,
       engine: CONFIG.THREAD_ENGINE,
     });
 
-    // Step 5: Create mirrored copy (duplicate → group → rotate 180°)
+    // Step 5
     const mirroredGroup = GroupManager.group([
       this.item1.duplicate(),
-      this.item2.duplicate(),
+      item2.duplicate(),
     ]);
 
-    this.rotate({ deg: -180, objects: [mirroredGroup] });
+    this.rotate(-180, [mirroredGroup]);
 
-    // Step 6: Place mirrored side to the right of chosen base item
+    // Step 6 — portrait → item1 taller anchor; landscape → item2 wider anchor
+    const rightAnchor =
+      this.dimension.height >= this.dimension.width ? this.item1 : item2;
+
     AlignmentHandler.moveObjectAfter({
-      base: heightIsLargerOrEqual ? this.item1 : this.item2,
+      base: rightAnchor,
       moving: mirroredGroup,
       position: "R",
       gap: this.gap,
       engine: CONFIG.THREAD_ENGINE,
     });
-    
 
-    // Return final grouped result (contains original + mirrored side)
-    this.groupedItem = GroupManager.group([...GroupManager.ungroup(this.pairGroup()), ...GroupManager.ungroup(mirroredGroup)]);
+    // Step 7
+    this.composedGroup = GroupManager.group([
+      ...GroupManager.ungroup(this.buildGroup(false)),
+      ...GroupManager.ungroup(mirroredGroup),
+    ]);
   }
 
+  // ─── Public API ───────────────────────────────────────────────────────────
+
   /**
-   * get initiated group item
-   * @returns
+   * Returns the fully prepared composed `GroupItem` ready for grid duplication.
+   *
+   * Guaranteed non-null — every stacking method sets `composedGroup`.
+   *
+   * @returns The composed `GroupItem`.
    */
-  public getItem() {
-    return this.groupedItem;
+  public getItem(): GroupItem {
+    return this.composedGroup!;
   }
 }

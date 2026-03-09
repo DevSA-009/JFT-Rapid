@@ -115,4 +115,6 @@ enum DirectionMarkers {
 
 const SIZE_TKN = "SIZE_TKN";
 
+const SIZE_TKN_FONT = "Sakana-Regular"
+
 const faceBasePair = [PairObjectMarkers.BODY, PairObjectMarkers.COLLAR];
