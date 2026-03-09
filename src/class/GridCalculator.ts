@@ -122,21 +122,20 @@ class GridCalculator {
   static getColsByStack(params: RowByStack) {
     const { fitRow, quantity = 1 } = params;
 
-    // if can't fit items then all are remainder
     if (fitRow === 0) {
-      return {
-        cols: 0,
-        remainder: quantity,
-      };
+      return { cols: 0, remainder: quantity };
+    }
+
+    // When all items fit within a single row, the main rows consume everything —
+    // no remainder exists regardless of how many slots the row has.
+    if (quantity <= fitRow) {
+      return { cols: 1, remainder: 0 };
     }
 
     const remainder = quantity % fitRow;
     const cols = Math.floor(quantity / fitRow);
 
-    return {
-      cols,
-      remainder,
-    };
+    return { cols: Math.max(1, cols), remainder };
   }
 
   /**
@@ -311,10 +310,9 @@ class GridCalculator {
       if (mainInfo.neededCols.remainder === 0) {
         const totalHeight = mainInfo.heightByCols.mainStack;
         // ✅ Calculate items per VRH square for quantity occupied
-        const itemsPerMainStack =
-          mainType === "VRH" ? (pair ? 2 : 4) : mainInfo.fitRow;
-        const mainQuantityOccupied =
-          mainInfo.neededCols.cols * itemsPerMainStack;
+
+        mainType === "VRH" ? (pair ? 2 : 4) : mainInfo.fitRow;
+        const mainQuantityOccupied = quantity - mainInfo.neededCols.remainder;
 
         validCombinations.push({
           mainStack: mainType,
@@ -353,10 +351,9 @@ class GridCalculator {
         // ✅ Calculate quantity occupied for main and remainder
         const itemsPerMainStack =
           mainType === "VRH" ? (pair ? 2 : 4) : mainInfo.fitRow;
-        const mainQuantityOccupied =
-          mainInfo.neededCols.cols * itemsPerMainStack;
-        const itemsPerRemStack =
-          remType === "VRH" ? (pair ? 2 : 4) : remInfo.fitRow;
+        const mainQuantityOccupied = quantity - mainInfo.neededCols.remainder;
+
+        remType === "VRH" ? (pair ? 2 : 4) : remInfo.fitRow;
         const remainderQuantityOccupied = mainInfo.neededCols.remainder;
 
         const remainderItems = mainInfo.neededCols.remainder;
@@ -472,7 +469,7 @@ class GridCalculator {
       docsNeeded = Math.ceil(neededCols / colsPerDoc);
     }
 
-    return { docsNeeded, colsPerDoc };
+    return { docsNeeded: Math.max(1, docsNeeded), colsPerDoc };
   }
 }
 
