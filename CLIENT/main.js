@@ -117,7 +117,7 @@ markNameBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('NAME')");
 };
 markNumberBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NO')");
+  csInterface.evalScript("Organizer.objectMarkByName('NUMBER')");
 };
 markDynamicBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('DYN')");

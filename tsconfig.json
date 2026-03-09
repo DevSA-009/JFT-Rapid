@@ -18,7 +18,7 @@
     "src/class/GridCalculator.ts",
     "src/class/GridLayoutGenerator.ts",
     "src/class/JSONFileHandler.ts",
-    "src/class/JFTProcessOrderGenarator.ts",
+    "src/class/JFTProcessSequentially.ts",
     "src/class/AlignmentHandler.ts",
     "src/class/TransActionHandler.ts",
     "src/class/ValidatorManager.ts",
