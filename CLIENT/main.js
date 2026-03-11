@@ -114,10 +114,10 @@ markRightBtn.onclick = () => {
 };
 
 markNameBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NAME')");
+  csInterface.evalScript("Organizer.objectMarkByName('NAME',false)");
 };
 markNumberBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('NUMBER')");
+  csInterface.evalScript("Organizer.objectMarkByName('NUMBER',false)");
 };
 markDynamicBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('DYN')");

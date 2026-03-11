@@ -8,7 +8,8 @@
       "type": "extendscript-debug",
       "request": "launch",
       "name": "Launch Script in ExtendScript Engine",
-      "hostAppSpecifier": "illustrator"
+      "hostAppSpecifier": "illustrator",
+      "engineName": "main"
     }
   ]
 }
