@@ -890,6 +890,165 @@ class Utils {
   static isActionThreadEngine() {
     return CONFIG.THREAD_ENGINE === "action";
   }
+
+  /**
+   * Finds the best way to arrange `value` items into a grid where the number of rows (baseHeight)
+   * is at most `maxBaseHeight` (default 20), preferring the **smallest possible number of columns** (divider).
+   *
+   * Behavior:
+   * 1. First tries to find an **exact** factorization: `value = divider × baseHeight` with `baseHeight ≤ maxBaseHeight`
+   *    → among valid exact matches, chooses the one with **smallest divider**
+   * 2. If no exact match exists → searches for the smallest number `n ≥ value` (up to `value × (1 + maxOvershoot)`)
+   *    that **does** have a nice factorization with height ≤ maxBaseHeight
+   * 3. Among all candidates, prefers:
+   *    - smallest overshoot (closest to original value)
+   *    - then smallest divider (fewest columns)
+   *    - then tallest possible baseHeight (when divider is equal)
+   * 4. Ultimate fallback: `divider: 1, baseHeight: value` (single column, possibly very tall)
+   *
+   * @param value - Total number of items to arrange (cards, images, posts, etc.)
+   * @param maxBaseHeight - Maximum allowed rows/height of the grid (default: 20)
+   * @param maxOvershoot - Maximum allowed relative overshoot when rounding up
+   *                       (e.g. 0.25 = allow up to +25% extra items) (default: 0.25)
+   * @returns Object containing:
+   *   - `divider`:      number of columns (smallest preferred)
+   *   - `baseHeight`:   number of rows (≤ maxBaseHeight when possible)
+   *   - `usedValue`:    the number of slots actually used (≥ value, usually value or slightly more)
+   *
+   * @example
+   * ```ts
+   * getBestDividerAndHeight(61)
+   * // Possible result: { divider: 4, baseHeight: 16, usedValue: 64 }  // 4×16 = 64
+   *
+   * getBestDividerAndHeight(61, 20, 0.1)
+   * // Might prefer: { divider: 5, baseHeight: 12, usedValue: 60 }    // slight undershoot not allowed here
+   *
+   * getBestDividerAndHeight(23)
+   * // Common nice result: { divider: 2, baseHeight: 12, usedValue: 24 }
+   *
+   * getBestDividerAndHeight(120)
+   * // → { divider: 6, baseHeight: 20, usedValue: 120 }  (or better like 8×15, 10×12, etc.)
+   * ```
+   */
+  static getBestDividerAndHeight(
+    value: number,
+    maxBaseHeight: number = 20,
+    maxOvershoot: number = 0.25,
+  ): {
+    divider: number;
+    baseHeight: number;
+    usedValue: number;
+  } {
+    // Early return for small collections — single column
+    if (value <= maxBaseHeight) {
+      return { divider: 1, baseHeight: value, usedValue: value };
+    }
+
+    // We'll keep track of the best candidate found so far
+    let best: {
+      divider: number;
+      baseHeight: number;
+      score: number; // lower = better
+      usedValue: number;
+    } | null = null;
+
+    // ────────────────────────────────────────────────
+    // Step 1: Try exact factorization first (highest priority)
+    // ────────────────────────────────────────────────
+    for (let d = 1; d * d <= value; d++) {
+      if (value % d === 0) {
+        const h = value / d;
+        if (h <= maxBaseHeight) {
+          const score = d; // primary sort: smallest number of columns
+          if (
+            !best ||
+            score < best.score ||
+            (score === best.score && h > best.baseHeight)
+          ) {
+            best = { divider: d, baseHeight: h, score, usedValue: value };
+          }
+        }
+      }
+    }
+
+    // If we found a perfect exact match → return early
+    if (best) {
+      return {
+        divider: best.divider,
+        baseHeight: best.baseHeight,
+        usedValue: best.usedValue,
+      };
+    }
+
+    // ────────────────────────────────────────────────
+    // Step 2: No good exact match → look for nearby numbers (slight overshoot)
+    // ────────────────────────────────────────────────
+    const maxValue = Math.ceil(value * (1 + maxOvershoot));
+
+    for (let n = value; n <= maxValue; n++) {
+      for (let d = 1; d * d <= n; d++) {
+        if (n % d === 0) {
+          // Candidate: d columns, h rows
+          const h = n / d;
+          if (h <= maxBaseHeight) {
+            const overshoot = (n - value) / value;
+            // Score: first minimize overshoot, then minimize columns
+            const score = overshoot * 1000 + d;
+
+            if (
+              !best ||
+              score < best.score ||
+              (score === best.score && h > best.baseHeight)
+            ) {
+              best = { divider: d, baseHeight: h, score, usedValue: n };
+            }
+          }
+
+          // Candidate: n/d columns, d rows (the flipped pair)
+          const d2 = n / d;
+          if (d2 !== d) {
+            const h2 = d;
+            if (h2 <= maxBaseHeight) {
+              const overshoot = (n - value) / value;
+              const score = overshoot * 1000 + d2;
+
+              if (
+                !best ||
+                score < best.score ||
+                (score === best.score && h2 > best.baseHeight)
+              ) {
+                best = { divider: d2, baseHeight: h2, score, usedValue: n };
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // ────────────────────────────────────────────────
+    // Step 3: Ultimate fallback (single tall column)
+    // ────────────────────────────────────────────────
+    if (!best) {
+      return { divider: 1, baseHeight: value, usedValue: value };
+    }
+
+    return {
+      divider: best.divider,
+      baseHeight: best.baseHeight,
+      usedValue: best.usedValue,
+    };
+  }
+
+  /**
+   * Text frame arch wrap 50% bend
+   * @param textFrame 
+   */
+  static applyArcTextWarp(textFrame: TextFrame): void {
+    app.executeMenuCommand("deselectall");
+    textFrame.selected = true;
+    app.executeMenuCommand("Make Text Wrap");
+    app.executeMenuCommand("expandStyle");
+  }
 }
 
 interface ConvertParams {
