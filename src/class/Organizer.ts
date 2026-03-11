@@ -463,36 +463,59 @@ class Organizer {
   }
 
   /**
-   * Assigns a custom name (mark) to all selected Illustrator objects.
+   * Applies a name tag to all currently selected Illustrator objects.
    *
-   * This method is useful for tagging or identifying specific elements
-   * within a document by applying a shared name to the currently selected items.
+   * This utility helps identify or group elements by assigning a shared
+   * name (`mark`) to every selected item in the active document.
    *
-   * ### Workflow:
-   * 1. Verifies that a document is open and there is a valid selection.
-   * 2. Iterates over the selected items.
-   * 3. Sets the `.name` property of each item to the provided `mark` string.
+   * ### Behavior
+   * - Ensures a document is open and a valid selection exists.
+   * - Iterates through all selected objects.
+   * - Updates the `.name` property of each item.
    *
-   * @param {string} mark - The name or identifier to assign to each selected object.
+   * ### Naming Rules
+   * - When `prefix = true`:
+   *   - Cleans the existing name (removes duplicate/edge underscores).
+   *   - Skips items that already contain the `mark`.
+   *   - Appends the mark using underscore delimiters.
    *
-   * @throws Will throw an error if:
+   *   Example:
+   *   ```text
+   *   old name: logo
+   *   mark: icon
+   *   result: _logo_icon_
+   *   ```
+   *
+   * - When `prefix = false`:
+   *   - Replaces the object's name with `mark` unless it already contains it.
+   *
+   * @param mark   Identifier applied to each selected object.
+   * @param prefix If true, appends the mark to the existing name.
+   *               If false, replaces the name entirely.
+   *
+   * @throws Error if:
    * - No document is open.
-   * - No items are selected.
+   * - No objects are selected.
    */
-  static objectMarkByName(mark: string) {
+  static objectMarkByName(mark: string, prefix = true) {
     try {
       const { selection } = this.selectionVerifyChain();
 
       for (const element of selection) {
-        const prevName = element.name
-          .replace(/__/g, "_") // step 1: replace double underscores
-          .replace(/^_+|_+$/g, ""); // step 2: remove leading/trailing underscores;
+        const currentName = element.name || "";
 
-        if (ES6_SA.stringIncludes(prevName, mark)) {
+        if (ES6_SA.stringIncludes(currentName, mark)) continue;
+
+        if (!prefix) {
+          element.name = mark;
           continue;
         }
 
-        element.name = `${prevName ? `_${prevName}` : prevName}_${mark}_`;
+        const cleanName = currentName
+          .replace(/__+/g, "_")
+          .replace(/^_+|_+$/g, "");
+
+        element.name = `${cleanName ? `_${cleanName}` : ""}_${mark}_`;
       }
     } catch (error: any) {
       alertDialogSA(error.message);

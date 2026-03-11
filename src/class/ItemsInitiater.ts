@@ -450,8 +450,6 @@ class ItemsInitiater {
       const name1 = this.item1.name;
       const name2 = this.item2.name;
 
-      this.item1.name = "";
-      this.item2.name = "";
 
       const wrapper1 = GroupManager.group([this.item1]);
       const wrapper2 = GroupManager.group([this.item2]);

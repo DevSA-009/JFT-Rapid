@@ -588,9 +588,26 @@ class JFTProcessSequentially {
 
     if (fixedSize && !this.shouldRunFixedSize(`RIB_${sleeveType}`)) return;
 
-    const quantity = fixedSize
-      ? this.totalQTY
-      : this.details[sizeChar].SUMMARY.SLEEVE[sleeveType];
+    // Quantity source:
+    //   fixedSize → sum this sleeveType count across ALL sizes
+    //               (not totalQTY which is the whole order total)
+    //   normal    → SUMMARY.SLEEVE[sleeveType] for this size only
+    let quantity: number;
+
+    if (fixedSize) {
+      // Sum the sleeve-type count across every size
+      let sleeveTotal = 0;
+      for (let i = 0; i < this.activeSizes.length; i++) {
+        sleeveTotal +=
+          this.details[this.activeSizes[i]].SUMMARY.SLEEVE[sleeveType];
+      }
+      // CUFF rib wraps both ends of the sleeve — each sleeve needs 2 cuffs
+      quantity = this.rib.type === RIBType.CUFF ? sleeveTotal * 2 : sleeveTotal;
+    } else {
+      const baseQty = this.details[sizeChar].SUMMARY.SLEEVE[sleeveType];
+      quantity = this.rib.type === RIBType.CUFF ? baseQty * 2 : baseQty;
+    }
+
     if (!quantity) return;
 
     const finalSizeChar = fixedSize ? ("L" as ApparelSize) : sizeChar;
@@ -602,7 +619,7 @@ class JFTProcessSequentially {
       quantity,
       sizeChar: finalSizeChar,
       jftItem,
-      orientation: CONFIG.ORIENTATION,
+      orientation: "vertical",
       data: this.details[sizeChar].DATA,
     });
   }
