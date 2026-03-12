@@ -58,7 +58,7 @@ type PantItems = [PageItem, PageItem, PageItem, PageItem];
 
 interface PersistConfig {
   config: {
-    sizeContainer: string;
+    brand: string;
     paperMaxWidth: number;
   };
   sizes: {
