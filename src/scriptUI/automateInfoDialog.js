@@ -1,16 +1,18 @@
 /*
 Code for Import https://scriptui.joonas.me — (Triple click to select): 
-{"activeId":31,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Automate NO/NA","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"orgBody","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"orientationGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"varName":"orgOrientation","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Orientation:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"varName":"orientations","text":"DropDownList","listItems":"Auto, Vertical, Horizontal","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"perDocGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"varName":"perDoc","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Doc Row","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"varName":"perDocField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"itemsGap","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"varName":"itemsGap","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"varName":"itemsGapField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Data","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"varName":"enterBn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}},"item-29":{"id":29,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"nanoDataGrp","preferredSize":[0,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-30":{"id":30,"type":"StaticText","parentId":29,"style":{"enabled":true,"varName":"nanoData","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"NA/NO Data","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"the data that will apply!"}},"item-31":{"id":31,"type":"EditText","parentId":29,"style":{"enabled":true,"varName":"nanoDataField","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"","justify":"center","preferredSize":[127,50],"alignment":null,"helpTip":"data should be json format"}},"item-32":{"id":32,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"kidsInVOrientGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-35":{"id":35,"type":"Checkbox","parentId":32,"style":{"enabled":true,"varName":"kidsInVCheckBox","text":"KidsInV","preferredSize":[0,0],"alignment":null,"helpTip":"kids size should be V orientation","checked":true}},"item-36":{"id":36,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"sizeContGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-37":{"id":37,"type":"StaticText","parentId":36,"style":{"enabled":true,"varName":"sizeContainer","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Container","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-38":{"id":38,"type":"DropDownList","parentId":36,"style":{"enabled":true,"varName":"sizeContainerList","text":"DropDownList","listItems":"A,B,C","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-39":{"id":39,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"outlineNANOGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-40":{"id":40,"type":"Checkbox","parentId":39,"style":{"enabled":true,"varName":"outlineNANOCheckBox","text":"Outline NANO","preferredSize":[0,0],"alignment":null,"helpTip":"NANO text convert to shape","checked":false}},"item-41":{"id":41,"type":"Group","parentId":18,"style":{"enabled":false,"varName":"opacityMaskGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-42":{"id":42,"type":"Checkbox","parentId":41,"style":{"enabled":true,"varName":"opacityMaskCheckBox","text":"Opacity Mask","preferredSize":[0,0],"alignment":null,"helpTip":"handle properly transform opacity mask item","checked":false}},"item-43":{"id":43,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"paperWidthGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-44":{"id":44,"type":"StaticText","parentId":43,"style":{"enabled":true,"varName":"paperWidthTextField","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Paper Max Width","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"paper max width in inch"}},"item-45":{"id":45,"type":"EditText","parentId":43,"style":{"enabled":true,"varName":"paperWidthInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"63.3","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}}},"order":[0,23,2,43,44,45,3,4,5,9,10,11,15,16,17,18,29,30,31,36,37,38,32,35,39,40,41,42,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"var"}}
+{"activeId":31,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Automate NAME/NUMBER","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"basicPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"orientationGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"varName":"orientationLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Orientation:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"varName":"orientationDropdown","text":"DropDownList","listItems":"Auto, Vertical, Horizontal","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"perDocColsGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"varName":"perDocColsLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Doc Cols","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"varName":"perDocColsInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"itemsGapGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"varName":"itemsGapLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"varName":"itemsGapInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Data","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"varName":"enterActionBtn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}},"item-29":{"id":29,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"jsonDataGrp","preferredSize":[0,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-30":{"id":30,"type":"StaticText","parentId":29,"style":{"enabled":true,"varName":"jsonDataLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"JSON Data","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"the data that will apply!"}},"item-31":{"id":31,"type":"EditText","parentId":29,"style":{"enabled":true,"varName":"jsonDataInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"","justify":"center","preferredSize":[127,50],"alignment":null,"helpTip":"data should be json format"}},"item-32":{"id":32,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"actionEngineThreadGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-35":{"id":35,"type":"Checkbox","parentId":32,"style":{"enabled":true,"varName":"actionEngineThreadCheckBox","text":"Action Thread","preferredSize":[0,0],"alignment":null,"helpTip":"when true script for transformation happend engine base","checked":true}},"item-36":{"id":36,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"sizeBrandGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-37":{"id":37,"type":"StaticText","parentId":36,"style":{"enabled":true,"varName":"sizeBrandLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Brand","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-38":{"id":38,"type":"DropDownList","parentId":36,"style":{"enabled":true,"varName":"sizeBrandListDropdown","text":"DropDownList","listItems":"A,B,C","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-39":{"id":39,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"createOutlineGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-40":{"id":40,"type":"Checkbox","parentId":39,"style":{"enabled":true,"varName":"createOutlineCheckBox","text":"Text Outline","preferredSize":[0,0],"alignment":null,"helpTip":"NANO text convert to shape","checked":true}},"item-41":{"id":41,"type":"Group","parentId":18,"style":{"enabled":false,"varName":"wrapTextGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-42":{"id":42,"type":"Checkbox","parentId":41,"style":{"enabled":false,"varName":"wrapTextCheckBox","text":"Curve Text","preferredSize":[0,0],"alignment":null,"helpTip":"handle properly transform opacity mask item","checked":false}},"item-43":{"id":43,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"paperWidthGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-44":{"id":44,"type":"StaticText","parentId":43,"style":{"enabled":true,"varName":"paperWidthLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Paper Width","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"paper width in inch"}},"item-45":{"id":45,"type":"EditText","parentId":43,"style":{"enabled":true,"varName":"paperWidthInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"63.3","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}}},"order":[0,23,2,43,44,45,3,4,5,9,10,11,15,16,17,18,29,30,31,36,37,38,32,35,39,40,41,42,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"var"}}
 */
 
 // DIALOGROOT
 // ==========
 const automateInfoDialog = () => {
   try {
+
+
     // DIALOGROOT
     // ==========
     const dialogRoot = new Window("dialog");
-    dialogRoot.text = "Automate NO/NA";
+    dialogRoot.text = "Automate NAME/NUMBER";
     dialogRoot.orientation = "column";
     dialogRoot.alignChildren = ["center", "center"];
     dialogRoot.spacing = 0;
@@ -18,60 +20,44 @@ const automateInfoDialog = () => {
 
     // PANELCONTGRP
     // ============
-    const panelContGrp = dialogRoot.add("group", undefined, {
-      name: "panelContGrp",
-    });
+    const panelContGrp = dialogRoot.add("group", undefined, { name: "panelContGrp" });
     panelContGrp.orientation = "row";
     panelContGrp.alignChildren = ["center", "center"];
     panelContGrp.spacing = 10;
     panelContGrp.margins = [0, 0, 0, 10];
 
-    // ORGBODY
-    // =======
-    const orgBody = panelContGrp.add("panel", undefined, undefined, {
-      name: "orgBody",
-    });
-    orgBody.text = "Basic";
-    orgBody.preferredSize.width = 200;
-    orgBody.preferredSize.height = 250;
-    orgBody.orientation = "column";
-    orgBody.alignChildren = ["center", "top"];
-    orgBody.spacing = 10;
-    orgBody.margins = 10;
+    // BASICPANEL
+    // ==========
+    const basicPanel = panelContGrp.add("panel", undefined, undefined, { name: "basicPanel" });
+    basicPanel.text = "Basic";
+    basicPanel.preferredSize.width = 200;
+    basicPanel.preferredSize.height = 250;
+    basicPanel.orientation = "column";
+    basicPanel.alignChildren = ["center", "top"];
+    basicPanel.spacing = 10;
+    basicPanel.margins = 10;
 
     // PAPERWIDTHGRP
     // =============
-    const paperWidthGrp = orgBody.add("group", undefined, {
-      name: "paperWidthGrp",
-    });
+    const paperWidthGrp = basicPanel.add("group", undefined, { name: "paperWidthGrp" });
     paperWidthGrp.preferredSize.width = 100;
     paperWidthGrp.orientation = "column";
     paperWidthGrp.alignChildren = ["center", "center"];
     paperWidthGrp.spacing = 5;
     paperWidthGrp.margins = 0;
 
-    const paperWidthTextField = paperWidthGrp.add(
-      "statictext",
-      undefined,
-      undefined,
-      { name: "paperWidthTextField" },
-    );
-    paperWidthTextField.helpTip = "paper max width in inch";
-    paperWidthTextField.text = "Paper Max Width";
-    paperWidthTextField.justify = "center";
+    const paperWidthLabel = paperWidthGrp.add("statictext", undefined, undefined, { name: "paperWidthLabel" });
+    paperWidthLabel.helpTip = "paper width in inch";
+    paperWidthLabel.text = "Paper Width";
+    paperWidthLabel.justify = "center";
 
-    const paperWidthInput = paperWidthGrp.add(
-      'edittext {justify: "center", properties: {name: "paperWidthInput"}}',
-    );
-    const paperMaxWidth = CONFIG.Persist_Config.config.paperMaxWidth;
-    paperWidthInput.text = paperMaxWidth || 63.25;
+    const paperWidthInput = paperWidthGrp.add('edittext {justify: "center", properties: {name: "paperWidthInput"}}');
+    paperWidthInput.text = "63.3";
     paperWidthInput.preferredSize.width = 70;
 
     // ORIENTATIONGRP
     // ==============
-    const orientationGrp = orgBody.add("group", undefined, {
-      name: "orientationGrp",
-    });
+    const orientationGrp = basicPanel.add("group", undefined, { name: "orientationGrp" });
     orientationGrp.preferredSize.width = 100;
     orientationGrp.orientation = "column";
     orientationGrp.alignChildren = ["center", "center"];
@@ -79,73 +65,53 @@ const automateInfoDialog = () => {
     orientationGrp.margins = 0;
     orientationGrp.alignment = ["center", "top"];
 
-    const orgOrientation = orientationGrp.add(
-      "statictext",
-      undefined,
-      undefined,
-      { name: "orgOrientation" },
-    );
-    orgOrientation.text = "Orientation:";
-    orgOrientation.justify = "center";
+    const orientationLabel = orientationGrp.add("statictext", undefined, undefined, { name: "orientationLabel" });
+    orientationLabel.text = "Orientation:";
+    orientationLabel.justify = "center";
 
-    const orientations = orientationGrp.add(
-      "dropdownlist",
-      undefined,
-      undefined,
-      { name: "orientations", items: orientations_array },
-    );
-    orientations.selection = 0;
-    orientations.preferredSize.width = 70;
-    orientations.preferredSize.height = 10;
-    orientations.alignment = ["center", "center"];
+    const orientationDropdown = orientationGrp.add("dropdownlist", undefined, undefined, { name: "orientationDropdown" });
+    orientationDropdown.selection = 0;
+    orientationDropdown.preferredSize.width = 70;
+    orientationDropdown.preferredSize.height = 10;
+    orientationDropdown.alignment = ["center", "center"];
 
-    // PERDOCGRP
-    // =========
-    const perDocGrp = orgBody.add("group", undefined, { name: "perDocGrp" });
-    perDocGrp.preferredSize.width = 100;
-    perDocGrp.orientation = "column";
-    perDocGrp.alignChildren = ["center", "center"];
-    perDocGrp.spacing = 5;
-    perDocGrp.margins = 0;
+    // PERDOCCOLSGRP
+    // =============
+    const perDocColsGrp = basicPanel.add("group", undefined, { name: "perDocColsGrp" });
+    perDocColsGrp.preferredSize.width = 100;
+    perDocColsGrp.orientation = "column";
+    perDocColsGrp.alignChildren = ["center", "center"];
+    perDocColsGrp.spacing = 5;
+    perDocColsGrp.margins = 0;
 
-    const perDoc = perDocGrp.add("statictext", undefined, undefined, {
-      name: "perDoc",
-    });
-    perDoc.text = "Per Doc Row";
-    perDoc.justify = "center";
+    const perDocColsLabel = perDocColsGrp.add("statictext", undefined, undefined, { name: "perDocColsLabel" });
+    perDocColsLabel.text = "Per Doc Cols";
+    perDocColsLabel.justify = "center";
 
-    const perDocField = perDocGrp.add(
-      'edittext {justify: "center", properties: {name: "perDocField"}}',
-    );
-    perDocField.text = "0";
-    perDocField.preferredSize.width = 70;
+    const perDocColsInput = perDocColsGrp.add('edittext {justify: "center", properties: {name: "perDocColsInput"}}');
+    perDocColsInput.text = "0";
+    perDocColsInput.preferredSize.width = 70;
 
-    // ITEMSGAP
-    // ========
-    const itemsGap = orgBody.add("group", undefined, { name: "itemsGap" });
-    itemsGap.preferredSize.width = 100;
-    itemsGap.orientation = "column";
-    itemsGap.alignChildren = ["center", "center"];
-    itemsGap.spacing = 5;
-    itemsGap.margins = 0;
+    // ITEMSGAPGRP
+    // ===========
+    const itemsGapGrp = basicPanel.add("group", undefined, { name: "itemsGapGrp" });
+    itemsGapGrp.preferredSize.width = 100;
+    itemsGapGrp.orientation = "column";
+    itemsGapGrp.alignChildren = ["center", "center"];
+    itemsGapGrp.spacing = 5;
+    itemsGapGrp.margins = 0;
 
-    const itemsGap1 = itemsGap.add("statictext", undefined, undefined, {
-      name: "itemsGap1",
-    });
-    itemsGap1.text = "Items Gap";
-    itemsGap1.justify = "center";
+    const itemsGapLabel = itemsGapGrp.add("statictext", undefined, undefined, { name: "itemsGapLabel" });
+    itemsGapLabel.text = "Items Gap";
+    itemsGapLabel.justify = "center";
 
-    const itemsGapField = itemsGap.add(
-      'edittext {justify: "center", properties: {name: "itemsGapField"}}',
-    );
-    itemsGapField.text = "0.1";
-    itemsGapField.preferredSize.width = 70;
+    const itemsGapInput = itemsGapGrp.add('edittext {justify: "center", properties: {name: "itemsGapInput"}}');
+    itemsGapInput.text = "0.1";
+    itemsGapInput.preferredSize.width = 70;
 
     // REQUIREDPANEL
     // =============
-    const requiredPanel = panelContGrp.add("panel", undefined, undefined, {
-      name: "requiredPanel",
-    });
+    const requiredPanel = panelContGrp.add("panel", undefined, undefined, { name: "requiredPanel" });
     requiredPanel.text = "Data";
     requiredPanel.preferredSize.width = 200;
     requiredPanel.preferredSize.height = 250;
@@ -154,257 +120,191 @@ const automateInfoDialog = () => {
     requiredPanel.spacing = 10;
     requiredPanel.margins = 10;
 
-    // NANODATAGRP
+    // JSONDATAGRP
     // ===========
-    const nanoDataGrp = requiredPanel.add("group", undefined, {
-      name: "nanoDataGrp",
-    });
-    nanoDataGrp.orientation = "column";
-    nanoDataGrp.alignChildren = ["center", "center"];
-    nanoDataGrp.spacing = 5;
-    nanoDataGrp.margins = 0;
+    const jsonDataGrp = requiredPanel.add("group", undefined, { name: "jsonDataGrp" });
+    jsonDataGrp.orientation = "column";
+    jsonDataGrp.alignChildren = ["center", "center"];
+    jsonDataGrp.spacing = 5;
+    jsonDataGrp.margins = 0;
 
-    const nanoData = nanoDataGrp.add("statictext", undefined, undefined, {
-      name: "nanoData",
-    });
-    nanoData.helpTip = "the data that will apply!";
-    nanoData.text = "NA/NO Data";
-    nanoData.justify = "center";
+    const jsonDataLabel = jsonDataGrp.add("statictext", undefined, undefined, { name: "jsonDataLabel" });
+    jsonDataLabel.helpTip = "the data that will apply!";
+    jsonDataLabel.text = "JSON Data";
+    jsonDataLabel.justify = "center";
 
-    const nanoDataField = nanoDataGrp.add(
-      'edittext {justify: "center", properties: {name: "nanoDataField"}}',
-    );
-    nanoDataField.helpTip = "data should be json format";
-    nanoDataField.preferredSize.width = 127;
-    nanoDataField.preferredSize.height = 50;
+    const jsonDataInput = jsonDataGrp.add('edittext {justify: "center", properties: {name: "jsonDataInput"}}');
+    jsonDataInput.helpTip = "data should be json format";
+    jsonDataInput.preferredSize.width = 127;
+    jsonDataInput.preferredSize.height = 50;
 
-    // SIZECONTGRP
-    // ===========
-    const sizeContGrp = requiredPanel.add("group", undefined, {
-      name: "sizeContGrp",
-    });
-    sizeContGrp.preferredSize.width = 100;
-    sizeContGrp.orientation = "column";
-    sizeContGrp.alignChildren = ["center", "center"];
-    sizeContGrp.spacing = 5;
-    sizeContGrp.margins = 0;
-    sizeContGrp.alignment = ["center", "top"];
+    // SIZEBRANDGRP
+    // ============
+    const sizeBrandGrp = requiredPanel.add("group", undefined, { name: "sizeBrandGrp" });
+    sizeBrandGrp.preferredSize.width = 100;
+    sizeBrandGrp.orientation = "column";
+    sizeBrandGrp.alignChildren = ["center", "center"];
+    sizeBrandGrp.spacing = 5;
+    sizeBrandGrp.margins = 0;
+    sizeBrandGrp.alignment = ["center", "top"];
 
-    const sizeContainer = sizeContGrp.add("statictext", undefined, undefined, {
-      name: "sizeContainer",
-    });
-    sizeContainer.text = "Size Container";
-    sizeContainer.justify = "center";
+    const sizeBrandLabel = sizeBrandGrp.add("statictext", undefined, undefined, { name: "sizeBrandLabel" });
+    sizeBrandLabel.text = "Size Brand";
+    sizeBrandLabel.justify = "center";
 
-    const sizeContainerList = sizeContGrp.add(
-      "dropdownlist",
-      undefined,
-      undefined,
-      { name: "sizeContainerList", items: sizeContainerList_array },
-    );
-    sizeContainerList.selection = 0;
-    sizeContainerList.preferredSize.width = 70;
-    sizeContainerList.preferredSize.height = 10;
-    sizeContainerList.alignment = ["center", "center"];
+    const sizeBrandListDropdown = sizeBrandGrp.add("dropdownlist", undefined, undefined, { name: "sizeBrandListDropdown" });
+    sizeBrandListDropdown.selection = 0;
+    sizeBrandListDropdown.preferredSize.width = 70;
+    sizeBrandListDropdown.preferredSize.height = 10;
+    sizeBrandListDropdown.alignment = ["center", "center"];
 
-    // KIDSINVORIENTGRP
+    // ACTIONENGINETHREADGRP
+    // =====================
+    const actionEngineThreadGrp = requiredPanel.add("group", undefined, { name: "actionEngineThreadGrp" });
+    actionEngineThreadGrp.orientation = "row";
+    actionEngineThreadGrp.alignChildren = ["left", "center"];
+    actionEngineThreadGrp.spacing = 10;
+    actionEngineThreadGrp.margins = 0;
+
+    const actionEngineThreadCheckBox = actionEngineThreadGrp.add("checkbox", undefined, undefined, { name: "actionEngineThreadCheckBox" });
+    actionEngineThreadCheckBox.helpTip = "when true script for transformation happend engine base";
+    actionEngineThreadCheckBox.text = "Action Thread";
+    actionEngineThreadCheckBox.value = false;
+
+    // CREATEOUTLINEGRP
     // ================
-    const kidsInVOrientGrp = requiredPanel.add("group", undefined, {
-      name: "kidsInVOrientGrp",
-    });
-    kidsInVOrientGrp.orientation = "row";
-    kidsInVOrientGrp.alignChildren = ["left", "center"];
-    kidsInVOrientGrp.spacing = 10;
-    kidsInVOrientGrp.margins = 0;
+    const createOutlineGrp = requiredPanel.add("group", undefined, { name: "createOutlineGrp" });
+    createOutlineGrp.orientation = "row";
+    createOutlineGrp.alignChildren = ["left", "center"];
+    createOutlineGrp.spacing = 10;
+    createOutlineGrp.margins = 0;
 
-    const kidsInVCheckBox = kidsInVOrientGrp.add(
-      "checkbox",
-      undefined,
-      undefined,
-      { name: "kidsInVCheckBox" },
-    );
-    kidsInVCheckBox.helpTip = "kids size should be V orientation";
-    kidsInVCheckBox.text = "KidsInV";
-    kidsInVCheckBox.value = true;
+    const createOutlineCheckBox = createOutlineGrp.add("checkbox", undefined, undefined, { name: "createOutlineCheckBox" });
+    createOutlineCheckBox.helpTip = "text convert to shape";
+    createOutlineCheckBox.text = "Text Outline";
+    createOutlineCheckBox.value = false;
 
-    // OUTLINENANOGRP
-    // ==============
-    const outlineNANOGrp = requiredPanel.add("group", undefined, {
-      name: "outlineNANOGrp",
-    });
-    outlineNANOGrp.orientation = "row";
-    outlineNANOGrp.alignChildren = ["left", "center"];
-    outlineNANOGrp.spacing = 10;
-    outlineNANOGrp.margins = 0;
+    // WRAPTEXTGRP
+    // ===========
+    const wrapTextGrp = requiredPanel.add("group", undefined, { name: "wrapTextGrp" });
+    wrapTextGrp.enabled = false;
+    wrapTextGrp.orientation = "row";
+    wrapTextGrp.alignChildren = ["left", "center"];
+    wrapTextGrp.spacing = 10;
+    wrapTextGrp.margins = 0;
 
-    const outlineNANOCheckBox = outlineNANOGrp.add(
-      "checkbox",
-      undefined,
-      undefined,
-      { name: "outlineNANOCheckBox" },
-    );
-    outlineNANOCheckBox.helpTip = "NANO text convert to shape";
-    outlineNANOCheckBox.text = "Outline NANO";
-
-    // OPACITYMASKGRP
-    // ==============
-    const opacityMaskGrp = requiredPanel.add("group", undefined, {
-      name: "opacityMaskGrp",
-    });
-    opacityMaskGrp.enabled = false;
-    opacityMaskGrp.orientation = "row";
-    opacityMaskGrp.alignChildren = ["left", "center"];
-    opacityMaskGrp.spacing = 10;
-    opacityMaskGrp.margins = 0;
-
-    const opacityMaskCheckBox = opacityMaskGrp.add(
-      "checkbox",
-      undefined,
-      undefined,
-      { name: "opacityMaskCheckBox" },
-    );
-    opacityMaskCheckBox.helpTip = "handle properly transform opacity mask item";
-    opacityMaskCheckBox.text = "Opacity Mask";
+    const wrapTextCheckBox = wrapTextGrp.add("checkbox", undefined, undefined, { name: "wrapTextCheckBox" });
+    wrapTextCheckBox.enabled = false;
+    wrapTextCheckBox.helpTip = "handle properly transform opacity mask item";
+    wrapTextCheckBox.text = "Curve Text";
 
     // ENTERBTNGRP
     // ===========
-    const enterBtnGrp = dialogRoot.add("group", undefined, {
-      name: "enterBtnGrp",
-    });
+    const enterBtnGrp = dialogRoot.add("group", undefined, { name: "enterBtnGrp" });
     enterBtnGrp.orientation = "row";
     enterBtnGrp.alignChildren = ["left", "center"];
     enterBtnGrp.spacing = 10;
     enterBtnGrp.margins = 0;
 
-    const enterBn = enterBtnGrp.add("button", undefined, undefined, {
-      name: "enterBn",
-    });
-    enterBn.helpTip = "Start Action";
-    enterBn.text = "Start";
+    const enterActionBtn = enterBtnGrp.add("button", undefined, undefined, { name: "enterActionBtn" });
+    enterActionBtn.helpTip = "Start Action";
+    enterActionBtn.text = "Start";
+    enterActionBtn.active = true;
 
-    // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html )
+
+    // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html ) 
     dialogRoot.items = {
       dialogRoot: dialogRoot, // dialog
       panelContGrp: panelContGrp, // group
-      orgBody: orgBody, // panel
+      basicPanel: basicPanel, // panel
       paperWidthGrp: paperWidthGrp, // group
-      paperWidthTextField: paperWidthTextField, // statictext
+      paperWidthLabel: paperWidthLabel, // statictext
       paperWidthInput: paperWidthInput, // edittext
       orientationGrp: orientationGrp, // group
-      orgOrientation: orgOrientation, // statictext
-      orientations: orientations, // dropdownlist
-      perDocGrp: perDocGrp, // group
-      perDoc: perDoc, // statictext
-      perDocField: perDocField, // edittext
-      itemsGap: itemsGap, // group
-      itemsGap1: itemsGap1, // statictext
-      itemsGapField: itemsGapField, // edittext
+      orientationLabel: orientationLabel, // statictext
+      orientationDropdown: orientationDropdown, // dropdownlist
+      perDocColsGrp: perDocColsGrp, // group
+      perDocColsLabel: perDocColsLabel, // statictext
+      perDocColsInput: perDocColsInput, // edittext
+      itemsGapGrp: itemsGapGrp, // group
+      itemsGapLabel: itemsGapLabel, // statictext
+      itemsGapInput: itemsGapInput, // edittext
       requiredPanel: requiredPanel, // panel
-      nanoDataGrp: nanoDataGrp, // group
-      nanoData: nanoData, // statictext
-      nanoDataField: nanoDataField, // edittext
-      sizeContGrp: sizeContGrp, // group
-      sizeContainer: sizeContainer, // statictext
-      sizeContainerList: sizeContainerList, // dropdownlist
-      kidsInVOrientGrp: kidsInVOrientGrp, // group
-      kidsInVCheckBox: kidsInVCheckBox, // checkbox
-      outlineNANOGrp: outlineNANOGrp, // group
-      outlineNANOCheckBox: outlineNANOCheckBox, // checkbox
-      opacityMaskGrp: opacityMaskGrp, // group
-      opacityMaskCheckBox: opacityMaskCheckBox, // checkbox
+      jsonDataGrp: jsonDataGrp, // group
+      jsonDataLabel: jsonDataLabel, // statictext
+      jsonDataInput: jsonDataInput, // edittext
+      sizeBrandGrp: sizeBrandGrp, // group
+      sizeBrandLabel: sizeBrandLabel, // statictext
+      sizeBrandListDropdown: sizeBrandListDropdown, // dropdownlist
+      actionEngineThreadGrp: actionEngineThreadGrp, // group
+      actionEngineThreadCheckBox: actionEngineThreadCheckBox, // checkbox
+      createOutlineGrp: createOutlineGrp, // group
+      createOutlineCheckBox: createOutlineCheckBox, // checkbox
+      wrapTextGrp: wrapTextGrp, // group
+      wrapTextCheckBox: wrapTextCheckBox, // checkbox
       enterBtnGrp: enterBtnGrp, // group
-      enterBn: enterBn, // button
+      enterActionBtn: enterActionBtn // button
     };
-    dialogRoot.itemsArray = [
-      dialogRoot,
-      panelContGrp,
-      orgBody,
-      paperWidthGrp,
-      paperWidthTextField,
-      paperWidthInput,
-      orientationGrp,
-      orgOrientation,
-      orientations,
-      perDocGrp,
-      perDoc,
-      perDocField,
-      itemsGap,
-      itemsGap1,
-      itemsGapField,
-      requiredPanel,
-      nanoDataGrp,
-      nanoData,
-      nanoDataField,
-      sizeContGrp,
-      sizeContainer,
-      sizeContainerList,
-      kidsInVOrientGrp,
-      kidsInVCheckBox,
-      outlineNANOGrp,
-      outlineNANOCheckBox,
-      opacityMaskGrp,
-      opacityMaskCheckBox,
-      enterBtnGrp,
-      enterBn,
-    ];
+    dialogRoot.itemsArray = [dialogRoot, panelContGrp, basicPanel, paperWidthGrp, paperWidthLabel, paperWidthInput, orientationGrp, orientationLabel, orientationDropdown, perDocColsGrp, perDocColsLabel, perDocColsInput, itemsGapGrp, itemsGapLabel, itemsGapInput, requiredPanel, jsonDataGrp, jsonDataLabel, jsonDataInput, sizeBrandGrp, sizeBrandLabel, sizeBrandListDropdown, actionEngineThreadGrp, actionEngineThreadCheckBox, createOutlineGrp, createOutlineCheckBox, wrapTextGrp, wrapTextCheckBox, enterBtnGrp, enterActionBtn];
 
     /* Apply field dynamic value start */
 
-    const orientations_array = ["Auto", ...ES6_SA.objectKeys(Orientation)];
+    const orientations_array = ES6_SA.objectKeys(StackOrientations);
     ES6_SA.arrayForEach(orientations_array, (e) => {
-      orientations.add("item", e);
+      orientationDropdown.add("item", e);
     });
-    orientations.selection = 0;
+    orientationDropdown.selection = 0;
 
-    const sizeContainerList_array = ES6_SA.objectKeys(
-      CONFIG.Persist_Config.sizes,
+    const brandList_array = ES6_SA.objectKeys(
+      JFT_CONF.sizes,
     );
-    ES6_SA.arrayForEach(sizeContainerList_array, (e) => {
-      sizeContainerList.add("item", e);
+    ES6_SA.arrayForEach(brandList_array, (e) => {
+      sizeBrandListDropdown.add("item", e);
     });
-    const currentSizeContainer = CONFIG.Persist_Config.config["sizeContainer"];
-    sizeContainerList.selection = ES6_SA.arrayIndexOf(
-      sizeContainerList_array,
-      currentSizeContainer,
+    const currentBrand = CONFIG.BRAND;
+    sizeBrandListDropdown.selection = ES6_SA.arrayIndexOf(
+      brandList_array,
+      currentBrand,
     );
 
     /* Apply field dynamic value end */
 
     // ====================================
 
-    /* Get field input value start */
-
-    const orientationVal = orientations.selection.text;
-
-    const perDocVal = perDocField.text ? parseInt(perDocField.text) : 0;
-
-    const paperMaxWidthVal = paperWidthInput.text
-      ? fixMultipleDots(itemsGapField.text)
-      : 63.25;
-
-    const itemGapVal = itemsGapField.text
-      ? fixMultipleDots(itemsGapField.text)
-      : 0;
-
-    const nanoDataVal = nanoDataField.text;
-
-    const sizeContainerVal = sizeContainerList.selection.text;
-
-    const kidsInVVal = kidsInVCheckBox.value;
-
-    const outlineNanoVal = outlineNANOCheckBox.value;
-
-    const opacityMaskVal = opacityMaskCheckBox.value;
-
-    /* Get field input value end */
-
     // ====================================
 
     /* Event callback functions start */
 
-    const digitValidateCb = (event) => {};
+    const digitValidateCb = (event) => {
+      const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
 
-    function fixMultipleDots(str) {}
+      if (event.keyName === "Escape") {
+        dialogRoot.close();
+        return;
+      }
+
+      // Allow numbers, backspace, delete, and decimal point
+      // Also prevent multiple decimal points
+      if (!/[0-9]/.test(key) && key !== "Backspace" && key !== "Delete") {
+        event.preventDefault();
+      }
+
+      if (key === "Enter") {
+        enterBn.notify();
+      }
+    };
+
+
+    function fixMultipleDots(str) {
+      const parts = str.split(".");
+      if (parts.length <= 2) {
+        return parseFloat(str); // Already a valid float
+      }
+
+      // Join only the first two parts to make a valid float
+      const fixedStr = parts[0] + "." + parts[1];
+      return parseFloat(fixedStr);
+    }
 
     /* Event callback functions end */
 
@@ -412,7 +312,7 @@ const automateInfoDialog = () => {
 
     /* Attach event listener callback functions start */
 
-    perDocField.addEventListener("keydown", digitValidateCb);
+    perDocColsInput.addEventListener("keydown", digitValidateCb);
 
     paperWidthInput.addEventListener("keydown", (event) => {
       const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
@@ -438,7 +338,7 @@ const automateInfoDialog = () => {
       }
     });
 
-    itemsGapField.addEventListener("keydown", (event) => {
+    itemsGapInput.addEventListener("keydown", (event) => {
       const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
 
       if (event.keyName === "Escape") {
@@ -462,16 +362,36 @@ const automateInfoDialog = () => {
       }
     });
 
-    enterBn.onClick = () => {
+    enterActionBtn.onClick = () => {
       dialogRoot.close();
 
-      CONFIG.Items_Gap = itemGapVal;
-      CONFIG.PAPER_MAX_SIZE = paperMaxWidthVal;
-      CONFIG.perDoc = perDocVal;
-      CONFIG.orientation = orientationVal;
-      CONFIG.kidsinV = kidsInVVal;
-      CONFIG.outlineNANO = outlineNanoVal;
-      CONFIG.opacityMask = opacityMaskVal;
+      const orientationVal = orientationDropdown.selection.text.toLowerCase();
+
+      const perDocColsVal = perDocColsInput.text ? parseInt(perDocColsInput.text) : 0;
+
+      const paperWidthVal = paperWidthInput.text
+        ? fixMultipleDots(paperWidthInput.text)
+        : 63.25;
+
+      const itemGapVal = itemsGapInput.text
+        ? fixMultipleDots(itemsGapInput.text)
+        : 0;
+
+      const brandVal = sizeBrandListDropdown.selection.text;
+
+      const actionEngineThreadVal = actionEngineThreadCheckBox.value;
+
+      const createOutlineval = createOutlineCheckBox.value;
+
+      const wrapTextVal = wrapTextCheckBox.value;
+
+      CONFIG.ITEMS_GAP = itemGapVal;
+      CONFIG.PAPER_MAX_SIZE = paperWidthVal;
+      CONFIG.BRAND = brandVal;
+      CONFIG.PER_DOC = perDocColsVal;
+      CONFIG.ORIENTATION = orientationVal;
+      CONFIG.OUTLINE_TEXT = createOutlineval;
+      CONFIG.THREAD_ENGINE = actionEngineThreadVal ? "action" : "script";
       dialogRoot.close(1); // success signal
     };
 
@@ -481,6 +401,13 @@ const automateInfoDialog = () => {
     const result = dialogRoot.show();
 
     if (result === 1) {
+      const jsonDataVal = jsonDataInput.text;
+
+      if (!jsonDataVal) {
+        throw new Error(`Input JSON Data`)
+      }
+
+      jftProcessSeqWrapper(JSONSA.parse(jsonDataVal));
     }
   } catch (error) {
     alertDialogSA(error.message);

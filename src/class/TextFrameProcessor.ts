@@ -253,7 +253,7 @@ class TextFrameProcessor {
     }
 
     if (this.needsGradientExpansion) {
-      this.expandAppearanceTextFrames();
+      // this.expandAppearanceTextFrames();
     }
   }
 
