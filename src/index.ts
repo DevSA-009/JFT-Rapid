@@ -22,21 +22,22 @@ const CONFIG: JFTRapid_Config = {
   PER_DOC: 0,
   THREAD_ENGINE: "script",
   ORIENTATION: "auto",
-  WRAP_TEXT:false
+  WRAP_TEXT: false,
 };
 
 CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
   CONFIG.BRAND
 ] as unknown as SizesDetails;
 
-/*
-const data: AutomateData = {
+const OUTPUT = "";
+
+const jerseyData = {
   basic: {
     type: JerseyType.POLO,
-    sleeve: [SleeveType.SHORT],
-    rib: { type: RIBType.RIB, apply: [SleeveType.SHORT] },
+    sleeve: [SleeveType.SHORT, SleeveType.LONG],
+    rib: { type: RIBType.RIB, apply: [SleeveType.SHORT,SleeveType.LONG] },
     pant: [],
-    total: 5,
+    total: 30,
   },
   details: {
     "2": {
@@ -71,37 +72,71 @@ const data: AutomateData = {
       SUMMARY: { SLEEVE: { LONG: 0, SHORT: 0 }, PANT: { LONG: 0, SHORT: 0 } },
       DATA: [],
     },
+
     XS: {
-      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 0 }, PANT: { LONG: 0, SHORT: 0 } },
-      DATA: [],
+      SUMMARY: { SLEEVE: { LONG: 1, SHORT: 2 }, PANT: { LONG: 0, SHORT: 0 } },
+      DATA: [
+        { NAME: "PLAYER 1", NUMBER: "1" },
+        { NAME: "PLAYER 2", NUMBER: "2" },
+        { NAME: "PLAYER 3", NUMBER: "3" },
+      ],
     },
     S: {
-      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 0 }, PANT: { LONG: 0, SHORT: 0 } },
-      DATA: [],
+      SUMMARY: { SLEEVE: { LONG: 1, SHORT: 3 }, PANT: { LONG: 0, SHORT: 0 } },
+      DATA: [
+        { NAME: "PLAYER 4", NUMBER: "4" },
+        { NAME: "PLAYER 5", NUMBER: "5" },
+        { NAME: "PLAYER 6", NUMBER: "6" },
+        { NAME: "PLAYER 7", NUMBER: "7" },
+      ],
     },
     M: {
-      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 1 }, PANT: { LONG: 0, SHORT: 0 } },
-      DATA: [{ NAME: "I.SAMIM", NUMBER: "30" }],
+      SUMMARY: { SLEEVE: { LONG: 2, SHORT: 4 }, PANT: { LONG: 0, SHORT: 0 } },
+      DATA: [
+        { NAME: "PLAYER 8", NUMBER: "8" },
+        { NAME: "PLAYER 9", NUMBER: "9" },
+        { NAME: "PLAYER 10", NUMBER: "10" },
+        { NAME: "PLAYER 11", NUMBER: "11" },
+        { NAME: "PLAYER 12", NUMBER: "12" },
+        { NAME: "PLAYER 13", NUMBER: "13" },
+      ],
     },
     L: {
-      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 3 }, PANT: { LONG: 0, SHORT: 0 } },
+      SUMMARY: { SLEEVE: { LONG: 2, SHORT: 4 }, PANT: { LONG: 0, SHORT: 0 } },
       DATA: [
-        { NAME: "ALAUDDIN", NUMBER: "7" },
-        { NAME: "PARVEJ JR", NUMBER: "21" },
-        { NAME: "SM.UZZAL VAI", NUMBER: "22" },
+        { NAME: "PLAYER 14", NUMBER: "14" },
+        { NAME: "PLAYER 15", NUMBER: "15" },
+        { NAME: "PLAYER 16", NUMBER: "16" },
+        { NAME: "PLAYER 17", NUMBER: "17" },
+        { NAME: "PLAYER 18", NUMBER: "18" },
+        { NAME: "PLAYER 19", NUMBER: "19" },
       ],
     },
     XL: {
-      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 1 }, PANT: { LONG: 0, SHORT: 0 } },
-      DATA: [{ NAME: "NOBIR HOSSEN", NUMBER: "11" }],
+      SUMMARY: { SLEEVE: { LONG: 1, SHORT: 4 }, PANT: { LONG: 0, SHORT: 0 } },
+      DATA: [
+        { NAME: "PLAYER 20", NUMBER: "20" },
+        { NAME: "PLAYER 21", NUMBER: "21" },
+        { NAME: "PLAYER 22", NUMBER: "22" },
+        { NAME: "PLAYER 23", NUMBER: "23" },
+        { NAME: "PLAYER 24", NUMBER: "24" },
+      ],
     },
     "2XL": {
-      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 0 }, PANT: { LONG: 0, SHORT: 0 } },
-      DATA: [],
+      SUMMARY: { SLEEVE: { LONG: 1, SHORT: 3 }, PANT: { LONG: 0, SHORT: 0 } },
+      DATA: [
+        { NAME: "PLAYER 25", NUMBER: "25" },
+        { NAME: "PLAYER 26", NUMBER: "26" },
+        { NAME: "PLAYER 27", NUMBER: "27" },
+        { NAME: "PLAYER 28", NUMBER: "28" },
+      ],
     },
     "3XL": {
-      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 0 }, PANT: { LONG: 0, SHORT: 0 } },
-      DATA: [],
+      SUMMARY: { SLEEVE: { LONG: 0, SHORT: 2 }, PANT: { LONG: 0, SHORT: 0 } },
+      DATA: [
+        { NAME: "PLAYER 29", NUMBER: "29" },
+        { NAME: "PLAYER 30", NUMBER: "30" },
+      ],
     },
     "4XL": {
       SUMMARY: { SLEEVE: { LONG: 0, SHORT: 0 }, PANT: { LONG: 0, SHORT: 0 } },
@@ -114,37 +149,21 @@ const data: AutomateData = {
   },
 };
 
-// .... all task
+const data: AutomateData = jerseyData;
 
 const startAutomate = () => {
-  const { basic, details } = data;
-
-  const gap = 0.1;
-
-  const maxColsInDoc = 5;
-
-  new JFTProcessOrderGenerator(data);
+  new JFTProcessSequentially(data);
 };
 
 startAutomate();
 
-*/
+// const sel = app.activeDocument.activeLayer.pageItems;
 
-// new ItemsInitiater({
-//   dimension:{width:19.5,height:29},
-//   gap:0.1,
-//   items:[app.activeDocument.selection[0],app.activeDocument.selection[1]],
-//   fixedSize:false,
-//   sizeChar:"M",
-//   stack:"VRH"
-// })
-
-const sel = app.activeDocument.activeLayer.pageItems;
-
+/*
 new GridLayoutGenerator({
-  dimension: { width: 23.5, height: 33 },
+  dimension: { width: 19.5, height: 28 },
   jftItem: {
-    info: { countType: CountType.SET, fixedSize: false, pair: true },
+    info: { countType: CountType.PCS, fixedSize: false, pair: false },
     items: [
       {
         direction: DirectionMarkers.FRONT,
@@ -154,18 +173,18 @@ new GridLayoutGenerator({
       },
       {
         direction: DirectionMarkers.BACK,
-        isDynamic: false,
+        isDynamic: true,
         isFillRec: false,
         object: sel[1],
       },
     ],
     order: JFTCONFKeywords.BODY,
   },
-  quantity: 5,
-  sizeChar: "3XL",
+  quantity: 4,
+  sizeChar: "S",
   orientation: CONFIG.ORIENTATION,
   data:null
 });
-
+*/
 
 const z = "";
