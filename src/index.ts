@@ -23,14 +23,15 @@ const CONFIG: JFTRapid_Config = {
   THREAD_ENGINE: "script",
   ORIENTATION: "auto",
   WRAP_TEXT: false,
+  STATIC_MODE:false
 };
 
 CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
   CONFIG.BRAND
 ] as unknown as SizesDetails;
 
-const jftProcessSeqWrapper = (data: AutomateData) => {
-  new JFTProcessSequentially(data);
+const jftProcessSeqWrapper = (data: AutomateData | string) => {
+  new JFTProcessSequentially(data as unknown as AutomateData);
 };
 
 automateInfoDialog()

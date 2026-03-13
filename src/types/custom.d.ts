@@ -11,6 +11,7 @@ interface JFTRapid_Config {
   OUTLINE_TEXT: boolean;
   THREAD_ENGINE: ThreadEngine;
   WRAP_TEXT:boolean;
+  STATIC_MODE:boolean
 }
 
 /**

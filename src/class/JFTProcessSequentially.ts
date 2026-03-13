@@ -116,8 +116,6 @@ type JFTItemCache = Record<string, JFTItem | null>;
  */
 class JFTProcessSequentially {
   // ─── Immutable config ────────────────────────────────────────────────────
-
-  private readonly jerseyType: AutomateData["basic"]["type"];
   private readonly rib: AutomateData["basic"]["rib"];
   private readonly totalQTY: AutomateData["basic"]["total"];
   private readonly details: AutomateData["details"];
@@ -190,7 +188,6 @@ class JFTProcessSequentially {
    * @param options - Optional flags; all default to `false`.
    */
   constructor(data: AutomateData, options: JFTProcessSequentiallyOptions = {}) {
-    this.jerseyType = data.basic.type;
     this.rib = data.basic.rib;
     this.totalQTY = data.basic.total;
     this.details = data.details;
