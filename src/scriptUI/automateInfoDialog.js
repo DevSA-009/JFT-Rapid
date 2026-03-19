@@ -1,14 +1,12 @@
 /*
 Code for Import https://scriptui.joonas.me — (Triple click to select): 
 {"activeId":42,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Automate NAME/NUMBER","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"basicPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"orientationGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"varName":"orientationLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Orientation:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"varName":"orientationDropdown","text":"DropDownList","listItems":"Auto, Vertical, Horizontal","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"perDocColsGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"varName":"perDocColsLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Doc Cols","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"varName":"perDocColsInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"itemsGapGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"varName":"itemsGapLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"varName":"itemsGapInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Data","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"varName":"enterActionBtn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}},"item-29":{"id":29,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"jsonDataGrp","preferredSize":[0,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-30":{"id":30,"type":"StaticText","parentId":29,"style":{"enabled":true,"varName":"jsonDataLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"JSON Data","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"the data that will apply!"}},"item-31":{"id":31,"type":"EditText","parentId":29,"style":{"enabled":true,"varName":"jsonDataInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"","justify":"center","preferredSize":[127,50],"alignment":null,"helpTip":"data should be json format"}},"item-32":{"id":32,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"actionEngineThreadGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-35":{"id":35,"type":"Checkbox","parentId":32,"style":{"enabled":true,"varName":"actionEngineThreadCheckBox","text":"Action Thread","preferredSize":[0,0],"alignment":null,"helpTip":"when true script for transformation happend engine base","checked":true}},"item-36":{"id":36,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"sizeBrandGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-37":{"id":37,"type":"StaticText","parentId":36,"style":{"enabled":true,"varName":"sizeBrandLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Brand","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-38":{"id":38,"type":"DropDownList","parentId":36,"style":{"enabled":true,"varName":"sizeBrandListDropdown","text":"DropDownList","listItems":"A,B,C","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-39":{"id":39,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"createOutlineGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-40":{"id":40,"type":"Checkbox","parentId":39,"style":{"enabled":true,"varName":"createOutlineCheckBox","text":"Text Outline","preferredSize":[0,0],"alignment":null,"helpTip":"NANO text convert to shape","checked":true}},"item-41":{"id":41,"type":"Group","parentId":18,"style":{"enabled":false,"varName":"staticModeGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-42":{"id":42,"type":"Checkbox","parentId":41,"style":{"enabled":false,"varName":"staticMoedCheckBox","text":"Static Mode","preferredSize":[0,0],"alignment":null,"helpTip":"handle properly transform opacity mask item","checked":false}},"item-43":{"id":43,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"paperWidthGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-44":{"id":44,"type":"StaticText","parentId":43,"style":{"enabled":true,"varName":"paperWidthLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Paper Width","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"paper width in inch"}},"item-45":{"id":45,"type":"EditText","parentId":43,"style":{"enabled":true,"varName":"paperWidthInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"63.3","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-46":{"id":46,"type":"Group","parentId":39,"style":{"enabled":false,"varName":"wrapTextGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-47":{"id":47,"type":"Checkbox","parentId":46,"style":{"enabled":false,"varName":"wrapTextCheckBox","text":"Curve Text","preferredSize":[0,0],"alignment":null,"helpTip":"handle properly transform opacity mask item","checked":false}}},"order":[0,23,2,43,44,45,3,4,5,9,10,11,15,16,17,18,29,30,31,36,37,38,39,40,46,47,32,35,41,42,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"var"}}
-*/ 
+*/
 
 // DIALOGROOT
 // ==========
 const automateInfoDialog = () => {
   try {
-
-
     // DIALOGROOT
     // ==========
     const dialogRoot = new Window("dialog");
@@ -20,7 +18,9 @@ const automateInfoDialog = () => {
 
     // PANELCONTGRP
     // ============
-    const panelContGrp = dialogRoot.add("group", undefined, { name: "panelContGrp" });
+    const panelContGrp = dialogRoot.add("group", undefined, {
+      name: "panelContGrp",
+    });
     panelContGrp.orientation = "row";
     panelContGrp.alignChildren = ["center", "center"];
     panelContGrp.spacing = 10;
@@ -28,7 +28,9 @@ const automateInfoDialog = () => {
 
     // BASICPANEL
     // ==========
-    const basicPanel = panelContGrp.add("panel", undefined, undefined, { name: "basicPanel" });
+    const basicPanel = panelContGrp.add("panel", undefined, undefined, {
+      name: "basicPanel",
+    });
     basicPanel.text = "Basic";
     basicPanel.preferredSize.width = 200;
     basicPanel.preferredSize.height = 250;
@@ -39,25 +41,36 @@ const automateInfoDialog = () => {
 
     // PAPERWIDTHGRP
     // =============
-    const paperWidthGrp = basicPanel.add("group", undefined, { name: "paperWidthGrp" });
+    const paperWidthGrp = basicPanel.add("group", undefined, {
+      name: "paperWidthGrp",
+    });
     paperWidthGrp.preferredSize.width = 100;
     paperWidthGrp.orientation = "column";
     paperWidthGrp.alignChildren = ["center", "center"];
     paperWidthGrp.spacing = 5;
     paperWidthGrp.margins = 0;
 
-    const paperWidthLabel = paperWidthGrp.add("statictext", undefined, undefined, { name: "paperWidthLabel" });
+    const paperWidthLabel = paperWidthGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "paperWidthLabel" },
+    );
     paperWidthLabel.helpTip = "paper width in inch";
     paperWidthLabel.text = "Paper Width";
     paperWidthLabel.justify = "center";
 
-    const paperWidthInput = paperWidthGrp.add('edittext {justify: "center", properties: {name: "paperWidthInput"}}');
+    const paperWidthInput = paperWidthGrp.add(
+      'edittext {justify: "center", properties: {name: "paperWidthInput"}}',
+    );
     paperWidthInput.text = "63.3";
     paperWidthInput.preferredSize.width = 70;
 
     // ORIENTATIONGRP
     // ==============
-    const orientationGrp = basicPanel.add("group", undefined, { name: "orientationGrp" });
+    const orientationGrp = basicPanel.add("group", undefined, {
+      name: "orientationGrp",
+    });
     orientationGrp.preferredSize.width = 100;
     orientationGrp.orientation = "column";
     orientationGrp.alignChildren = ["center", "center"];
@@ -65,11 +78,21 @@ const automateInfoDialog = () => {
     orientationGrp.margins = 0;
     orientationGrp.alignment = ["center", "top"];
 
-    const orientationLabel = orientationGrp.add("statictext", undefined, undefined, { name: "orientationLabel" });
+    const orientationLabel = orientationGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "orientationLabel" },
+    );
     orientationLabel.text = "Orientation:";
     orientationLabel.justify = "center";
 
-    const orientationDropdown = orientationGrp.add("dropdownlist", undefined, undefined, { name: "orientationDropdown" });
+    const orientationDropdown = orientationGrp.add(
+      "dropdownlist",
+      undefined,
+      undefined,
+      { name: "orientationDropdown" },
+    );
     orientationDropdown.selection = 0;
     orientationDropdown.preferredSize.width = 70;
     orientationDropdown.preferredSize.height = 10;
@@ -77,41 +100,58 @@ const automateInfoDialog = () => {
 
     // PERDOCCOLSGRP
     // =============
-    const perDocColsGrp = basicPanel.add("group", undefined, { name: "perDocColsGrp" });
+    const perDocColsGrp = basicPanel.add("group", undefined, {
+      name: "perDocColsGrp",
+    });
     perDocColsGrp.preferredSize.width = 100;
     perDocColsGrp.orientation = "column";
     perDocColsGrp.alignChildren = ["center", "center"];
     perDocColsGrp.spacing = 5;
     perDocColsGrp.margins = 0;
 
-    const perDocColsLabel = perDocColsGrp.add("statictext", undefined, undefined, { name: "perDocColsLabel" });
+    const perDocColsLabel = perDocColsGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "perDocColsLabel" },
+    );
     perDocColsLabel.text = "Per Doc Cols";
     perDocColsLabel.justify = "center";
 
-    const perDocColsInput = perDocColsGrp.add('edittext {justify: "center", properties: {name: "perDocColsInput"}}');
+    const perDocColsInput = perDocColsGrp.add(
+      'edittext {justify: "center", properties: {name: "perDocColsInput"}}',
+    );
     perDocColsInput.text = "0";
     perDocColsInput.preferredSize.width = 70;
 
     // ITEMSGAPGRP
     // ===========
-    const itemsGapGrp = basicPanel.add("group", undefined, { name: "itemsGapGrp" });
+    const itemsGapGrp = basicPanel.add("group", undefined, {
+      name: "itemsGapGrp",
+    });
     itemsGapGrp.preferredSize.width = 100;
     itemsGapGrp.orientation = "column";
     itemsGapGrp.alignChildren = ["center", "center"];
     itemsGapGrp.spacing = 5;
     itemsGapGrp.margins = 0;
 
-    const itemsGapLabel = itemsGapGrp.add("statictext", undefined, undefined, { name: "itemsGapLabel" });
+    const itemsGapLabel = itemsGapGrp.add("statictext", undefined, undefined, {
+      name: "itemsGapLabel",
+    });
     itemsGapLabel.text = "Items Gap";
     itemsGapLabel.justify = "center";
 
-    const itemsGapInput = itemsGapGrp.add('edittext {justify: "center", properties: {name: "itemsGapInput"}}');
+    const itemsGapInput = itemsGapGrp.add(
+      'edittext {justify: "center", properties: {name: "itemsGapInput"}}',
+    );
     itemsGapInput.text = "0.1";
     itemsGapInput.preferredSize.width = 70;
 
     // REQUIREDPANEL
     // =============
-    const requiredPanel = panelContGrp.add("panel", undefined, undefined, { name: "requiredPanel" });
+    const requiredPanel = panelContGrp.add("panel", undefined, undefined, {
+      name: "requiredPanel",
+    });
     requiredPanel.text = "Data";
     requiredPanel.preferredSize.width = 200;
     requiredPanel.preferredSize.height = 250;
@@ -122,25 +162,33 @@ const automateInfoDialog = () => {
 
     // JSONDATAGRP
     // ===========
-    const jsonDataGrp = requiredPanel.add("group", undefined, { name: "jsonDataGrp" });
+    const jsonDataGrp = requiredPanel.add("group", undefined, {
+      name: "jsonDataGrp",
+    });
     jsonDataGrp.orientation = "column";
     jsonDataGrp.alignChildren = ["center", "center"];
     jsonDataGrp.spacing = 5;
     jsonDataGrp.margins = 0;
 
-    const jsonDataLabel = jsonDataGrp.add("statictext", undefined, undefined, { name: "jsonDataLabel" });
+    const jsonDataLabel = jsonDataGrp.add("statictext", undefined, undefined, {
+      name: "jsonDataLabel",
+    });
     jsonDataLabel.helpTip = "the data that will apply!";
     jsonDataLabel.text = "JSON Data";
     jsonDataLabel.justify = "center";
 
-    const jsonDataInput = jsonDataGrp.add('edittext {justify: "center", properties: {name: "jsonDataInput"}}');
+    const jsonDataInput = jsonDataGrp.add(
+      'edittext {justify: "center", properties: {name: "jsonDataInput"}}',
+    );
     jsonDataInput.helpTip = "data should be json format";
     jsonDataInput.preferredSize.width = 127;
     jsonDataInput.preferredSize.height = 50;
 
     // SIZEBRANDGRP
     // ============
-    const sizeBrandGrp = requiredPanel.add("group", undefined, { name: "sizeBrandGrp" });
+    const sizeBrandGrp = requiredPanel.add("group", undefined, {
+      name: "sizeBrandGrp",
+    });
     sizeBrandGrp.preferredSize.width = 100;
     sizeBrandGrp.orientation = "column";
     sizeBrandGrp.alignChildren = ["center", "center"];
@@ -148,11 +196,21 @@ const automateInfoDialog = () => {
     sizeBrandGrp.margins = 0;
     sizeBrandGrp.alignment = ["center", "top"];
 
-    const sizeBrandLabel = sizeBrandGrp.add("statictext", undefined, undefined, { name: "sizeBrandLabel" });
+    const sizeBrandLabel = sizeBrandGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "sizeBrandLabel" },
+    );
     sizeBrandLabel.text = "Size Brand";
     sizeBrandLabel.justify = "center";
 
-    const sizeBrandListDropdown = sizeBrandGrp.add("dropdownlist", undefined, undefined, { name: "sizeBrandListDropdown" });
+    const sizeBrandListDropdown = sizeBrandGrp.add(
+      "dropdownlist",
+      undefined,
+      undefined,
+      { name: "sizeBrandListDropdown" },
+    );
     sizeBrandListDropdown.selection = 0;
     sizeBrandListDropdown.preferredSize.width = 70;
     sizeBrandListDropdown.preferredSize.height = 10;
@@ -160,73 +218,102 @@ const automateInfoDialog = () => {
 
     // CREATEOUTLINEGRP
     // ================
-    const createOutlineGrp = requiredPanel.add("group", undefined, { name: "createOutlineGrp" });
+    const createOutlineGrp = requiredPanel.add("group", undefined, {
+      name: "createOutlineGrp",
+    });
     createOutlineGrp.orientation = "row";
     createOutlineGrp.alignChildren = ["left", "center"];
     createOutlineGrp.spacing = 10;
     createOutlineGrp.margins = 0;
 
-    const createOutlineCheckBox = createOutlineGrp.add("checkbox", undefined, undefined, { name: "createOutlineCheckBox" });
+    const createOutlineCheckBox = createOutlineGrp.add(
+      "checkbox",
+      undefined,
+      undefined,
+      { name: "createOutlineCheckBox" },
+    );
     createOutlineCheckBox.helpTip = "NANO text convert to shape";
     createOutlineCheckBox.text = "Text Outline";
     createOutlineCheckBox.value = true;
 
     // WRAPTEXTGRP
     // ===========
-    var wrapTextGrp = createOutlineGrp.add("group", undefined, { name: "wrapTextGrp" });
+    var wrapTextGrp = createOutlineGrp.add("group", undefined, {
+      name: "wrapTextGrp",
+    });
     wrapTextGrp.enabled = false;
     wrapTextGrp.orientation = "row";
     wrapTextGrp.alignChildren = ["left", "center"];
     wrapTextGrp.spacing = 10;
     wrapTextGrp.margins = 0;
 
-    var wrapTextCheckBox = wrapTextGrp.add("checkbox", undefined, undefined, { name: "wrapTextCheckBox" });
+    var wrapTextCheckBox = wrapTextGrp.add("checkbox", undefined, undefined, {
+      name: "wrapTextCheckBox",
+    });
     wrapTextCheckBox.enabled = false;
     wrapTextCheckBox.helpTip = "handle properly transform opacity mask item";
-    wrapTextCheckBox.text = "Curve Text"; 
+    wrapTextCheckBox.text = "Curve Text";
 
     // ACTIONENGINETHREADGRP
     // =====================
-    const actionEngineThreadGrp = requiredPanel.add("group", undefined, { name: "actionEngineThreadGrp" });
+    const actionEngineThreadGrp = requiredPanel.add("group", undefined, {
+      name: "actionEngineThreadGrp",
+    });
     actionEngineThreadGrp.orientation = "row";
     actionEngineThreadGrp.alignChildren = ["left", "center"];
     actionEngineThreadGrp.spacing = 10;
     actionEngineThreadGrp.margins = 0;
 
-    const actionEngineThreadCheckBox = actionEngineThreadGrp.add("checkbox", undefined, undefined, { name: "actionEngineThreadCheckBox" });
-    actionEngineThreadCheckBox.helpTip = "when true script for transformation happend engine base";
+    const actionEngineThreadCheckBox = actionEngineThreadGrp.add(
+      "checkbox",
+      undefined,
+      undefined,
+      { name: "actionEngineThreadCheckBox" },
+    );
+    actionEngineThreadCheckBox.helpTip =
+      "when true script for transformation happend engine base";
     actionEngineThreadCheckBox.text = "Action Thread";
-    actionEngineThreadCheckBox.value = true; 
+    actionEngineThreadCheckBox.value = false;
 
     // STATICMODEGRP
     // =============
-    const staticModeGrp = requiredPanel.add("group", undefined, { name: "staticModeGrp" });
-    staticModeGrp.enabled = false;
+    const staticModeGrp = requiredPanel.add("group", undefined, {
+      name: "staticModeGrp",
+    });
+    staticModeGrp.enabled = true;
     staticModeGrp.orientation = "row";
     staticModeGrp.alignChildren = ["left", "center"];
     staticModeGrp.spacing = 10;
     staticModeGrp.margins = 0;
 
-    const staticMoedCheckBox = staticModeGrp.add("checkbox", undefined, undefined, { name: "staticMoedCheckBox" });
-    staticMoedCheckBox.enabled = false;
+    const staticMoedCheckBox = staticModeGrp.add(
+      "checkbox",
+      undefined,
+      undefined,
+      { name: "staticMoedCheckBox" },
+    );
+    staticMoedCheckBox.enabled = true;
     staticMoedCheckBox.helpTip = "for layout items with quantity";
-    staticMoedCheckBox.text = "Static Mode"; 
+    staticMoedCheckBox.text = "Static Mode";
 
     // ENTERBTNGRP
     // ===========
-    const enterBtnGrp = dialogRoot.add("group", undefined, { name: "enterBtnGrp" });
+    const enterBtnGrp = dialogRoot.add("group", undefined, {
+      name: "enterBtnGrp",
+    });
     enterBtnGrp.orientation = "row";
     enterBtnGrp.alignChildren = ["left", "center"];
     enterBtnGrp.spacing = 10;
     enterBtnGrp.margins = 0;
 
-    const enterActionBtn = enterBtnGrp.add("button", undefined, undefined, { name: "enterActionBtn" });
+    const enterActionBtn = enterBtnGrp.add("button", undefined, undefined, {
+      name: "enterActionBtn",
+    });
     enterActionBtn.helpTip = "Start Action";
     enterActionBtn.text = "Start";
     enterActionBtn.active = true;
 
-
-    // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html ) 
+    // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html )
     dialogRoot.items = {
       dialogRoot: dialogRoot, // dialog
       panelContGrp: panelContGrp, // group
@@ -259,10 +346,43 @@ const automateInfoDialog = () => {
       staticModeGrp: staticModeGrp, // group
       staticMoedCheckBox: staticMoedCheckBox, // checkbox
       enterBtnGrp: enterBtnGrp, // group
-      enterActionBtn: enterActionBtn // button
+      enterActionBtn: enterActionBtn, // button
     };
 
-    dialogRoot.itemsArray = [dialogRoot, panelContGrp, basicPanel, paperWidthGrp, paperWidthLabel, paperWidthInput, orientationGrp, orientationLabel, orientationDropdown, perDocColsGrp, perDocColsLabel, perDocColsInput, itemsGapGrp, itemsGapLabel, itemsGapInput, requiredPanel, jsonDataGrp, jsonDataLabel, jsonDataInput, sizeBrandGrp, sizeBrandLabel, sizeBrandListDropdown, createOutlineGrp, createOutlineCheckBox, wrapTextGrp, wrapTextCheckBox, actionEngineThreadGrp, actionEngineThreadCheckBox, staticModeGrp, staticMoedCheckBox, enterBtnGrp, enterActionBtn];
+    dialogRoot.itemsArray = [
+      dialogRoot,
+      panelContGrp,
+      basicPanel,
+      paperWidthGrp,
+      paperWidthLabel,
+      paperWidthInput,
+      orientationGrp,
+      orientationLabel,
+      orientationDropdown,
+      perDocColsGrp,
+      perDocColsLabel,
+      perDocColsInput,
+      itemsGapGrp,
+      itemsGapLabel,
+      itemsGapInput,
+      requiredPanel,
+      jsonDataGrp,
+      jsonDataLabel,
+      jsonDataInput,
+      sizeBrandGrp,
+      sizeBrandLabel,
+      sizeBrandListDropdown,
+      createOutlineGrp,
+      createOutlineCheckBox,
+      wrapTextGrp,
+      wrapTextCheckBox,
+      actionEngineThreadGrp,
+      actionEngineThreadCheckBox,
+      staticModeGrp,
+      staticMoedCheckBox,
+      enterBtnGrp,
+      enterActionBtn,
+    ];
 
     /* Apply field dynamic value start */
 
@@ -272,9 +392,7 @@ const automateInfoDialog = () => {
     });
     orientationDropdown.selection = 0;
 
-    const brandList_array = ES6_SA.objectKeys(
-      JFT_CONF.sizes,
-    );
+    const brandList_array = ES6_SA.objectKeys(JFT_CONF.sizes);
     ES6_SA.arrayForEach(brandList_array, (e) => {
       sizeBrandListDropdown.add("item", e);
     });
@@ -310,7 +428,6 @@ const automateInfoDialog = () => {
         enterBn.notify();
       }
     };
-
 
     function fixMultipleDots(str) {
       const parts = str.split(".");
@@ -384,7 +501,9 @@ const automateInfoDialog = () => {
 
       const orientationVal = orientationDropdown.selection.text.toLowerCase();
 
-      const perDocColsVal = perDocColsInput.text ? parseInt(perDocColsInput.text) : 0;
+      const perDocColsVal = perDocColsInput.text
+        ? parseInt(perDocColsInput.text)
+        : 0;
 
       const paperWidthVal = paperWidthInput.text
         ? fixMultipleDots(paperWidthInput.text)
@@ -411,7 +530,7 @@ const automateInfoDialog = () => {
       CONFIG.ORIENTATION = orientationVal;
       CONFIG.OUTLINE_TEXT = createOutlineval;
       CONFIG.THREAD_ENGINE = actionEngineThreadVal ? "action" : "script";
-      CONFIG.STATIC_MODE = staticModeVal
+      CONFIG.STATIC_MODE = staticModeVal;
       dialogRoot.close(1); // success signal
     };
 
@@ -421,13 +540,18 @@ const automateInfoDialog = () => {
     const result = dialogRoot.show();
 
     if (result === 1) {
-      const jsonDataVal = jsonDataInput.text;
+      const dataVal = jsonDataInput.text;
 
-      if (!jsonDataVal) {
-        throw new Error(`Input JSON Data`)
+      if (typeof jsonDataVal === "string") {
+        jftProcessSeqWrapper(dataVal);
+        return;
       }
 
-      jftProcessSeqWrapper(JSONSA.parse(jsonDataVal));
+      if (!dataVal) {
+        throw new Error(`Invalid data type`);
+      }
+
+      jftProcessSeqWrapper(dataVal);
     }
   } catch (error) {
     alertDialogSA(error.message);

@@ -3,7 +3,7 @@ const JFT_CONF_PRODUCTION_PATH =
 
 const JFT_CONF_DEV_PATH = "G:\\JFT-Rapid\\jft.conf";
 
-const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_DEV_PATH);
+const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_PRODUCTION_PATH);
 
 // for globally handler progressbar
 // const progressWindow = createProgressWindow();
