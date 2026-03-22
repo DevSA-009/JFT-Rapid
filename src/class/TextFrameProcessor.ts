@@ -161,7 +161,6 @@ class TextFrameProcessor {
   // ─── Immutable config ──────────────────────────────────────────────────
 
   private readonly stack: StackType;
-  private readonly isPaired: boolean;
   private readonly isMixedDynamic: boolean;
   private readonly data: AutomateData["details"]["L"]["DATA"] | null;
   private modifiedTextFrames: TextFrame[] = [];
@@ -192,7 +191,6 @@ class TextFrameProcessor {
    */
   constructor(params: TextFrameProcessorParams) {
     this.stack = params.stack;
-    this.isPaired = params.isPaired;
     this.isMixedDynamic = params.isMixedDynamic;
     this.data = params.data;
 
@@ -217,6 +215,11 @@ class TextFrameProcessor {
     if (placedItem.typename !== PageItemType.GroupItem) return;
     if (!this.data || !this.data.length) return;
 
+    // Reset the list at the start of each call — prevents stale TextFrame
+    // references from a previous process() call from leaking into this one.
+    // Stale refs are dead DOM nodes after createOutline() destroyed them.
+    this.modifiedTextFrames = [];
+
     const group = placedItem as GroupItem;
 
     for (let i = 0; i < group.pageItems.length; i++) {
@@ -238,7 +241,7 @@ class TextFrameProcessor {
       this.advanceDataQueue();
     }
 
-    if (this.needsGradientExpansion) {
+    if (this.needsGradientExpansion && CONFIG.OUTLINE_TEXT) {
       this.expandAppearanceTextFrames();
     }
   }
@@ -275,20 +278,29 @@ class TextFrameProcessor {
       // ── 3. Font correction ──────────────────────────────────────────────
       this.adjustFontSize(textFrame, originalSize, subItemIndex);
 
-      // ── 4. stores textframes ──────────────────────────────────────────────
-      this.modifiedTextFrames.push(textFrame);
-
-      // ── 5. Arc warp ─────────────────────────────────────────────────────
+      // ── 4. Arc warp ─────────────────────────────────────────────────────
       if (CONFIG.WRAP_TEXT) {
         // Utils.applyArcTextWarp(textFrame);
       }
 
-      // ── 6. Outline — MUST be last (destroys TextFrame reference) ────────
-      if (
+      // ── 5. Determine whether this frame will survive as a live TextFrame ─
+      // createOutline() destroys the TextFrame DOM node and replaces it with
+      // a GroupItem. Storing that reference in modifiedTextFrames would leave
+      // a dead (invalid) object in the array, which causes errors when
+      // expandAppearanceTextFrames() later tries to select those objects.
+      // Only track the frame when it will NOT be outlined immediately below.
+      const willBeOutlined =
         !CONFIG.WRAP_TEXT &&
         CONFIG.OUTLINE_TEXT &&
-        !this.needsGradientExpansion
-      ) {
+        !this.needsGradientExpansion;
+
+      if (!willBeOutlined) {
+        // Frame remains a live TextFrame — safe to track for gradient expansion
+        this.modifiedTextFrames.push(textFrame);
+      }
+
+      // ── 6. Outline — MUST be last (destroys TextFrame reference) ────────
+      if (willBeOutlined) {
         textFrame.createOutline();
       }
     }
@@ -448,7 +460,7 @@ class TextFrameProcessor {
   }
 
   private expandAppearanceTextFrames() {
-    //Gradient expansion (rotated stacks only) ────────────────────
+    // Gradient expansion (rotated stacks only)
     if (this.modifiedTextFrames.length) {
       const prevSelection = app?.activeDocument?.selection[0];
 
@@ -466,6 +478,11 @@ class TextFrameProcessor {
       if (Utils.isActionThreadEngine()) {
         if (prevSelection) prevSelection.selected = true;
       }
+
+      // Clear the list after use — the frames are now outlined/expanded and
+      // their DOM nodes may be invalid. Keeping them would cause errors if
+      // expandAppearanceTextFrames() were ever called a second time.
+      this.modifiedTextFrames = [];
     }
   }
 }
