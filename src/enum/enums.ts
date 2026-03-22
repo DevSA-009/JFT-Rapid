@@ -22,7 +22,6 @@ const SIZE_ORDER_MAP = {
   "16": 16,
 } as const;
 
-
 enum PageItemType {
   TextFrame = "TextFrame",
   PathItem = "PathItem",
@@ -140,6 +139,6 @@ enum DirectionMarkers {
 
 const SIZE_TKN = "SIZE_TKN";
 
-const SIZE_TKN_FONT = "Sakana-Regular"
+const SIZE_TKN_FONT = "Sakana-Regular";
 
 const faceBasePair = [PairObjectMarkers.BODY, PairObjectMarkers.COLLAR];

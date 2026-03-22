@@ -1,4 +1,3 @@
-
 /**
  * Parameters required to initialise an {@link ItemsInitiater}.
  */
@@ -449,7 +448,6 @@ class ItemsInitiater {
       // to prevent duplicate-name confusion at the document level
       const name1 = this.item1.name;
       const name2 = this.item2.name;
-
 
       const wrapper1 = GroupManager.group([this.item1]);
       const wrapper2 = GroupManager.group([this.item2]);
