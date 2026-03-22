@@ -231,20 +231,6 @@ class TextFrameProcessor {
 
       if (!isDynamic) continue;
 
-      /*
-      this.processSubGroup(subGroup as GroupItem, i);
-        if (this.isMixedDynamic) {
-          if (!Utils.isOdd(currentPassed)) {
-            this.data.shift();
-            currentPassed = 1;
-          } else {
-            currentPassed = 2;
-          }
-        } else {
-          this.data.shift();
-        }
-  */
-
       // Process all TextFrames inside this dynamic sub-group
       this.processSubGroup(subGroup as GroupItem, i);
 
@@ -253,7 +239,7 @@ class TextFrameProcessor {
     }
 
     if (this.needsGradientExpansion) {
-      // this.expandAppearanceTextFrames();
+      this.expandAppearanceTextFrames();
     }
   }
 
