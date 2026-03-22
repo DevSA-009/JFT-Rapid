@@ -5,7 +5,9 @@ interface GridLayoutGeneratorParams {
   dimension: DimensionObject;
   jftItem: JFTItem;
   orientation: StackOrientation;
+  sizeTkn?: ApparelSize | ApparelSizeRange;
   data: AutomateData["details"]["L"]["DATA"] | null;
+  distributeGap: number;
 }
 type GridLayoutPassParams = Record<"rows" | "cols", number> & {
   reqDocs: RequiredDocReturn;
@@ -34,14 +36,14 @@ type ResolveMixedEntriesResult = {
 } | null;
 
 class GridLayoutGenerator {
-  private readonly sizeChar: GridLayoutGeneratorParams["sizeChar"];
   private readonly dimension: DimensionObject;
   private readonly jftItem: JFTItem;
-  private readonly itemGap: number = CONFIG.ITEMS_GAP;
+  private readonly distributeGap: number;
   private stackOrientation: StackOrientation;
   private readonly outputFolderPath: string = app.activeDocument.path.fsName;
   private quantity: GridLayoutGeneratorParams["quantity"];
   private artworkItems: PageItem[];
+  private readonly sizeTkn: GridLayoutGeneratorParams["sizeTkn"] = "ALL";
   private isSingleItem: boolean = false;
   private isPaired: boolean;
   private countType: CountType;
@@ -63,12 +65,13 @@ class GridLayoutGenerator {
   // Build once at the start of each pass — in buildPassTracker or begin()
   private textProcessor: TextFrameProcessor | null = null;
   constructor(params: GridLayoutGeneratorParams) {
-    this.sizeChar = params.sizeChar;
+    this.sizeTkn = params?.sizeTkn || this.sizeTkn;
+    this.distributeGap = params.distributeGap;
     this.quantity = params.quantity;
     this.jftItem = params.jftItem;
     this.dimension = params.dimension;
     this.stackOrientation = params.orientation ?? CONFIG.ORIENTATION;
-    this.data = params.data ? [...params.data] : null;
+    this.data = params.data ? Utils.deepCopy([...params.data]) : null;
     this.countType = this.jftItem.info.countType;
     this.isPaired = this.jftItem.info.pair;
     this.artworkItems = this.duplicateSourceItems();
@@ -193,14 +196,14 @@ class GridLayoutGenerator {
     docHandler.close();
     this.outputFileIndex++;
   }
-  private fillWidthStrip(params: {
+  private fillWideArea(params: {
     doc: Document;
     item: PageItem;
     fitRow: number;
   }): void {
     const { item, fitRow } = params;
     const gapPt = Utils.convertLength({
-      value: this.itemGap,
+      value: this.distributeGap,
       from: "inch",
       to: "pt",
     });
@@ -240,12 +243,12 @@ class GridLayoutGenerator {
   }
   private calculateStackRecommendation(): RecommendedStacksResult {
     return GridCalculator.getRecommendedStacks({
-      gap: this.itemGap,
+      gap: this.distributeGap,
       maxColsInDoc: CONFIG.PER_DOC,
       quantity: this.quantity,
       size: this.dimension,
       pair: this.isPaired,
-      pairGap: this.itemGap,
+      pairGap: this.distributeGap,
       heightPreference: "Less",
       stackOrientation: this.stackOrientation,
     });
@@ -255,9 +258,9 @@ class GridLayoutGenerator {
       dimension: this.dimension,
       items: this.artworkItems,
       fixedSize: this.jftItem.info.fixedSize,
-      sizeChar: this.sizeChar,
+      sizeChar: this.sizeTkn as ApparelSize,
       stack: stackType,
-      gap: this.itemGap,
+      gap: this.distributeGap,
       pairable: this.isPaired,
     }).getItem();
   }
@@ -326,7 +329,7 @@ class GridLayoutGenerator {
     forceStatic: boolean = false,
   ): string {
     const { rows, cols, targetQty } = this.layoutPassTracker;
-    const sizeSegment = this.jftItem.info.fixedSize ? "" : this.sizeChar;
+    const sizeSegment = this.jftItem.info.fixedSize ? "" : this.sizeTkn;
     const isDocDynamic = this.isDocumentDynamic();
     let quantitySegment = `-${targetQty.toString()}`;
     let countTypeSegment = ` ${this.countType}` as string;
@@ -374,7 +377,7 @@ class GridLayoutGenerator {
   private createGrid(params: CreateGridParams): void {
     const { maxCol, rows, doc, item: referenceItem } = params;
     const gapPt = Utils.convertLength({
-      value: this.itemGap,
+      value: this.distributeGap,
       from: "inch",
       to: "pt",
     });

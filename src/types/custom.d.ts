@@ -10,8 +10,9 @@ interface JFTRapid_Config {
   BRAND: string;
   OUTLINE_TEXT: boolean;
   THREAD_ENGINE: ThreadEngine;
-  WRAP_TEXT:boolean;
-  STATIC_MODE:boolean
+  WRAP_TEXT: boolean;
+  STATIC_MODE: boolean;
+  DIMENSION_RANGE: boolean;
 }
 
 /**
@@ -44,10 +45,7 @@ type AlignPosition =
 
 type SizesDetails = {
   [key in ApparelSize]: {
-    BODY: DimensionObject;
-    SLEEVE: Record<"SHORT" | "LONG", Record<"SIZE" | "RIB", DimensionObject>>;
-    NECK_AREA: Record<"COLLAR" | "PLACKET" | "NECK", DimensionObject>;
-    PANT: Record<"SHORT" | "LONG", Record<"FRONT" | "BACK", DimensionObject>>;
+    [key in keyof typeof PairObjectMarkers]: DimensionObject;
   };
 };
 
@@ -154,11 +152,49 @@ type ThreadEngine = "script" | "action";
 
 type ApparelSize = BabySize | MensSize;
 
+type ApparelSizeRange = "ALL" | `${ApparelSize}-${ApparelSize}`;
+
 interface SelectItemsInDocParams {
   doc: Document;
   items: Selection;
   clear?: boolean;
 }
+
+/**
+ * Individual size marker entries with required name/number and optional custom properties
+ * Each entry represents a marker item in Illustrator with at least NAME and NUMBER fields
+ */
+type SizeMarkerEntries = (Record<
+  BasicMarkers.NAME | BasicMarkers.NUMBER,
+  string
+> &
+  Record<string, string>)[];
+
+type FlatSummary = {
+  SHORT_SLEEVE: number;
+  LONG_SLEEVE: number;
+  SHORT_PANT: number;
+  LONG_PANT: number;
+  BODY: number;
+};
+
+/**
+ * Size-specific summary and data for apparel items
+ * Contains both summary counts and raw marker entries for a given size
+ */
+type SizeDetailEntry = {
+  /**
+   * Summary counts for sleeve and pant types
+   * Breaks down LONG/SHORT counts for both SLEEVE and PANT categories
+   */
+  SUMMARY: FlatSummary;
+
+  /**
+   * Raw marker entries array for this size
+   * Each item contains required NAME/NUMBER plus any custom properties
+   */
+  DATA: SizeMarkerEntries;
+};
 
 interface AutomateData {
   basic: {
@@ -169,13 +205,6 @@ interface AutomateData {
     total: number;
   };
   details: {
-    [key in ApparelSize]: {
-      SUMMARY: Record<
-        "SLEEVE" | "PANT",
-        Record<SleeveType.LONG | SleeveType.SHORT, number>
-      >;
-      DATA: (Record<BasicMarkers.NAME | BasicMarkers.NUMBER, string> &
-        Record<string, string>)[];
-    };
+    [key in ApparelSize]: SizeDetailEntry;
   };
 }

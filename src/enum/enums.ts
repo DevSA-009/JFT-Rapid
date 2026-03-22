@@ -1,3 +1,28 @@
+/**
+ * Unified size scale mapping.
+ * Lower value = smaller size
+ */
+const SIZE_ORDER_MAP = {
+  XS: 0,
+  S: 1,
+  M: 2,
+  L: 3,
+  XL: 4,
+  "2XL": 5,
+  "3XL": 6,
+  "4XL": 7,
+  "5XL": 8,
+  "2": 9,
+  "4": 10,
+  "6": 11,
+  "8": 12,
+  "10": 13,
+  "12": 14,
+  "14": 15,
+  "16": 16,
+} as const;
+
+
 enum PageItemType {
   TextFrame = "TextFrame",
   PathItem = "PathItem",
@@ -79,15 +104,15 @@ enum CountType {
 
 enum PairObjectMarkers {
   BODY = "BODY",
-  SHORT_SLV = "S_SLV",
-  LONG_SLV = "L_SLV",
+  SHORT_SLEEVE = "S_SLV",
+  LONG_SLEEVE = "L_SLV",
   NECK = "NCK",
   COLLAR = "CLR",
   PLACKET = "PLK",
   SHORT_PANT = "S_PANT",
   LONG_PANT = "L_PANT",
-  SHORT_SLV_RIB = "S_RIB",
-  LONG_SLV_RIB = "L_RIB",
+  SHORT_SLEEVE_RIB = "S_SLV_RIB",
+  LONG_SLEEVE_RIB = "L_SLV_RIB",
 }
 
 enum JFTCONFKeywords {

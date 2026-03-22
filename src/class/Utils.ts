@@ -423,6 +423,17 @@ class Utils {
     if (sizeTextFrame) {
       (sizeTextFrame as TextFrame).contents =
         `size-${targetSizeChr}`.toUpperCase();
+      const targetWidth = this.convertLength({
+        from: "inch",
+        to: "pt",
+        value: 0.85,
+      });
+      const { height, width } = this.getDimension(
+        this.getObjectBounds(sizeTextFrame),
+      );
+      if (height > targetWidth || width > targetWidth) {
+        this.resizeObject(sizeTextFrame, targetWidth);
+      }
     } else {
       throw new Error(`Size token not found in ${item.name}`);
     }
@@ -1041,13 +1052,145 @@ class Utils {
 
   /**
    * Text frame arch wrap 50% bend
-   * @param textFrame 
+   * @param textFrame
    */
   static applyArcTextWarp(textFrame: TextFrame): void {
     app.executeMenuCommand("deselectall");
     textFrame.selected = true;
     app.executeMenuCommand("Make Text Wrap");
     app.executeMenuCommand("expandStyle");
+  }
+
+  /**
+   * Checks whether an object has no own enumerable properties.
+   *
+   * @param obj - The object to inspect
+   * @returns True if the object has no own enumerable properties, otherwise false
+   *
+   * @example
+   * isEmptyObject({}); // true
+   * isEmptyObject({ a: 1 }); // false
+   */
+  static isEmptyObject(obj: object): boolean {
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Sort sizes in ascending or descending order.
+   *
+   * @param sizes - Array of sizes
+   * @param order - "asc" (default) or "desc"
+   * @returns New sorted array
+   *
+   * @example
+   * sortSizes(["M","XS","XL"]);
+   * // ["XS","M","XL"]
+   *
+   * sortSizes(["M","XS","XL"], "desc");
+   * // ["XL","M","XS"]
+   */
+  static sortSizes(
+    sizes: ApparelSize[],
+    order: "asc" | "desc" = "asc",
+  ): ApparelSize[] {
+    return [...sizes].sort((a, b) =>
+      order === "asc"
+        ? SIZE_ORDER_MAP[a] - SIZE_ORDER_MAP[b]
+        : SIZE_ORDER_MAP[b] - SIZE_ORDER_MAP[a],
+    );
+  }
+
+  /**
+   * Filters `details` to only the sizes that have **meaningful work** to do.
+   *
+   * A size is considered active when at least one of the following is true:
+   * - `DATA.length > 0` — at least one player data row exists
+   * - Any `SUMMARY.SLEEVE` count > 0
+   * - Any `SUMMARY.PANT` count > 0
+   *
+   * Sizes that are entirely zero are excluded up-front so no stage method
+   * ever receives an empty size and wastes a cache lookup.
+   *
+   * @param detailsData - Full `AutomateData.details` map to filter.
+   * @returns Ordered array of active `ApparelSize` values.
+   */
+  static getActiveDataSizes(
+    detailsData: AutomateData["details"],
+  ): ApparelSize[] {
+    const active: ApparelSize[] = [];
+    const allSizes = Object.keys(detailsData) as ApparelSize[];
+
+    for (let i = 0; i < allSizes.length; i++) {
+      const sizeChar = allSizes[i];
+      const entry = detailsData[sizeChar];
+
+      // DATA rows present → definitely active
+      if (entry.SUMMARY.BODY > 0) {
+        active.push(sizeChar);
+      }
+    }
+    return Utils.sortSizes(active);
+  }
+
+  /**
+   * Creates a deep copy of a value (ES3-compatible).
+   *
+   * Recursively copies plain objects and arrays so that
+   * nested references are not shared with the original.
+   *
+   * ⚠️ Limitations (due to ES3 constraints):
+   * - No support for circular references
+   * - Functions are copied by reference (not cloned)
+   * - Does not support Map, Set, or special class instances
+   * - Dates are copied as Date objects
+   *
+   * @template T - The type of the input value
+   * @param value - The value to deep copy
+   * @returns A deep copy of the input value
+   *
+   * @example
+   * ```ts
+   * var obj = { a: 1, b: { c: 2 } };
+   * var copy = deepCopy(obj);
+   *
+   * copy.b.c = 10;
+   * console.log(obj.b.c); // 2
+   * ```
+   */
+  static deepCopy<T>(value: T): T {
+    // Handle null or primitive types
+    if (value === null || typeof value !== "object") {
+      return value;
+    }
+
+    // Handle Date
+    if (value instanceof Date) {
+      return new Date(value.getTime()) as any;
+    }
+
+    // Handle Array
+    if (value instanceof Array) {
+      var arr: any[] = [];
+      for (var i = 0; i < value.length; i++) {
+        arr[i] = this.deepCopy(value[i]);
+      }
+      return arr as any;
+    }
+
+    // Handle Object
+    var result: any = {};
+    for (var key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        result[key] = this.deepCopy((value as any)[key]);
+      }
+    }
+
+    return result;
   }
 }
 

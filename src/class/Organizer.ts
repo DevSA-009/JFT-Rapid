@@ -208,7 +208,7 @@ class Organizer {
     return {
       files: fileCount,
       folder: folderCount,
-      nexFileIndex: fileCount,
+      nexFileIndex: fileCount + 1,
     };
   }
 

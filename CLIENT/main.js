@@ -145,10 +145,10 @@ markLongSlvBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('L_SLV')");
 };
 markShortRIBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('S_RIB_FSZ')");
+  csInterface.evalScript("Organizer.objectMarkByName('S_SLV_RIB_FSZ')");
 };
 markLongRIBBtn.onclick = () => {
-  csInterface.evalScript("Organizer.objectMarkByName('L_RIB_FSZ')");
+  csInterface.evalScript("Organizer.objectMarkByName('L_SLV_RIB_FSZ')");
 };
 markShortPantBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('S_PANT_FSZ')");
