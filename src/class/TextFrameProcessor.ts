@@ -227,10 +227,7 @@ class TextFrameProcessor {
       if (subGroup.typename !== PageItemType.GroupItem) continue;
       if (!this.data.length) break;
 
-      const isDynamic = ES6_SA.stringIncludes(
-        subGroup.name,
-        `_${BasicMarkers.DYNAMIC}_`,
-      );
+      const isDynamic = subGroup.name.includes(`_${BasicMarkers.DYNAMIC}_`);
 
       if (!isDynamic) continue;
 

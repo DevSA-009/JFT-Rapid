@@ -1,5 +1,32 @@
 //(ES3 polyfills)
 
+interface ArrayConstructor {
+  /**
+   * Checks if the provided value is an array.
+   *
+   * @param value - The value to check.
+   * @returns Returns `true` if the value is an array, otherwise `false`.
+   */
+  isArray(value: any): boolean;
+
+  /**
+   * Creates an array from an array-like object.
+   *
+   * ES3-compatible partial replacement for `Array.from`.
+   * Supports array-like objects with a numeric `length`.
+   *
+   * @param source - An array-like object
+   * @param mapFn - Optional mapping function to call on every element of the array
+   * @param thisArg - Value to use as this when executing mapFn
+   * @returns A new array copied from source
+   */
+  from<T, U = T>(
+    source: { length: number },
+    mapFn?: (v: T, k: number) => U,
+    thisArg?: any,
+  ): U[];
+}
+
 interface Array<T> {
   /**
    * Returns the first index at which a given element can be found in the array,

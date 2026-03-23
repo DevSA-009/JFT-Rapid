@@ -260,8 +260,7 @@ class ItemsInitiater {
       );
     }
 
-    const tokenExists = !!ES6_SA.arrayFind(
-      item.pageItems,
+    const tokenExists = !!item.pageItems.find(
       (child) =>
         child.typename === PageItemType.TextFrame && child.name === SIZE_TKN,
     );

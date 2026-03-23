@@ -1,6 +1,55 @@
 // polyfills.ts
 // ES3-compatible polyfills – direct implementation
 
+// Array.isArray
+if (!Array.isArray) {
+  Array.isArray = function (value: any): boolean {
+    return Object.prototype.toString.call(value) === "[object Array]";
+  };
+}
+
+// Array.from
+if (!Array.from) {
+  Array.from = function <T, U = T>(
+    source: { length: number },
+    mapFn?: (v: T, k: number) => U,
+    thisArg?: any,
+  ): U[] {
+    var result: U[] = [];
+    var i: number = 0;
+    var len: number = source.length;
+    var mapper: ((v: T, k: number) => U) | undefined;
+    var context: any;
+    var value: T;
+    var mappedValue: U;
+
+    // Handle mapFn if provided
+    if (mapFn !== undefined) {
+      if (typeof mapFn !== "function") {
+        throw new Error(mapFn + " is not a function");
+      }
+      mapper = mapFn;
+      context = thisArg;
+    }
+
+    for (i = 0; i < len; i++) {
+      if (i in source) {
+        value = (source as { [n: number]: T })[i];
+
+        if (mapper) {
+          mappedValue = mapper.call(context, value, i);
+        } else {
+          mappedValue = value as unknown as U;
+        }
+
+        result[result.length] = mappedValue;
+      }
+    }
+
+    return result;
+  };
+}
+
 // Array.prototype.indexOf
 if (!Array.prototype.indexOf) {
   Array.prototype.indexOf = function <T>(

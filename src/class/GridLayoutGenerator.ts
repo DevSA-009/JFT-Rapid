@@ -379,7 +379,7 @@ class GridLayoutGenerator {
     }
 
     // Remove working duplicates after saving
-    ES6_SA.arrayForEach(this.artworkItems, (item) => item.remove());
+    this.artworkItems.forEach((item) => item.remove());
   }
 
   /**
@@ -590,7 +590,7 @@ class GridLayoutGenerator {
    * Sets `isPaired = false` and `countType = PCS` when an item is removed.
    */
   private cleanWhiteFillItem(): void {
-    ES6_SA.arrayForEach(this.artworkItems, (item, idx) => {
+    this.artworkItems.forEach((item, idx) => {
       if (
         item &&
         item.typename === PageItemType.PathItem &&
@@ -1045,12 +1045,11 @@ class GridLayoutGenerator {
 
         if (!isVrhStack) {
           // Find the static and dynamic sub-items inside the composed reference group
-          const staticItem = ES6_SA.arrayFind(
-            this.composedReferenceItem!.pageItems,
+          const staticItem = this.composedReferenceItem!.pageItems.find(
             (itm) => itm.name === staticEntry.object.name,
           );
-          const dynamicItem = ES6_SA.arrayFind(
-            this.composedReferenceItem!.pageItems,
+
+          const dynamicItem = this.composedReferenceItem!.pageItems.find(
             (itm) => itm.name === dynamicEntry.object.name,
           );
 

@@ -62,7 +62,7 @@ class Organizer {
    */
   static alignItemsToBoardCenter(doc: Document): void {
     const activeLayerItems = doc.activeLayer.pageItems;
-    const itemsToSelect = ES6_SA.arrayFrom(activeLayerItems) as Selection;
+    const itemsToSelect = this.pageItemsToArray(activeLayerItems);
     AlignmentHandler.alignPageItemsToArtboard({
       doc,
       objects: itemsToSelect,
@@ -504,7 +504,7 @@ class Organizer {
       for (const element of selection) {
         const currentName = element.name || "";
 
-        if (ES6_SA.stringIncludes(currentName, mark)) continue;
+        if (currentName.includes(mark)) continue;
 
         if (!prefix) {
           element.name = mark;
@@ -680,9 +680,8 @@ class Organizer {
         }
 
         // Step 2: Filter out removed objects from selection
-        const filteredObjects = ES6_SA.arrayFilter(
-          doc.selection,
-          (object) => !ES6_SA.arrayIncludes(objects, object),
+        const filteredObjects = (doc.selection as Selection).filter(
+          (object) => !objects.includes(object),
         );
 
         doc.selection = filteredObjects;
@@ -722,7 +721,7 @@ class Organizer {
       for (const item of _items) {
         // Check if item name matches one of the names in the array
         // Also check if visibility and lock filtering is enabled and passed
-        const nameMatches = ES6_SA.arrayIncludes(name, item.name);
+        const nameMatches = name.includes(item.name);
         const passesVisibilityCheck =
           !onlyVisibleAndUnlocked || (!item.hidden && !item.locked);
 
@@ -828,23 +827,17 @@ class Organizer {
       }
 
       // Find the previously marked key object
-      const keyObject = ES6_SA.arrayFind(
-        selection,
-        (object) => object.key === true,
-      );
+      const keyObject = selection.find((object) => object.key === true);
 
       if (!keyObject) {
         throw new Error("No key object found in the selection.");
       }
 
       // All other selected objects (excluding the key)
-      const itemsToArrange = ES6_SA.arrayFilter(
-        selection,
-        (object) => object !== keyObject,
-      );
+      const itemsToArrange = selection.filter((object) => object !== keyObject);
 
       // Move each item right after the key object
-      ES6_SA.arrayForEach(itemsToArrange, (item) => {
+      itemsToArrange.forEach((item) => {
         item.move(keyObject, ElementPlacement.PLACEBEFORE);
       });
 
@@ -880,7 +873,7 @@ class Organizer {
 
       const newObject: PathItem[] = [];
 
-      ES6_SA.arrayForEach(selection as PathItems, (clipPath) => {
+      (selection as PathItems).forEach((clipPath) => {
         const dupPathObject = clipPath.duplicate(
           clipPath,
           ElementPlacement.PLACEAFTER,
@@ -921,7 +914,7 @@ class Organizer {
   private static selectObjectsByNames(names: string[]) {
     try {
       const { selection } = Organizer.selectionVerifyChain();
-      const validName = ES6_SA.arrayFilter(names, (name) => !!name);
+      const validName = names.filter((name) => !!name);
       const matchedObjects = Organizer.getObjectsByNames(
         selection,
         validName,

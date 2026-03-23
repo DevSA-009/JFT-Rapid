@@ -47,7 +47,7 @@ class GridCalculator {
       width: stacks.HH.width,
     };
 
-    ES6_SA.arrayForEach(ES6_SA.objectEntries(stacks), ([type, dims]) => {
+    Object.entries(stacks).forEach(([type, dims]) => {
       if (dims.width > recommended.width) {
         recommended = {
           type: type as StackType,

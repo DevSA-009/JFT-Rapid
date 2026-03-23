@@ -264,7 +264,7 @@ class Utils {
       maxY = Math.max(maxY, top);
     };
 
-    if (ES6_SA.isArray(object)) {
+    if (Array.isArray(object)) {
       // Process each selected item using a for loop
       for (let i = 0; i < object.length; i++) {
         processItem((object as Selection)[i]);
@@ -340,7 +340,7 @@ class Utils {
   static getAdjacentPageObjects = (
     object: Selection | PageItem,
   ): PrevNextObjects => {
-    const isSelectionArr = ES6_SA.isArray(object);
+    const isSelectionArr = Array.isArray(object);
 
     const firstItem = isSelectionArr
       ? (object as Selection)[0]
@@ -360,8 +360,8 @@ class Utils {
       throw new Error("Unsupported parent type: " + parent.typename);
     }
 
-    const firstIndex = ES6_SA.arrayIndexOf(siblings, firstItem);
-    const lastIndex = ES6_SA.arrayIndexOf(siblings, lastItem);
+    const firstIndex = siblings.indexOf(firstItem);
+    const lastIndex = siblings.indexOf(lastItem);
 
     const prev = firstIndex > 0 ? siblings[firstIndex - 1] : null;
     const next =
@@ -415,8 +415,7 @@ class Utils {
     item: GroupItem,
     targetSizeChr: ApparelSize,
   ): void => {
-    const sizeTextFrame = ES6_SA.arrayFind(
-      item.pageItems,
+    const sizeTextFrame = item.pageItems.find(
       (item) =>
         item.typename === PageItemType.TextFrame && item.name === SIZE_TKN,
     );
@@ -456,7 +455,7 @@ class Utils {
       return;
     }
 
-    if (ES6_SA.isArray(selection) && selection.length > 1) {
+    if (Array.isArray(selection) && selection.length > 1) {
       const bounds = this.getObjectBounds(selection) as BoundsObject;
       const { width, height } = this.getDimension(bounds);
 
@@ -470,7 +469,7 @@ class Utils {
 
       GroupManager.ungroup(tempGroup);
     } else {
-      const targetItem = ES6_SA.isArray(selection)
+      const targetItem = Array.isArray(selection)
         ? (selection as Selection)[0]
         : (selection as PageItem);
       const topMostItem = this.getObjectBounds(targetItem);
@@ -670,7 +669,7 @@ class Utils {
       PageItemType.TextFrame,
     ];
 
-    if (!ES6_SA.arrayIncludes(supportedTypes, object.typename)) {
+    if (!supportedTypes.includes(object.typename as PageItemType)) {
       throw new Error(
         `Object type "${object.typename}" is not valid for applying color. `,
       );
@@ -696,7 +695,7 @@ class Utils {
     // ────────────────────────────────────────────────
     // 3. Validate CMYK array
     // ────────────────────────────────────────────────
-    if (!ES6_SA.isArray(color) || color.length !== 4) {
+    if (!Array.isArray(color) || color.length !== 4) {
       throw new Error(
         "CMYK color must be an array of exactly 4 numbers [C, M, Y, K]",
       );
@@ -887,7 +886,7 @@ class Utils {
   ):
     | Extract<keyof T, { [K in keyof T]: T[K] extends V ? K : never }[keyof T]>
     | undefined {
-    for (const [k, v] of ES6_SA.objectEntries(enumObj)) {
+    for (const [k, v] of Object.entries(enumObj)) {
       if (v === value) return k as any; // type assertion needed due to current TS limitations
     }
     return undefined;

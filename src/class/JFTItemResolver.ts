@@ -26,7 +26,7 @@ class JFTItemResolver {
       throw new Error("Active layer is empty — no items to resolve.");
 
     // Collect all PairObjectMarkers enum values to iterate
-    const values = ES6_SA.objectValues(PairObjectMarkers);
+    const values = Object.values(PairObjectMarkers);
 
     // Initialise empty cache — entries are added only when a match is found
     const jftItems: JFTItemCache = {} as JFTItemCache;
@@ -70,7 +70,7 @@ class JFTItemResolver {
     for (let i = 0; i < pageItems.length; i++) {
       const item = pageItems[i];
       // Skip locked items — they are excluded from all processing
-      if (!item.locked && ES6_SA.stringIncludes(item.name, `_${marker}_`)) {
+      if (!item.locked && item.name.includes(`_${marker}_`)) {
         collected.push(item);
         // Cap at two — pairs consist of at most 2 items
         if (collected.length === 2) break;
@@ -126,9 +126,7 @@ class JFTItemResolver {
       throw new Error(
         `itemInfo: first item has no name — marker tokens cannot be resolved.`,
       );
-
-    const strInc = ES6_SA.stringIncludes;
-    const directionsArr = ES6_SA.objectKeys(DirectionMarkers);
+    const directionsArr = Object.keys(DirectionMarkers);
 
     // ── Local helpers ────────────────────────────────────────────────────
 
@@ -177,7 +175,7 @@ class JFTItemResolver {
 
     // ── 3. Dynamic flag — read before direction assignment ───────────────
 
-    const isObj1Dyn = strInc(obj1.name, `_${BasicMarkers.DYNAMIC}_`);
+    const isObj1Dyn = obj1.name.includes(`_${BasicMarkers.DYNAMIC}_`);
 
     // Warn when a dynamic item is auto-duplicated — the copy carries the same
     // dynamic tokens which almost always produces unintended output
@@ -206,11 +204,11 @@ class JFTItemResolver {
 
     // ── 5. Classification flags ──────────────────────────────────────────
 
-    const isObj1Pair = strInc(obj1.name, `_${BasicMarkers.PAIR}_`);
-    const isObj1Fsz = strInc(obj1.name, `_${BasicMarkers.FIXED_SIZE}_`);
-    const isObj2Dyn = strInc(obj2.name, `_${BasicMarkers.DYNAMIC}_`);
-    const isObj2Pair = strInc(obj2.name, `_${BasicMarkers.PAIR}_`);
-    const isObj2Fsz = strInc(obj2.name, `_${BasicMarkers.FIXED_SIZE}_`);
+    const isObj1Pair = obj1.name.includes(`_${BasicMarkers.PAIR}_`);
+    const isObj1Fsz = obj1.name.includes(`_${BasicMarkers.FIXED_SIZE}_`);
+    const isObj2Dyn = obj2.name.includes(`_${BasicMarkers.DYNAMIC}_`);
+    const isObj2Pair = obj2.name.includes(`_${BasicMarkers.PAIR}_`);
+    const isObj2Fsz = obj2.name.includes(`_${BasicMarkers.FIXED_SIZE}_`);
 
     // ── GLOBAL STATIC MODE OVERRIDE ─────────────────────────────────────
     // In static mode all items are treated as non-dynamic paired sets
