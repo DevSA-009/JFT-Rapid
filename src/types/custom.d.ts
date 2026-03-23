@@ -3,7 +3,7 @@ interface JFTRapid_Config {
   JFT_CONF: PersistConfig;
   CONFIG: PersistConfig["config"];
   SIZES_DETAILS: SizesDetails;
-  ITEMS_GAP: number;
+  DIST_ITEMS_GAP: number;
   KIDSINV: boolean;
   ORIENTATION: StackOrientation;
   PER_DOC: number;
@@ -25,9 +25,6 @@ type PrevNextItems = {
   current: PageItem;
   next: PageItem | null;
 };
-
-type MensSize = "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL";
-type BabySize = "2" | "4" | "6" | "8" | "10" | "12" | "14" | "16";
 
 type BasePositions = "L" | "R" | "T" | "B";
 
@@ -150,7 +147,7 @@ type DimensionType = "width" | "height";
 
 type ThreadEngine = "script" | "action";
 
-type ApparelSize = BabySize | MensSize;
+type ApparelSize = keyof typeof ADULT_SIZES | keyof typeof KIDS_SIZES;
 
 type ApparelSizeRange = "ALL" | `${ApparelSize}-${ApparelSize}`;
 

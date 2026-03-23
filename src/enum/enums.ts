@@ -1,8 +1,7 @@
-/**
- * Unified size scale mapping.
- * Lower value = smaller size
- */
-const SIZE_ORDER_MAP = {
+const test =
+  '{"basic":{"type":"POLO","sleeve":["LONG","SHORT"],"rib":{"type":"NO","apply":[]},"pant":[],"total":10},"details":{"2":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"4":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"6":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"8":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"10":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"12":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"14":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"16":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"XS":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"S":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"M":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"L":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"2XL":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"3XL":{"SUMMARY":{"SHORT_SLEEVE":9,"LONG_SLEEVE":1,"SHORT_PANT":0,"LONG_PANT":0,"BODY":10},"DATA":[{"NAME":"PLAYER01","NUMBER":"01"},{"NAME":"PLAYER02","NUMBER":"02"},{"NAME":"PLAYER03","NUMBER":"03"},{"NAME":"PLAYER04","NUMBER":"04"},{"NAME":"PLAYER05","NUMBER":"05"},{"NAME":"PLAYER06","NUMBER":"06"},{"NAME":"PLAYER07","NUMBER":"07"},{"NAME":"PLAYER08","NUMBER":"08"},{"NAME":"PLAYER09","NUMBER":"09"},{"NAME":"PLAYER10","NUMBER":"10"}]},"4XL":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]},"5XL":{"SUMMARY":{"SHORT_SLEEVE":0,"LONG_SLEEVE":0,"SHORT_PANT":0,"LONG_PANT":0,"BODY":0},"DATA":[]}}}';
+
+const ADULT_SIZES = {
   XS: 0,
   S: 1,
   M: 2,
@@ -12,6 +11,9 @@ const SIZE_ORDER_MAP = {
   "3XL": 6,
   "4XL": 7,
   "5XL": 8,
+} as const;
+
+const KIDS_SIZES = {
   "2": 9,
   "4": 10,
   "6": 11,
@@ -21,6 +23,12 @@ const SIZE_ORDER_MAP = {
   "14": 15,
   "16": 16,
 } as const;
+
+/**
+ * Unified size scale mapping.
+ * Lower value = smaller size
+ */
+const SIZE_ORDER_MAP = { ...ADULT_SIZES, ...KIDS_SIZES } as const;
 
 enum PageItemType {
   TextFrame = "TextFrame",

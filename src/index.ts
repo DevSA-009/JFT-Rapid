@@ -11,7 +11,7 @@ const JFTPersistConfigFetch = new JSONFileHandler(JFT_CONF_DEV_PATH);
 const JFT_CONF = JFTPersistConfigFetch.read() as PersistConfig;
 
 const CONFIG: JFTRapid_Config = {
-  ITEMS_GAP: 0.1,
+  DIST_ITEMS_GAP: 0.1,
   DIMENSION_RANGE: false,
   OUTLINE_TEXT: false,
   PAPER_MAX_SIZE: 63.25,
@@ -34,5 +34,3 @@ CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
 const jftProcessSeqWrapper = (data: AutomateData | string) => {
   new JFTProcessSequentially(data as unknown as AutomateData);
 };
-
-automateInfoDialog();

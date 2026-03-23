@@ -1,17 +1,42 @@
+/**
+ * Scans the active Illustrator layer for garment-part PageItems, resolves
+ * them into typed {@link JFTItem} descriptors, and returns a lookup cache
+ * keyed by {@link PairObjectMarkers}.
+ *
+ * @remarks
+ * Items are matched by name token pattern `_<MARKER>_`. At most two items
+ * per marker are collected; locked items are always skipped. When only one
+ * item is found it is auto-duplicated to form the required pair.
+ */
 class JFTItemResolver {
+  /**
+   * Iterates every value in {@link PairObjectMarkers}, resolves matching
+   * PageItems from the active layer, and returns a populated cache.
+   *
+   * @returns Cache of resolved {@link JFTItem} objects keyed by marker name.
+   * @throws {Error} When the active layer contains no PageItems.
+   */
   static getItems() {
     const pageItems = Organizer.pageItemsToArray(
       app.activeDocument.activeLayer.pageItems,
     );
 
+    // Abort early when the active layer contains no items at all
+    if (!pageItems.length)
+      throw new Error("Active layer is empty — no items to resolve.");
+
+    // Collect all PairObjectMarkers enum values to iterate
     const values = ES6_SA.objectValues(PairObjectMarkers);
 
+    // Initialise empty cache — entries are added only when a match is found
     const jftItems: JFTItemCache = {} as JFTItemCache;
 
     for (const order of values) {
+      // Attempt to resolve a JFTItem for this marker
       const jftItem = this.resolveItem(order, pageItems);
 
       if (jftItem) {
+        // Store using the enum key (e.g. "BODY") rather than the raw value
         const key = jftItem.order as keyof typeof PairObjectMarkers;
         jftItems[key] = jftItem;
       }
@@ -30,11 +55,16 @@ class JFTItemResolver {
    * @param marker    - `PairObjectMarkers` value to search for (e.g. `"BODY"`).
    * @param pageItems - Pre-fetched flat array of all layer page items.
    * @returns Resolved `JFTItem`, or `null` when no matching item is found.
+   * @throws {Error} When `marker` is an empty string.
    */
   private static resolveItem(
     marker: string,
     pageItems: PageItem[],
   ): JFTItem | null {
+    // A blank marker would match every item name — reject it immediately
+    if (!marker || !marker.trim())
+      throw new Error("resolveItem: marker must be a non-empty string.");
+
     const collected: PageItem[] = [];
 
     for (let i = 0; i < pageItems.length; i++) {
@@ -47,12 +77,14 @@ class JFTItemResolver {
       }
     }
 
+    // No match found for this marker — return null so the caller can skip it
     if (!collected.length) return null;
 
+    // Derive pairing metadata and per-item flags from the collected items
     const { items, countType, pair, fixedSize } = this.itemInfo(collected);
 
     return {
-      // Prefer the enum key name (e.g. "BODY") over the raw value (e.g. "BODY")
+      // Prefer the enum key name (e.g. "BODY") over the raw value
       order:
         Utils.getKeyFromEnumValue(
           PairObjectMarkers,
@@ -81,8 +113,20 @@ class JFTItemResolver {
    *
    * @param objects - 1 or 2 PageItems from the active layer.
    * @returns Fully populated `ItemsInfo` with exactly two `ItemInfoEntry` records.
+   * @throws {Error} When `objects` is empty.
+   * @throws {Error} When the first item has no name (tokens cannot be parsed).
    */
   private static itemInfo(objects: PageItem[]): ItemsInfo {
+    // itemInfo must receive at least one resolved PageItem
+    if (!objects || !objects.length)
+      throw new Error("itemInfo: objects array must not be empty.");
+
+    // First item must have a name so marker tokens can be parsed from it
+    if (!objects[0].name)
+      throw new Error(
+        `itemInfo: first item has no name — marker tokens cannot be resolved.`,
+      );
+
     const strInc = ES6_SA.stringIncludes;
     const directionsArr = ES6_SA.objectKeys(DirectionMarkers);
 
@@ -168,7 +212,8 @@ class JFTItemResolver {
     const isObj2Pair = strInc(obj2.name, `_${BasicMarkers.PAIR}_`);
     const isObj2Fsz = strInc(obj2.name, `_${BasicMarkers.FIXED_SIZE}_`);
 
-    // ── GLOBAL STATIC MODE OVERRIDE ─────────────────────────────
+    // ── GLOBAL STATIC MODE OVERRIDE ─────────────────────────────────────
+    // In static mode all items are treated as non-dynamic paired sets
 
     if (CONFIG.STATIC_MODE) {
       return {

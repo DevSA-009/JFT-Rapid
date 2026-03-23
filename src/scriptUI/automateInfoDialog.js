@@ -1,6 +1,6 @@
 /*
 Code for Import https://scriptui.joonas.me — (Triple click to select): 
-{"activeId":51,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Automate NAME/NUMBER","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"basicPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"orientationGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"varName":"orientationLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Orientation:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"varName":"orientationDropdown","text":"DropDownList","listItems":"Auto, Vertical, Horizontal","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"perDocColsGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"varName":"perDocColsLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Doc Cols","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"varName":"perDocColsInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"itemsGapGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"varName":"itemsGapLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"varName":"itemsGapInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Data","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"varName":"enterActionBtn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}},"item-29":{"id":29,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"jsonDataGrp","preferredSize":[0,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-30":{"id":30,"type":"StaticText","parentId":29,"style":{"enabled":true,"varName":"jsonDataLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"JSON Data","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"the data that will apply!"}},"item-31":{"id":31,"type":"EditText","parentId":29,"style":{"enabled":true,"varName":"jsonDataInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"","justify":"center","preferredSize":[127,50],"alignment":null,"helpTip":"data should be json format"}},"item-32":{"id":32,"type":"Group","parentId":49,"style":{"enabled":true,"varName":"actionEngineThreadGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-35":{"id":35,"type":"Checkbox","parentId":32,"style":{"enabled":true,"varName":"actionEngineThreadCheckBox","text":"Action Thread","preferredSize":[0,0],"alignment":null,"helpTip":"when true script for transformation happend engine base","checked":true}},"item-36":{"id":36,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"sizeBrandGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-37":{"id":37,"type":"StaticText","parentId":36,"style":{"enabled":true,"varName":"sizeBrandLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Brand","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-38":{"id":38,"type":"DropDownList","parentId":36,"style":{"enabled":true,"varName":"sizeBrandListDropdown","text":"DropDownList","listItems":"A,B,C","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-39":{"id":39,"type":"Group","parentId":48,"style":{"enabled":true,"varName":"createOutlineGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-40":{"id":40,"type":"Checkbox","parentId":39,"style":{"enabled":true,"varName":"createOutlineCheckBox","text":"Text Outline","preferredSize":[0,0],"alignment":null,"helpTip":"NANO text convert to shape","checked":true}},"item-41":{"id":41,"type":"Group","parentId":18,"style":{"enabled":false,"varName":"staticModeGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-42":{"id":42,"type":"Checkbox","parentId":41,"style":{"enabled":false,"varName":"staticMoedCheckBox","text":"Static Mode","preferredSize":[0,0],"alignment":null,"helpTip":"handle properly transform opacity mask item","checked":false}},"item-43":{"id":43,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"paperWidthGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-44":{"id":44,"type":"StaticText","parentId":43,"style":{"enabled":true,"varName":"paperWidthLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Paper Width","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"paper width in inch"}},"item-45":{"id":45,"type":"EditText","parentId":43,"style":{"enabled":true,"varName":"paperWidthInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"63.3","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-46":{"id":46,"type":"Group","parentId":48,"style":{"enabled":false,"varName":"wrapTextGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-47":{"id":47,"type":"Checkbox","parentId":46,"style":{"enabled":false,"varName":"wrapTextCheckBox","text":"Curve Text","preferredSize":[0,0],"alignment":null,"helpTip":"handle properly transform opacity mask item","checked":false}},"item-48":{"id":48,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"textManipulateGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-49":{"id":49,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"engineManipulate","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-50":{"id":50,"type":"Group","parentId":49,"style":{"enabled":true,"varName":"rangeGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-51":{"id":51,"type":"Checkbox","parentId":50,"style":{"enabled":true,"varName":"rangeCheckBox","text":"Range","preferredSize":[0,0],"alignment":null,"helpTip":"when true script for transformation happend engine base","checked":true}}},"order":[0,23,2,43,44,45,3,4,5,9,10,11,15,16,17,18,29,30,31,36,37,38,48,39,40,46,47,49,32,35,50,51,41,42,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"var"}}
+{"activeId":16,"items":{"item-0":{"id":0,"type":"Dialog","parentId":false,"style":{"enabled":true,"varName":"dialogRoot","windowType":"Dialog","creationProps":{"su1PanelCoordinates":false,"maximizeButton":false,"minimizeButton":false,"independent":false,"closeButton":true,"borderless":false,"resizeable":false},"text":"Automate NAME/NUMBER","preferredSize":[0,0],"margins":16,"orientation":"column","spacing":0,"alignChildren":["center","center"]}},"item-2":{"id":2,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"basicPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Basic","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-3":{"id":3,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"orientationGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-4":{"id":4,"type":"StaticText","parentId":3,"style":{"enabled":true,"varName":"orientationLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Orientation:","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-5":{"id":5,"type":"DropDownList","parentId":3,"style":{"enabled":true,"varName":"orientationDropdown","text":"DropDownList","listItems":"Auto, Vertical, Horizontal","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-9":{"id":9,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"perDocColsGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-10":{"id":10,"type":"StaticText","parentId":9,"style":{"enabled":true,"varName":"perDocColsLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Per Doc Cols","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-11":{"id":11,"type":"EditText","parentId":9,"style":{"enabled":true,"varName":"perDocColsInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-15":{"id":15,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"distributeItemsGapGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-16":{"id":16,"type":"StaticText","parentId":15,"style":{"enabled":true,"varName":"distributeItemsGapLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Dist. Items Gap","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-17":{"id":17,"type":"EditText","parentId":15,"style":{"enabled":true,"varName":"distributeItemsGapInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"0.1","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-18":{"id":18,"type":"Panel","parentId":23,"style":{"enabled":true,"varName":"requiredPanel","creationProps":{"borderStyle":"etched","su1PanelCoordinates":false},"text":"Data","preferredSize":[200,250],"margins":10,"orientation":"column","spacing":10,"alignChildren":["center","top"],"alignment":null}},"item-23":{"id":23,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"panelContGrp","preferredSize":[0,0],"margins":[0,0,10,0],"orientation":"row","spacing":10,"alignChildren":["center","center"],"alignment":null}},"item-24":{"id":24,"type":"Group","parentId":0,"style":{"enabled":true,"varName":"enterBtnGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-25":{"id":25,"type":"Button","parentId":24,"style":{"enabled":true,"varName":"enterActionBtn","text":"Start","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"Start Action"}},"item-29":{"id":29,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"jsonDataGrp","preferredSize":[0,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-30":{"id":30,"type":"StaticText","parentId":29,"style":{"enabled":true,"varName":"jsonDataLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"JSON Data","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"the data that will apply!"}},"item-31":{"id":31,"type":"EditText","parentId":29,"style":{"enabled":true,"varName":"jsonDataInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"","justify":"center","preferredSize":[127,50],"alignment":null,"helpTip":"data should be json format"}},"item-32":{"id":32,"type":"Group","parentId":49,"style":{"enabled":true,"varName":"actionEngineThreadGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-35":{"id":35,"type":"Checkbox","parentId":32,"style":{"enabled":true,"varName":"actionEngineThreadCheckBox","text":"Action Thread","preferredSize":[0,0],"alignment":null,"helpTip":"when true script for transformation happend engine base","checked":true}},"item-36":{"id":36,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"sizeBrandGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":"center"}},"item-37":{"id":37,"type":"StaticText","parentId":36,"style":{"enabled":true,"varName":"sizeBrandLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Size Brand","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":null}},"item-38":{"id":38,"type":"DropDownList","parentId":36,"style":{"enabled":true,"varName":"sizeBrandListDropdown","text":"DropDownList","listItems":"A,B,C","preferredSize":[70,10],"alignment":"center","selection":0,"helpTip":null}},"item-39":{"id":39,"type":"Group","parentId":48,"style":{"enabled":true,"varName":"createOutlineGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-40":{"id":40,"type":"Checkbox","parentId":39,"style":{"enabled":true,"varName":"createOutlineCheckBox","text":"Text Outline","preferredSize":[0,0],"alignment":null,"helpTip":"NANO text convert to shape","checked":true}},"item-43":{"id":43,"type":"Group","parentId":2,"style":{"enabled":true,"varName":"paperWidthGrp","preferredSize":[100,0],"margins":0,"orientation":"column","spacing":5,"alignChildren":["center","center"],"alignment":null}},"item-44":{"id":44,"type":"StaticText","parentId":43,"style":{"enabled":true,"varName":"paperWidthLabel","creationProps":{"truncate":"none","multiline":false,"scrolling":false},"softWrap":false,"text":"Paper Width","justify":"center","preferredSize":[0,0],"alignment":null,"helpTip":"paper width in inch"}},"item-45":{"id":45,"type":"EditText","parentId":43,"style":{"enabled":true,"varName":"paperWidthInput","creationProps":{"noecho":false,"readonly":false,"multiline":false,"scrollable":false,"borderless":false,"enterKeySignalsOnChange":false},"softWrap":false,"text":"63.3","justify":"center","preferredSize":[70,0],"alignment":null,"helpTip":null}},"item-46":{"id":46,"type":"Group","parentId":48,"style":{"enabled":false,"varName":"wrapTextGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-47":{"id":47,"type":"Checkbox","parentId":46,"style":{"enabled":false,"varName":"wrapTextCheckBox","text":"Curve Text","preferredSize":[0,0],"alignment":null,"helpTip":"handle properly transform opacity mask item","checked":false}},"item-48":{"id":48,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"textManipulateGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-49":{"id":49,"type":"Group","parentId":18,"style":{"enabled":true,"varName":"engineManipulate","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-50":{"id":50,"type":"Group","parentId":49,"style":{"enabled":true,"varName":"rangeGrp","preferredSize":[0,0],"margins":0,"orientation":"row","spacing":10,"alignChildren":["left","center"],"alignment":null}},"item-51":{"id":51,"type":"Checkbox","parentId":50,"style":{"enabled":true,"varName":"rangeCheckBox","text":"Range","preferredSize":[0,0],"alignment":null,"helpTip":"when true script for transformation happend engine base","checked":true}}},"order":[0,23,2,43,44,45,3,4,5,9,10,11,15,16,17,18,29,30,31,36,37,38,48,39,40,46,47,49,32,35,50,51,24,25],"settings":{"importJSON":true,"indentSize":false,"cepExport":false,"includeCSSJS":true,"showDialog":true,"functionWrapper":false,"afterEffectsDockable":false,"itemReferenceList":"var"}}
 */
 
 // DIALOGROOT
@@ -123,28 +123,31 @@ const automateInfoDialog = () => {
     perDocColsInput.text = "0";
     perDocColsInput.preferredSize.width = 70;
 
-    // ITEMSGAPGRP
-    // ===========
-    const itemsGapGrp = basicPanel.add("group", undefined, {
-      name: "itemsGapGrp",
+    // DISTRIBUTEITEMSGAPGRP
+    // =====================
+    const distributeItemsGapGrp = basicPanel.add("group", undefined, {
+      name: "distributeItemsGapGrp",
     });
-    itemsGapGrp.preferredSize.width = 100;
-    itemsGapGrp.orientation = "column";
-    itemsGapGrp.alignChildren = ["center", "center"];
-    itemsGapGrp.spacing = 5;
-    itemsGapGrp.margins = 0;
+    distributeItemsGapGrp.preferredSize.width = 100;
+    distributeItemsGapGrp.orientation = "column";
+    distributeItemsGapGrp.alignChildren = ["center", "center"];
+    distributeItemsGapGrp.spacing = 5;
+    distributeItemsGapGrp.margins = 0;
 
-    const itemsGapLabel = itemsGapGrp.add("statictext", undefined, undefined, {
-      name: "itemsGapLabel",
-    });
-    itemsGapLabel.text = "Items Gap";
-    itemsGapLabel.justify = "center";
-
-    const itemsGapInput = itemsGapGrp.add(
-      'edittext {justify: "center", properties: {name: "itemsGapInput"}}',
+    const distributeItemsGapLabel = distributeItemsGapGrp.add(
+      "statictext",
+      undefined,
+      undefined,
+      { name: "distributeItemsGapLabel" },
     );
-    itemsGapInput.text = "0.1";
-    itemsGapInput.preferredSize.width = 70;
+    distributeItemsGapLabel.text = "Dist. Items Gap";
+    distributeItemsGapLabel.justify = "center";
+
+    const distributeItemsGapInput = distributeItemsGapGrp.add(
+      'edittext {justify: "center", properties: {name: "distributeItemsGapInput"}}',
+    );
+    distributeItemsGapInput.text = "0.1";
+    distributeItemsGapInput.preferredSize.width = 70;
 
     // REQUIREDPANEL
     // =============
@@ -203,6 +206,7 @@ const automateInfoDialog = () => {
     );
     sizeBrandLabel.text = "Size Brand";
     sizeBrandLabel.justify = "center";
+
     const sizeBrandListDropdown = sizeBrandGrp.add(
       "dropdownlist",
       undefined,
@@ -291,7 +295,7 @@ const automateInfoDialog = () => {
     actionEngineThreadCheckBox.helpTip =
       "when true script for transformation happend engine base";
     actionEngineThreadCheckBox.text = "Action Thread";
-    actionEngineThreadCheckBox.value = false;
+    actionEngineThreadCheckBox.value = true;
 
     // RANGEGRP
     // ========
@@ -310,27 +314,6 @@ const automateInfoDialog = () => {
       "when true script for transformation happend engine base";
     rangeCheckBox.text = "Range";
     rangeCheckBox.value = true;
-
-    // STATICMODEGRP
-    // =============
-    const staticModeGrp = requiredPanel.add("group", undefined, {
-      name: "staticModeGrp",
-    });
-    staticModeGrp.enabled = true;
-    staticModeGrp.orientation = "row";
-    staticModeGrp.alignChildren = ["left", "center"];
-    staticModeGrp.spacing = 10;
-    staticModeGrp.margins = 0;
-
-    const staticMoedCheckBox = staticModeGrp.add(
-      "checkbox",
-      undefined,
-      undefined,
-      { name: "staticMoedCheckBox" },
-    );
-    staticMoedCheckBox.enabled = true;
-    staticMoedCheckBox.helpTip = "handle properly transform opacity mask item";
-    staticMoedCheckBox.text = "Static Mode";
 
     // ENTERBTNGRP
     // ===========
@@ -362,9 +345,9 @@ const automateInfoDialog = () => {
       perDocColsGrp: perDocColsGrp, // group
       perDocColsLabel: perDocColsLabel, // statictext
       perDocColsInput: perDocColsInput, // edittext
-      itemsGapGrp: itemsGapGrp, // group
-      itemsGapLabel: itemsGapLabel, // statictext
-      itemsGapInput: itemsGapInput, // edittext
+      distributeItemsGapGrp: distributeItemsGapGrp, // group
+      distributeItemsGapLabel: distributeItemsGapLabel, // statictext
+      distributeItemsGapInput: distributeItemsGapInput, // edittext
       requiredPanel: requiredPanel, // panel
       jsonDataGrp: jsonDataGrp, // group
       jsonDataLabel: jsonDataLabel, // statictext
@@ -382,8 +365,6 @@ const automateInfoDialog = () => {
       actionEngineThreadCheckBox: actionEngineThreadCheckBox, // checkbox
       rangeGrp: rangeGrp, // group
       rangeCheckBox: rangeCheckBox, // checkbox
-      staticModeGrp: staticModeGrp, // group
-      staticMoedCheckBox: staticMoedCheckBox, // checkbox
       enterBtnGrp: enterBtnGrp, // group
       enterActionBtn: enterActionBtn, // button
     };
@@ -400,9 +381,9 @@ const automateInfoDialog = () => {
       perDocColsGrp,
       perDocColsLabel,
       perDocColsInput,
-      itemsGapGrp,
-      itemsGapLabel,
-      itemsGapInput,
+      distributeItemsGapGrp,
+      distributeItemsGapLabel,
+      distributeItemsGapInput,
       requiredPanel,
       jsonDataGrp,
       jsonDataLabel,
@@ -420,8 +401,6 @@ const automateInfoDialog = () => {
       actionEngineThreadCheckBox,
       rangeGrp,
       rangeCheckBox,
-      staticModeGrp,
-      staticMoedCheckBox,
       enterBtnGrp,
       enterActionBtn,
     ];
@@ -514,7 +493,7 @@ const automateInfoDialog = () => {
       }
     });
 
-    itemsGapInput.addEventListener("keydown", (event) => {
+    distributeItemsGapInput.addEventListener("keydown", (event) => {
       const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
 
       if (event.keyName === "Escape") {
@@ -551,8 +530,8 @@ const automateInfoDialog = () => {
         ? fixMultipleDots(paperWidthInput.text)
         : 63.25;
 
-      const itemGapVal = itemsGapInput.text
-        ? fixMultipleDots(itemsGapInput.text)
+      const distItemGapVal = distributeItemsGapInput.text
+        ? fixMultipleDots(distributeItemsGapInput.text)
         : 0;
 
       const brandVal = sizeBrandListDropdown.selection.text;
@@ -565,16 +544,13 @@ const automateInfoDialog = () => {
 
       const rangeVal = rangeCheckBox.value;
 
-      const staticModeVal = staticMoedCheckBox.value;
-
-      CONFIG.ITEMS_GAP = itemGapVal;
+      CONFIG.DIST_ITEMS_GAP = distItemGapVal;
       CONFIG.PAPER_MAX_SIZE = paperWidthVal;
       CONFIG.BRAND = brandVal;
       CONFIG.PER_DOC = perDocColsVal;
       CONFIG.ORIENTATION = orientationVal;
       CONFIG.OUTLINE_TEXT = createOutlineval;
       CONFIG.THREAD_ENGINE = actionEngineThreadVal ? "action" : "script";
-      CONFIG.STATIC_MODE = staticModeVal;
       CONFIG.DIMENSION_RANGE = rangeVal;
       dialogRoot.close(1); // success signal
     };
@@ -587,13 +563,13 @@ const automateInfoDialog = () => {
     if (result === 1) {
       const dataVal = jsonDataInput.text;
 
-      if (typeof jsonDataVal === "string") {
+      if (typeof dataVal === "string") {
         jftProcessSeqWrapper(dataVal);
         return;
       }
 
       if (!dataVal) {
-        throw new Error(`Invalid data type`);
+        throw new Error(`Invalid JSON data type`);
       }
 
       jftProcessSeqWrapper(dataVal);
