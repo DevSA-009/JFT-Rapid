@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GridCalculator Debugger</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;900&display=swap");
+      :root {
+        --bg: #060e1a;
+        --bg2: #0d1b2a;
+        --bg3: #0a1628;
+        --border: #1e3a5f;
+        --border2: #1e2a3a;
+        --accent: #00e5a0;
+        --text: #e0eaff;
+        --muted: #7a8fa8;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        min-height: 100vh;
+        padding: 24px 16px;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 18px;
+      }
+      .header h1 {
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: 3px;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .header p {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 2px;
+        margin-top: 4px;
+      }
+      /* Toolbar */
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 18px;
+      }
+      .tog-group {
+        display: flex;
+        background: var(--bg3);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+      .tog-btn {
+        padding: 6px 16px;
+        font-size: 11px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        letter-spacing: 1px;
+        transition: all 0.15s;
+      }
+      .tog-btn.active {
+        background: var(--accent);
+        color: #060e1a;
+      }
+      .tog-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .tog-lbl {
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      /* Layout */
+      .layout {
+        display: grid;
+        grid-template-columns: 330px 1fr;
+        gap: 16px;
+        max-width: 1240px;
+        margin: 0 auto;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      /* Section */
+      .section {
+        margin-bottom: 12px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid;
+        background: var(--bg2);
+      }
+      .section-head {
+        padding: 8px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+      .section-head.col {
+        cursor: pointer;
+      }
+      .sec-title {
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+      }
+      .sec-body {
+        padding: 10px 14px;
+      }
+      .sec-body.hidden {
+        display: none;
+      }
+      /* Inputs */
+      .ig {
+        display: grid;
+        gap: 10px;
+      }
+      .ir label {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      input[type="number"],
+      select,
+      textarea {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        padding: 7px 10px;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+        width: 100%;
+      }
+      input[type="number"]:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--accent);
+      }
+      /* KV */
+      .kv {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+        border-bottom: 1px solid var(--border2);
+      }
+      .kl {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .kv2 {
+        font-family: monospace;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      /* Badge */
+      .bdg {
+        border-radius: 4px;
+        padding: 1px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      /* Grids */
+      .sg {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      .sc {
+        border-radius: 6px;
+        padding: 10px 8px;
+        text-align: center;
+        position: relative;
+      }
+      .rc {
+        position: absolute;
+        top: 3px;
+        right: 5px;
+        font-size: 9px;
+        font-weight: 700;
+      }
+      .tl {
+        font-weight: 900;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+      .dm {
+        font-size: 11px;
+      }
+      .fg,
+      .cg {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      .fc,
+      .cc {
+        border-radius: 6px;
+        padding: 8px;
+      }
+      .fn {
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--accent);
+      }
+      .tlbl {
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      /* Table */
+      .tw {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+        font-family: monospace;
+        color: var(--text);
+      }
+      thead tr {
+        background: var(--bg3);
+      }
+      th {
+        padding: 6px 10px;
+        color: var(--muted);
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+      td {
+        padding: 6px 10px;
+        border-bottom: 1px solid var(--border2);
+        white-space: nowrap;
+      }
+      .cw {
+        overflow-x: auto;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+      /* Result */
+      .rg {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+      .rc2 {
+        border-radius: 8px;
+        padding: 12px;
+      }
+      /* Total pill */
+      .tot-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 6px;
+        background: #f7dc6f10;
+        border: 1px solid #f7dc6f33;
+        border-radius: 5px;
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+      /* Editor btn */
+      .edbtn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #1e3a5f;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 11px;
+        font-family: inherit;
+        cursor: pointer;
+        padding: 6px 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        transition: all 0.2s;
+      }
+      .edbtn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      /* Modal */
+      .mov {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .mov.open {
+        display: flex;
+      }
+      .mdl {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        width: 90vw;
+        max-width: 900px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .mhd {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg3);
+      }
+      .mhd h2 {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: var(--accent);
+      }
+      .mcl {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 20px;
+        cursor: pointer;
+      }
+      .mcl:hover {
+        color: var(--text);
+      }
+      .mbd {
+        padding: 14px 18px;
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .mbd textarea {
+        flex: 1;
+        min-height: 400px;
+        font-size: 12px;
+        line-height: 1.6;
+        resize: vertical;
+        background: var(--bg);
+        border-color: var(--border2);
+        color: #a8c5e8;
+      }
+      .mft {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        padding: 12px 18px;
+        border-top: 1px solid var(--border);
+        background: var(--bg3);
+      }
+      .btn {
+        padding: 8px 20px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        letter-spacing: 1px;
+      }
+      .bp {
+        background: var(--accent);
+        color: #060e1a;
+      }
+      .bp:hover {
+        opacity: 0.85;
+      }
+      .bd {
+        background: #ff6b6b22;
+        color: #ff6b6b;
+        border: 1px solid #ff6b6b44;
+      }
+      .bd:hover {
+        background: #ff6b6b44;
+      }
+      .bo {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+      .bo:hover {
+        color: var(--text);
+      }
+      .ebox {
+        background: #ff6b6b11;
+        border: 1px solid #ff6b6b44;
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: #ff6b6b;
+        font-size: 11px;
+        display: none;
+      }
+      .ebox.show {
+        display: block;
+      }
+      .sbox {
+        background: #00e5a011;
+        border: 1px solid #00e5a044;
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: var(--accent);
+        font-size: 11px;
+        display: none;
+      }
+      .sbox.show {
+        display: block;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg2);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1e3a5f;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>GridCalculator</h1>
+      <p id="hSub">ইন্টারেক্টিভ ডিবাগার · সব মেথডের আউটপুট</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="tog-wrap">
+        <span class="tog-lbl" id="lblUnit">ইউনিট</span>
+        <div class="tog-group">
+          <button class="tog-btn active" id="btnMM" onclick="setUnit('mm')">
+            MM
+          </button>
+          <button class="tog-btn" id="btnIN" onclick="setUnit('inch')">
+            INCH
+          </button>
+        </div>
+      </div>
+      <div class="tog-wrap">
+        <span class="tog-lbl" id="lblLang">ভাষা</span>
+        <div class="tog-group">
+          <button class="tog-btn active" id="btnBN" onclick="setLang('bn')">
+            বাংলা
+          </button>
+          <button class="tog-btn" id="btnEN" onclick="setLang('en')">
+            ENG
+          </button>
+        </div>
+      </div>
+      <button class="edbtn" onclick="openEditor()">
+        ⌨ <span id="edBtnLbl">Class Code বদলান</span>
+      </button>
+    </div>
+
+    <!-- Editor Modal -->
+    <div class="mov" id="edMov">
+      <div class="mdl">
+        <div class="mhd">
+          <h2 id="modTitle">⚙ CLASS CODE EDITOR</h2>
+          <button class="mcl" onclick="closeEditor()">✕</button>
+        </div>
+        <div class="mbd">
+          <div
+            id="edHint"
+            style="color: var(--muted); font-size: 11px; line-height: 1.7"
+          ></div>
+          <div class="ebox" id="edErr"></div>
+          <div class="sbox" id="edOk"></div>
+          <textarea id="edTa" spellcheck="false"></textarea>
+        </div>
+        <div class="mft">
+          <button class="btn bd" id="btnReset" onclick="resetCode()">↺</button>
+          <button class="btn bo" id="btnCancel" onclick="closeEditor()">
+            ✕
+          </button>
+          <button class="btn bp" id="btnApply" onclick="applyCode()">▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layout -->
+    <div class="layout">
+      <div id="lp">
+        <!-- Params -->
+        <div class="section" style="border-color: #00e5a033">
+          <div class="section-head" style="background: #00e5a018">
+            <span class="sec-title" style="color: var(--accent)" id="stParams"
+              >📐 ইনপুট প্যারামিটার</span
+            >
+          </div>
+          <div class="sec-body">
+            <div class="ig">
+              <div class="two">
+                <div class="ir">
+                  <label id="lW">Width (mm)</label
+                  ><input
+                    type="number"
+                    id="inW"
+                    value="100"
+                    min="1"
+                    step="0.5"
+                    oninput="recalc()"
+                  />
+                </div>
+                <div class="ir">
+                  <label id="lH">Height (mm)</label
+                  ><input
+                    type="number"
+                    id="inH"
+                    value="60"
+                    min="1"
+                    step="0.5"
+                    oninput="recalc()"
+                  />
+                </div>
+              </div>
+              <div class="ir">
+                <label id="lQty">Quantity</label
+                ><input
+                  type="number"
+                  id="inQty"
+                  value="10"
+                  min="1"
+                  oninput="recalc()"
+                />
+              </div>
+              <div class="two">
+                <div class="ir">
+                  <label id="lGap">Gap (mm)</label
+                  ><input
+                    type="number"
+                    id="inGap"
+                    value="5"
+                    min="0"
+                    step="0.5"
+                    oninput="recalc()"
+                  />
+                </div>
+                <div class="ir">
+                  <label id="lPGap">Pair Gap (mm)</label
+                  ><input
+                    type="number"
+                    id="inPGap"
+                    value="3"
+                    min="0"
+                    step="0.5"
+                    oninput="recalc()"
+                  />
+                </div>
+              </div>
+              <div class="ir">
+                <label id="lMC">Max Cols In Doc (0=auto)</label
+                ><input
+                  type="number"
+                  id="inMC"
+                  value="0"
+                  min="0"
+                  oninput="recalc()"
+                />
+              </div>
+              <div class="ir">
+                <label id="lPair">Pair</label
+                ><select id="inPair" onchange="recalc()">
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div class="ir">
+                <label id="lHP">Height Preference</label
+                ><select id="inHP" onchange="recalc()">
+                  <option>Less</option>
+                  <option>More</option>
+                </select>
+              </div>
+              <div class="ir">
+                <label id="lOri">Stack Orientation</label
+                ><select id="inOri" onchange="recalc()">
+                  <option>auto</option>
+                  <option>vertical</option>
+                  <option>horizontal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Paper Config -->
+        <div class="section" style="border-color: #4ecdc433">
+          <div class="section-head" style="background: #4ecdc418">
+            <span class="sec-title" style="color: #4ecdc4" id="stPaper"
+              >📄 পেপার কনফিগ</span
+            >
+          </div>
+          <div class="sec-body">
+            <div class="ig">
+              <div class="two">
+                <div class="ir">
+                  <label id="lPMW">Paper Max Width (mm)</label
+                  ><input
+                    type="number"
+                    id="inPMW"
+                    value="297"
+                    min="1"
+                    step="1"
+                    oninput="onPaperCfgChange()"
+                  />
+                </div>
+                <div class="ir">
+                  <label id="lCMH">Canvas Max Height (mm)</label
+                  ><input
+                    type="number"
+                    id="inCMH"
+                    value="210"
+                    min="1"
+                    step="1"
+                    oninput="onPaperCfgChange()"
+                  />
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: 10px" id="paperInfo"></div>
+          </div>
+        </div>
+      </div>
+      <!-- /lp -->
+      <div
+        id="rp"
+        style="display: flex; flex-direction: column; gap: 12px"
+      ></div>
+    </div>
+
+    <script>
+      // ══════════════════════════════════════════
+      // LANG
+      // ══════════════════════════════════════════
+      const T = {
+        bn: {
+          hSub: "ইন্টারেক্টিভ ডিবাগার · সব মেথডের আউটপুট",
+          lblUnit: "ইউনিট",
+          lblLang: "ভাষা",
+          edBtnLbl: "Class Code বদলান",
+          modTitle: "⚙ CLASS CODE EDITOR",
+          edHint:
+            'এখানে পুরো <code style="color:var(--accent)">GridCalculator</code> class JS কোড পেস্ট করুন।<br><b style="color:#f7dc6f">⚠</b> method names একই রাখুন। Apply = রিক্যালকুলেট।',
+          btnReset: "↺ রিসেট",
+          btnCancel: "বাতিল",
+          btnApply: "▶ Apply",
+          edOk: "✓ কোড আপডেট হয়েছে!",
+          stParams: "📐 ইনপুট প্যারামিটার",
+          stPaper: "📄 পেপার কনফিগ",
+          lW: "Width",
+          lH: "Height",
+          lQty: "Quantity",
+          lGap: "Gap",
+          lPGap: "Pair Gap",
+          lMC: "Max Cols In Doc (0=auto)",
+          lPair: "Pair",
+          lHP: "Height Preference",
+          lOri: "Stack Orientation",
+          lPMW: "Paper Max Width",
+          lCMH: "Canvas Max Height",
+          kPMW: "PAPER_MAX_SIZE",
+          kCMH: "CANVAS_MAX_HEIGHT",
+          itemSz: "আইটেম সাইজ",
+          rotSz: "Rotated সাইজ",
+          unitMd: "Unit Mode",
+          s1: "① getStackSizes() → স্ট্যাক ডাইমেনশন",
+          s2: "② getRowFitCount() → প্রতি রোতে কয়টা ফিট",
+          s3: "③ getColsByStack() → কলাম ও রিমেইন্ডার",
+          s4: "④ getHeightByCols() → উচ্চতা হিসাব",
+          s5: "⑤ getLayoutInfo() → সম্পূর্ণ লেআউট",
+          s6: "⑥ getRecommendedStacks() → সেরা কনফিগ",
+          s7: "⑦ সব Combinations",
+          perRow: "per row",
+          rec: "recommended",
+          mainSt: "MAIN STACK",
+          remSt: "REMAINDER STACK",
+          mainLbl: "mainStack",
+          remLbl: "remStack",
+          totLbl: "Σ main+rem",
+          cols: "cols",
+          rem: "rem",
+          combos: (n) => `মোট ${n}টি কম্বিনেশন · ★ = সেরা`,
+        },
+        en: {
+          hSub: "Interactive Debugger · All Method Outputs",
+          lblUnit: "UNIT",
+          lblLang: "LANG",
+          edBtnLbl: "Edit Class Code",
+          modTitle: "⚙ CLASS CODE EDITOR",
+          edHint:
+            'Paste the full <code style="color:var(--accent)">GridCalculator</code> JavaScript class here.<br><b style="color:#f7dc6f">⚠</b> Keep method names the same. Apply = recalculate.',
+          btnReset: "↺ Reset",
+          btnCancel: "Cancel",
+          btnApply: "▶ Apply",
+          edOk: "✓ Code updated successfully!",
+          stParams: "📐 Input Parameters",
+          stPaper: "📄 Paper Config",
+          lW: "Width",
+          lH: "Height",
+          lQty: "Quantity",
+          lGap: "Gap",
+          lPGap: "Pair Gap",
+          lMC: "Max Cols In Doc (0=auto)",
+          lPair: "Pair",
+          lHP: "Height Preference",
+          lOri: "Stack Orientation",
+          lPMW: "Paper Max Width",
+          lCMH: "Canvas Max Height",
+          kPMW: "PAPER_MAX_SIZE",
+          kCMH: "CANVAS_MAX_HEIGHT",
+          itemSz: "Item Size",
+          rotSz: "Rotated Size",
+          unitMd: "Unit Mode",
+          s1: "① getStackSizes() → Stack Dimensions",
+          s2: "② getRowFitCount() → Items Per Row",
+          s3: "③ getColsByStack() → Cols & Remainder",
+          s4: "④ getHeightByCols() → Height Calculation",
+          s5: "⑤ getLayoutInfo() → Full Layout Info",
+          s6: "⑥ getRecommendedStacks() → Best Configuration",
+          s7: "⑦ All Combinations",
+          perRow: "per row",
+          rec: "recommended",
+          mainSt: "MAIN STACK",
+          remSt: "REMAINDER STACK",
+          mainLbl: "mainStack",
+          remLbl: "remStack",
+          totLbl: "Σ main+rem",
+          cols: "cols",
+          rem: "rem",
+          combos: (n) => `Total ${n} combination(s) · ★ = best`,
+        },
+      };
+
+      let lang = "bn",
+        L = T.bn;
+
+      function setLang(l) {
+        if (l === lang) return;
+        lang = l;
+        L = T[l];
+        document.getElementById("btnBN").classList.toggle("active", l === "bn");
+        document.getElementById("btnEN").classList.toggle("active", l === "en");
+        applyLang();
+        recalc();
+      }
+
+      function s(id, v) {
+        const e = document.getElementById(id);
+        if (e) e.innerHTML = v;
+      }
+      function applyLang() {
+        const u = currentUnit === "mm" ? "mm" : "inch";
+        s("hSub", L.hSub);
+        s("lblUnit", L.lblUnit);
+        s("lblLang", L.lblLang);
+        s("edBtnLbl", L.edBtnLbl);
+        s("modTitle", L.modTitle);
+        s("edHint", L.edHint);
+        s("btnReset", L.btnReset);
+        s("btnCancel", L.btnCancel);
+        s("btnApply", L.btnApply);
+        s("edOk", L.edOk);
+        s("stParams", L.stParams);
+        s("stPaper", L.stPaper);
+        s("lW", `${L.lW} (${u})`);
+        s("lH", `${L.lH} (${u})`);
+        s("lQty", L.lQty);
+        s("lGap", `${L.lGap} (${u})`);
+        s("lPGap", `${L.lPGap} (${u})`);
+        s("lMC", L.lMC);
+        s("lPair", L.lPair);
+        s("lHP", L.lHP);
+        s("lOri", L.lOri);
+        s("lPMW", `${L.lPMW} (${u})`);
+        s("lCMH", `${L.lCMH} (${u})`);
+      }
+
+      // ══════════════════════════════════════════
+      // UNIT
+      // ══════════════════════════════════════════
+      let currentUnit = "mm";
+      const MPi = 25.4;
+      const toMM = (v) => (currentUnit === "mm" ? v : v * MPi);
+      const fmtU = (v) =>
+        currentUnit === "mm"
+          ? v.toFixed(2) + " mm"
+          : (v / MPi).toFixed(4) + '"';
+      const fmtN = (v) =>
+        currentUnit === "mm" ? v.toFixed(2) : (v / MPi).toFixed(4);
+
+      function setUnit(u) {
+        if (u === currentUnit) return;
+        // convert all dimension fields including paper config
+        ["inW", "inH", "inGap", "inPGap", "inPMW", "inCMH"].forEach((id) => {
+          const e = document.getElementById(id),
+            cv = parseFloat(e.value) || 0;
+          e.value =
+            u === "inch" ? (cv / MPi).toFixed(4) : (cv * MPi).toFixed(2);
+        });
+        currentUnit = u;
+        document.getElementById("btnMM").classList.toggle("active", u === "mm");
+        document
+          .getElementById("btnIN")
+          .classList.toggle("active", u === "inch");
+        applyLang();
+        recalc();
+      }
+
+      // ══════════════════════════════════════════
+      // STACK COLORS
+      // ══════════════════════════════════════════
+      const SC = {
+        VRH: "#ff6b6b",
+        HH: "#4ecdc4",
+        RHH: "#45b7d1",
+        VV: "#f7dc6f",
+        RVV: "#bb8fce",
+      };
+
+      // ══════════════════════════════════════════
+      // HELPERS
+      // ══════════════════════════════════════════
+      const bdg = (t) =>
+        `<span class="bdg" style="background:${SC[t]}22;color:${SC[t]};border:1px solid ${SC[t]}44">${t}</span>`;
+      const kv = (l, v, c = "") =>
+        `<div class="kv"><span class="kl">${l}</span><span class="kv2" style="${c ? "color:" + c : ""}">${v}</span></div>`;
+      function sec(title, color, body, col = false, open = true) {
+        const id = "x" + Math.random().toString(36).slice(2);
+        const tog = col
+          ? `<span id="t${id}" style="color:${color};font-size:14px">${open ? "▲" : "▼"}</span>`
+          : "";
+        return `<div class="section" style="border-color:${color}33">
+    <div class="section-head${col ? " col" : ""}" style="background:${color}18" ${col ? `onclick="ts('${id}')"` : ""}">
+      <span class="sec-title" style="color:${color}">${title}</span>${tog}
+    </div>
+    <div class="sec-body${open ? "" : " hidden"}" id="b${id}">${body}</div>
+  </div>`;
+      }
+      function ts(id) {
+        const b = document.getElementById("b" + id),
+          t = document.getElementById("t" + id);
+        t.textContent = b.classList.toggle("hidden") ? "▼" : "▲";
+      }
+
+      // ══════════════════════════════════════════
+      // DEFAULT SOURCE BUILDER
+      // ══════════════════════════════════════════
+      function buildSrc(pmw, cmh) {
+        return `// ─── Config & Utils (keep these) ────────────────────
+const CONFIG = { PAPER_MAX_SIZE: ${pmw} };
+const CANVAS_MAX_HEIGHT_CFG = ${cmh};
+const Utils = {
+  swapDimensions: ({ width, height }) => ({ width: height, height: width }),
+  calculateTotalWithGap: ({ count, value, gap }) => count * value + (count - 1) * gap,
+};
+const stackTypesTuple = ["VRH","HH","RHH","VV","RVV"];
+
+// ─── GridCalculator ──────────────────────────────────
+class GridCalculator {
+  static getStackSizes({ size, pair = true, gap = 0 }) {
+    const hm = pair ? 2 : 1;
+    const { width: iW, height: iH } = size;
+    const { width: rW, height: rH } = Utils.swapDimensions(size);
+    const vw = iW + gap + iH;
+    const stacks = {
+      VRH: { width: vw, height: vw },
+      HH:  { width: iW * hm + (pair ? gap : 0), height: iH },
+      RHH: { width: rW * hm + (pair ? gap : 0), height: rH },
+      VV:  { width: iW, height: iH * 2 + (pair ? gap : 0) },
+      RVV: { width: rW, height: rH * 2 + (pair ? gap : 0) },
+    };
+    let rec = { type: "HH", width: stacks.HH.width };
+    for (const [t, d] of Object.entries(stacks))
+      if (d.width > rec.width) rec = { type: t, width: d.width };
+    return { ...stacks, recommended: rec.type };
+  }
+  static getRowFitCount({ stackWidth, gap = 0 }) {
+    return this._maxFit(stackWidth, gap, CONFIG.PAPER_MAX_SIZE);
+  }
+  static _maxFit(iW, gap, maxW) {
+    if (iW <= 0) return 0;
+    for (let c = Math.floor(maxW / iW); c > 0; c--)
+      if (Utils.calculateTotalWithGap({ count: c, value: iW, gap }) <= maxW) return c;
+    return 0;
+  }
+  static getColsByStack({ fitRow, quantity = 1 }) {
+    if (fitRow === 0) return { cols: 0, remainder: quantity };
+    return { cols: Math.floor(quantity / fitRow), remainder: quantity % fitRow };
+  }
+  static getHeightByCols({ count, height, gap }) {
+    return {
+      mainStack: count > 0 ? Utils.calculateTotalWithGap({ value: height, count, gap }) : 0,
+      remainderStack: height,
+    };
+  }
+  static _requiredDocs({ dimension, neededCols, gap, maxColsInDoc }) {
+    const CMH = CANVAS_MAX_HEIGHT_CFG;
+    let cMax = Math.min(Math.floor(CMH / (dimension.height + gap)), neededCols);
+    let cpd = Math.max(1, cMax);
+    let dn = Math.ceil(neededCols / cpd);
+    if (maxColsInDoc) { cpd = maxColsInDoc > cpd ? cpd : maxColsInDoc; dn = Math.ceil(neededCols / cpd); }
+    return { docsNeeded: dn, colsPerDoc: cpd };
+  }
+  static getLayoutInfo({ gap, size, quantity, pairGap = 0, pair, maxColsInDoc }) {
+    const ss = this.getStackSizes({ size, pair, gap: pairGap });
+    const info = {};
+    for (const type of stackTypesTuple) {
+      const sz = ss[type];
+      const fitRow = this.getRowFitCount({ stackWidth: sz.width, gap });
+      let adjQ = quantity, actR = 0;
+      if (type === "VRH") {
+        const ipv = pair ? 2 : 4;
+        if (quantity < ipv) { info[type]={ fitRow:0, neededCols:{cols:0,remainder:quantity}, heightByCols:{mainStack:0,remainderStack:sz.height}, stackSize:sz, requiredDocs:{docsNeeded:0,colsPerDoc:0} }; continue; }
+        adjQ = Math.floor(quantity / ipv); actR = quantity % ipv;
+      }
+      const nc = this.getColsByStack({ fitRow, quantity: adjQ });
+      if (type !== "VRH") actR = nc.remainder;
+      const hbc = this.getHeightByCols({ count: nc.cols, height: sz.height, gap });
+      const rd = this._requiredDocs({ dimension:{width:sz.width,height:sz.height}, gap, maxColsInDoc, neededCols:nc.cols });
+      info[type] = { fitRow, neededCols:{cols:nc.cols,remainder:actR}, heightByCols:hbc, stackSize:sz, requiredDocs:rd };
+    }
+    return info;
+  }
+  static getRecommendedStacks({ gap, size, quantity, pairGap=0, pair, heightPreference="Less", stackOrientation, maxColsInDoc }) {
+    const all = this.getLayoutInfo({ gap, size, quantity, pairGap, pair, maxColsInDoc });
+    let types = stackTypesTuple;
+    if (stackOrientation==="vertical") types=["HH","VV"];
+    else if (stackOrientation==="horizontal") types=["RHH","RVV"];
+    const vc=[];
+    for (const mt of types) {
+      const mi=all[mt]; if(mi.fitRow===0)continue;
+      if (mi.neededCols.remainder===0) {
+        const ipms=mt==="VRH"?(pair?2:4):mi.fitRow;
+        vc.push({ mainStack:mt,remainderStack:mt,totalHeight:mi.heightByCols.mainStack,hasRemainder:false,score:mi.heightByCols.mainStack,mainCols:mi.neededCols.cols,mainQuantityOccupied:mi.neededCols.cols*ipms,remainderItems:0,remainderQuantityOccupied:0,mainHeight:mi.heightByCols.mainStack,remainderHeight:0,mainFitRow:mi.fitRow,remainderFitRow:mi.fitRow,remainderCols:0,requiredDocs:mi.requiredDocs,remainderRequiredDocs:{docsNeeded:0,colsPerDoc:0} });
+        continue;
+      }
+      for (const rt of types) {
+        const ri=all[rt]; if(ri.fitRow<mi.neededCols.remainder)continue;
+        const mH=mi.heightByCols.mainStack, rH=ri.heightByCols.remainderStack;
+        const totH=mH+(mH>0?gap:0)+rH;
+        const ipms=mt==="VRH"?(pair?2:4):mi.fitRow;
+        const rrd=this._requiredDocs({dimension:{width:ri.stackSize.width,height:ri.stackSize.height},gap,maxColsInDoc,neededCols:1});
+        vc.push({ mainStack:mt,remainderStack:rt,totalHeight:totH,hasRemainder:true,score:totH,mainCols:mi.neededCols.cols,mainQuantityOccupied:mi.neededCols.cols*ipms,remainderItems:mi.neededCols.remainder,remainderQuantityOccupied:mi.neededCols.remainder,mainHeight:mH,remainderHeight:rH,mainFitRow:mi.fitRow,remainderFitRow:ri.fitRow,remainderCols:mi.neededCols.remainder>0?1:0,requiredDocs:mi.requiredDocs,remainderRequiredDocs:rrd });
+      }
+    }
+    vc.sort((a,b)=>heightPreference==="Less"?a.score-b.score:b.score-a.score);
+    const best=vc[0]||{mainStack:"HH",remainderStack:"HH",totalHeight:0,hasRemainder:false,mainCols:0,mainQuantityOccupied:0,remainderItems:0,remainderQuantityOccupied:0,mainFitRow:0,remainderFitRow:0,remainderCols:0,requiredDocs:{docsNeeded:0,colsPerDoc:0},remainderRequiredDocs:{docsNeeded:0,colsPerDoc:0}};
+    return {...best,allCombinations:vc};
+  }
+}`;
+      }
+
+      // ══════════════════════════════════════════
+      // RUNTIME
+      // ══════════════════════════════════════════
+      let GC = null,
+        GC_CONFIG = { PAPER_MAX_SIZE: 297 },
+        GC_CMH = 210,
+        GC_types = ["VRH", "HH", "RHH", "VV", "RVV"];
+
+      function loadDefault(silent = true) {
+        const pmw = Math.round(
+          toMM(parseFloat(document.getElementById("inPMW").value) || 297),
+        );
+        const cmh = Math.round(
+          toMM(parseFloat(document.getElementById("inCMH").value) || 210),
+        );
+        document.getElementById("edTa").value = buildSrc(pmw, cmh);
+        applyCode(silent);
+      }
+
+      function applyCode(silent = false) {
+        const src = document.getElementById("edTa").value;
+        const ee = document.getElementById("edErr"),
+          oe = document.getElementById("edOk");
+        ee.classList.remove("show");
+        oe.classList.remove("show");
+        try {
+          const r = new Function(
+            `${src}\nreturn{GridCalculator,CONFIG,stackTypesTuple,CANVAS_MAX_HEIGHT_CFG};`,
+          )();
+          GC = r.GridCalculator;
+          GC_CONFIG = r.CONFIG || GC_CONFIG;
+          GC_CMH = r.CANVAS_MAX_HEIGHT_CFG || GC_CMH;
+          GC_types = r.stackTypesTuple || GC_types;
+          if (!silent) {
+            oe.innerHTML = L.edOk;
+            oe.classList.add("show");
+            setTimeout(() => oe.classList.remove("show"), 3000);
+          }
+          recalc();
+        } catch (e) {
+          ee.textContent = "✕ " + e.message;
+          ee.classList.add("show");
+        }
+      }
+
+      function resetCode() {
+        document.getElementById("edErr").classList.remove("show");
+        document.getElementById("edOk").classList.remove("show");
+        loadDefault(false);
+      }
+      function openEditor() {
+        document.getElementById("edMov").classList.add("open");
+      }
+      function closeEditor() {
+        document.getElementById("edMov").classList.remove("open");
+      }
+
+      // paper config change → rebuild default source
+      let _pmwPrev = 297,
+        _cmhPrev = 210,
+        _paperTimer = null;
+      function onPaperCfgChange() {
+        clearTimeout(_paperTimer);
+        _paperTimer = setTimeout(() => {
+          const pmw = Math.round(
+            toMM(parseFloat(document.getElementById("inPMW").value) || 297),
+          );
+          const cmh = Math.round(
+            toMM(parseFloat(document.getElementById("inCMH").value) || 210),
+          );
+          if (pmw !== _pmwPrev || cmh !== _cmhPrev) {
+            _pmwPrev = pmw;
+            _cmhPrev = cmh;
+            loadDefault(true);
+          }
+        }, 400);
+      }
+
+      // ══════════════════════════════════════════
+      // RECALC
+      // ══════════════════════════════════════════
+      function recalc() {
+        if (!GC) return;
+        const wIn = parseFloat(document.getElementById("inW").value) || 0;
+        const hIn = parseFloat(document.getElementById("inH").value) || 0;
+        const gIn = parseFloat(document.getElementById("inGap").value) || 0;
+        const pgIn = parseFloat(document.getElementById("inPGap").value) || 0;
+        const pmw = Math.round(
+          toMM(parseFloat(document.getElementById("inPMW").value) || 297),
+        );
+        const cmh = Math.round(
+          toMM(parseFloat(document.getElementById("inCMH").value) || 210),
+        );
+        const size = { width: toMM(wIn), height: toMM(hIn) };
+        const qty = parseInt(document.getElementById("inQty").value) || 1;
+        const gap = toMM(gIn),
+          pairGap = toMM(pgIn);
+        const pair = document.getElementById("inPair").value === "true";
+        const hp = document.getElementById("inHP").value;
+        const ori = document.getElementById("inOri").value;
+        const mc = parseInt(document.getElementById("inMC").value) || 0;
+        const types = GC_types;
+
+        // Method calls
+        const ss = GC.getStackSizes({ size, pair, gap: pairGap });
+        const rfc = {},
+          cbs = {},
+          hbcM = {};
+        types.forEach((t) => {
+          rfc[t] = GC.getRowFitCount({ stackWidth: ss[t].width, gap });
+          cbs[t] = GC.getColsByStack({ fitRow: rfc[t], quantity: qty });
+          hbcM[t] = GC.getHeightByCols({
+            count: cbs[t].cols,
+            height: ss[t].height,
+            gap,
+          });
+        });
+        const li = GC.getLayoutInfo({
+          gap,
+          size,
+          quantity: qty,
+          pairGap,
+          pair,
+          maxColsInDoc: mc,
+        });
+        const res = GC.getRecommendedStacks({
+          gap,
+          size,
+          quantity: qty,
+          pairGap,
+          pair,
+          heightPreference: hp,
+          stackOrientation: ori,
+          maxColsInDoc: mc,
+        });
+
+        // Paper info — show in current unit
+        const u = currentUnit === "mm" ? "mm" : "inch";
+        document.getElementById("paperInfo").innerHTML =
+          kv(`${L.kPMW} (${u})`, fmtN(pmw), "var(--accent)") +
+          kv(`${L.kCMH} (${u})`, fmtN(cmh), "var(--accent)") +
+          kv(L.itemSz, fmtU(size.width) + " × " + fmtU(size.height)) +
+          kv(L.rotSz, fmtU(size.height) + " × " + fmtU(size.width)) +
+          kv(L.unitMd, currentUnit.toUpperCase(), "#f7dc6f");
+
+        let html = "";
+
+        // ① Stack sizes
+        let sg = '<div class="sg">';
+        types.forEach((t) => {
+          const d = ss[t],
+            isR = ss.recommended === t;
+          sg += `<div class="sc" style="background:${SC[t]}0a;border:1px solid ${SC[t]}${isR ? "cc" : "44"};${isR ? "box-shadow:0 0 12px " + SC[t] + "44" : ""}">
+      ${isR ? `<div class="rc" style="color:${SC[t]}">★REC</div>` : ""}
+      <div class="tl" style="color:${SC[t]}">${t}</div>
+      <div class="dm">W: ${fmtN(d.width)}</div>
+      <div class="dm">H: ${fmtN(d.height)}</div>
+    </div>`;
+        });
+        sg +=
+          '</div><div style="margin-top:8px">' +
+          kv(L.rec, bdg(ss.recommended)) +
+          "</div>";
+        html += sec(L.s1, "#4ecdc4", sg);
+
+        // ② Row fit
+        let fg = '<div class="fg">';
+        types.forEach((t) => {
+          fg += `<div class="fc" style="background:${SC[t]}12;border:1px solid ${SC[t]}33"><div style="color:${SC[t]};font-size:11px;font-weight:700">${t}</div><div class="fn">${rfc[t]}</div><div style="color:var(--muted);font-size:10px">${L.perRow}</div></div>`;
+        });
+        fg += "</div>";
+        html += sec(L.s2, "#45b7d1", fg);
+
+        // ③ Cols
+        let cg = '<div class="cg">';
+        types.forEach((t) => {
+          const c = cbs[t];
+          cg += `<div class="cc" style="background:${SC[t]}12;border:1px solid ${SC[t]}33">
+      <div class="tlbl" style="color:${SC[t]}">${t}</div>
+      <div style="font-size:11px">${L.cols}: <b style="color:var(--accent)">${c.cols}</b></div>
+      <div style="font-size:11px">${L.rem}: <b style="color:${c.remainder > 0 ? "#f7dc6f" : "var(--muted)"}">${c.remainder}</b></div>
+    </div>`;
+        });
+        cg += "</div>";
+        html += sec(L.s3, "#f7dc6f", cg);
+
+        // ④ Height — with combined total when remainder > 0
+        let hg = '<div class="cg">';
+        types.forEach((t) => {
+          const h = hbcM[t],
+            rem = cbs[t].remainder;
+          const combined =
+            rem > 0
+              ? h.mainStack + (h.mainStack > 0 ? gap : 0) + h.remainderStack
+              : null;
+          hg += `<div class="cc" style="background:${SC[t]}12;border:1px solid ${SC[t]}33">
+      <div class="tlbl" style="color:${SC[t]}">${t}</div>
+      <div style="font-size:10px;color:var(--muted)">${L.mainLbl}</div>
+      <div style="color:var(--accent);font-weight:700;font-size:13px">${fmtN(h.mainStack)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">${L.remLbl}</div>
+      <div style="color:#bb8fce;font-weight:700;font-size:13px">${fmtN(h.remainderStack)}</div>
+      ${combined !== null ? `<div class="tot-pill"><span style="color:var(--muted);font-size:10px">${L.totLbl}</span><span style="color:#f7dc6f;font-weight:900;font-size:12px;margin-left:4px">${fmtN(combined)}</span></div>` : ""}
+    </div>`;
+        });
+        hg += "</div>";
+        html += sec(L.s4, "#bb8fce", hg);
+
+        // ⑤ Layout table
+        let tbl = `<div class="tw"><table><thead><tr>
+    <th>Type</th><th>W×H</th><th>fitRow</th><th>cols</th><th>rem</th>
+    <th>mainH</th><th>remH</th><th>docs</th><th>cpd</th>
+  </tr></thead><tbody>`;
+        types.forEach((t) => {
+          const i = li[t];
+          tbl += `<tr><td>${bdg(t)}</td><td>${fmtN(i.stackSize.width)}×${fmtN(i.stackSize.height)}</td>
+      <td style="color:var(--accent)">${i.fitRow}</td><td>${i.neededCols.cols}</td>
+      <td style="color:${i.neededCols.remainder > 0 ? "#f7dc6f" : "var(--muted)"}">${i.neededCols.remainder}</td>
+      <td>${fmtN(i.heightByCols.mainStack)}</td><td>${fmtN(i.heightByCols.remainderStack)}</td>
+      <td>${i.requiredDocs.docsNeeded}</td><td>${i.requiredDocs.colsPerDoc}</td>
+    </tr>`;
+        });
+        tbl += "</tbody></table></div>";
+        html += sec(L.s5, "#ff6b6b", tbl);
+
+        // ⑥ Recommended
+        const mc2 = SC[res.mainStack],
+          rc2 = SC[res.remainderStack];
+        let rs = `<div class="rg">
+    <div class="rc2" style="background:${mc2}15;border:1px solid ${mc2}44">
+      <div style="color:var(--muted);font-size:10px;margin-bottom:4px">${L.mainSt}</div>${bdg(res.mainStack)}
+      ${kv("mainCols", res.mainCols, "var(--accent)")}${kv("mainFitRow", res.mainFitRow)}
+      ${kv("mainQtyOccupied", res.mainQuantityOccupied, "var(--accent)")}${kv("mainHeight", fmtN(res.mainHeight || 0))}
+      ${kv("docs needed", res.requiredDocs.docsNeeded, "#ff6b6b")}${kv("colsPerDoc", res.requiredDocs.colsPerDoc)}
+    </div>
+    <div class="rc2" style="background:${rc2}15;border:1px solid ${rc2}44">
+      <div style="color:var(--muted);font-size:10px;margin-bottom:4px">${L.remSt}</div>${bdg(res.remainderStack)}
+      ${kv("hasRemainder", String(res.hasRemainder))}
+      ${kv("remainderItems", res.remainderItems, res.remainderItems > 0 ? "#f7dc6f" : "var(--muted)")}
+      ${kv("remQtyOccupied", res.remainderQuantityOccupied)}${kv("remainderCols", res.remainderCols)}
+      ${kv("remainderFitRow", res.remainderFitRow)}${kv("rem docs needed", res.remainderRequiredDocs.docsNeeded, "#ff6b6b")}
+    </div>
+  </div>${kv("totalHeight", fmtN(res.totalHeight), "var(--accent)")}`;
+        html += sec(L.s6, "#00e5a0", rs);
+
+        // ⑦ Combinations
+        const cbs2 = res.allCombinations || [];
+        let ct = `<div style="color:var(--muted);font-size:11px;margin-bottom:8px">${L.combos(cbs2.length)}</div>
+  <div class="cw"><table><thead><tr>
+    <th>#</th><th>Main</th><th>Rem</th><th>totalH</th><th>hasRem</th>
+    <th>mCols</th><th>mQty</th><th>rItems</th><th>rQty</th><th>mDocs</th><th>rDocs</th>
+  </tr></thead><tbody>`;
+        cbs2.forEach((c, i) => {
+          ct += `<tr style="${i === 0 ? "background:#00e5a010" : ""}">
+      <td style="color:${i === 0 ? "var(--accent)" : "var(--muted)"}">${i === 0 ? "★" : i + 1}</td>
+      <td>${bdg(c.mainStack)}</td><td>${bdg(c.remainderStack)}</td>
+      <td style="color:var(--accent)">${fmtN(c.totalHeight)}</td>
+      <td>${c.hasRemainder ? "✓" : "—"}</td>
+      <td>${c.mainCols}</td><td>${c.mainQuantityOccupied}</td>
+      <td>${c.remainderItems}</td><td>${c.remainderQuantityOccupied}</td>
+      <td>${c.requiredDocs.docsNeeded}</td><td>${c.remainderRequiredDocs.docsNeeded}</td>
+    </tr>`;
+        });
+        ct += "</tbody></table></div>";
+        html += sec(L.s7, "#3a8fd1", ct, true, false);
+
+        document.getElementById("rp").innerHTML = html;
+      }
+
+      // ══════════════════════════════════════════
+      // INIT
+      // ══════════════════════════════════════════
+      applyLang();
+      loadDefault(true);
+    </script>
+  </body>
+</html>
