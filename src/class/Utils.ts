@@ -350,12 +350,12 @@ class Utils {
       : firstItem;
 
     const parent = firstItem.parent as PageItem | Layer;
-    let siblings: PageItems;
+    let siblings: PageItem[];
 
     if (parent.typename === PageItemType.Layer) {
-      siblings = (parent as Layer).pageItems;
+      siblings = Organizer.pageItemsToArray((parent as Layer).pageItems);
     } else if (parent.typename === PageItemType.GroupItem) {
-      siblings = (parent as GroupItem).pageItems;
+      siblings = Organizer.pageItemsToArray((parent as GroupItem).pageItems);
     } else {
       throw new Error("Unsupported parent type: " + parent.typename);
     }
@@ -415,7 +415,7 @@ class Utils {
     item: GroupItem,
     targetSizeChr: ApparelSize,
   ): void => {
-    const sizeTextFrame = item.pageItems.find(
+    const sizeTextFrame = Organizer.pageItemsToArray(item.pageItems).find(
       (item) =>
         item.typename === PageItemType.TextFrame && item.name === SIZE_TKN,
     );
