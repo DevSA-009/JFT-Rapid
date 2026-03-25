@@ -20,7 +20,7 @@ autoNANOBtn.onclick = () => {
 const gridLayoutBtn = selectElementById("gridLayout");
 
 gridLayoutBtn.onclick = () => {
-  csInterface.evalScript("gridMenualInfoDialog()");
+  csInterface.evalScript("staticModeDialog()");
 };
 
 // ---------- patch Tweak Buttons --------- \\

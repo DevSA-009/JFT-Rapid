@@ -129,13 +129,13 @@ const staticModeDialog = () => {
       "Stack orientation: Auto lets the engine decide, Vertical forces portrait stacking, Horizontal forces landscape";
 
     // Populate from StackOrientations enum keys
-    const orientationKeys = ES6_SA.objectKeys(StackOrientations);
-    ES6_SA.arrayForEach(orientationKeys, function (key) {
+    const orientationKeys = Object.keys(StackOrientations);
+    orientationKeys.forEach(function (key) {
       orientationDropdown.add("item", key);
     });
     // Pre-select the key matching the current CONFIG.ORIENTATION value
     let currentOrientationIdx = 0;
-    ES6_SA.arrayForEach(orientationKeys, function (key, idx) {
+    orientationKeys.forEach(function (key, idx) {
       if (StackOrientations[key] === CONFIG.ORIENTATION)
         currentOrientationIdx = idx;
     });
@@ -163,11 +163,11 @@ const staticModeDialog = () => {
       "Size chart brand — determines garment dimensions loaded from JFT_CONF";
 
     // Populate brand list from JFT_CONF.sizes keys
-    const brandKeys = ES6_SA.objectKeys(JFT_CONF.sizes);
-    ES6_SA.arrayForEach(brandKeys, function (key) {
+    const brandKeys = Object.keys(JFT_CONF.sizes);
+    brandKeys.forEach(function (key) {
       brandDropdown.add("item", key);
     });
-    const currentBrandIdx = ES6_SA.arrayIndexOf(brandKeys, CONFIG.BRAND);
+    const currentBrandIdx = brandKeys.indexOf(CONFIG.BRAND);
     brandDropdown.selection = currentBrandIdx >= 0 ? currentBrandIdx : 0;
 
     // Gap cell
@@ -376,7 +376,7 @@ const staticModeDialog = () => {
       hdrCell("LP", COL_LP);
 
       // ── One data row per size ──────────────────────────────────────────
-      ES6_SA.arrayForEach(sizeGroup, function (sizeKey) {
+      sizeGroup.forEach(function (sizeKey) {
         const ns = safeName(sizeKey); // safe element name suffix
         const row = colPanel.add("group");
         row.orientation = "row";

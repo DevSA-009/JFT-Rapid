@@ -407,21 +407,18 @@ const automateInfoDialog = () => {
 
     /* Apply field dynamic value start */
 
-    const orientations_array = ES6_SA.objectKeys(StackOrientations);
-    ES6_SA.arrayForEach(orientations_array, (e) => {
+    const orientations_array = Object.keys(StackOrientations);
+    orientations_array.forEach((e) => {
       orientationDropdown.add("item", e);
     });
     orientationDropdown.selection = 0;
 
-    const brandList_array = ES6_SA.objectKeys(JFT_CONF.sizes);
-    ES6_SA.arrayForEach(brandList_array, (e) => {
+    const brandList_array = Object.keys(JFT_CONF.sizes);
+    brandList_array.forEach((e) => {
       sizeBrandListDropdown.add("item", e);
     });
     const currentBrand = CONFIG.BRAND;
-    sizeBrandListDropdown.selection = ES6_SA.arrayIndexOf(
-      brandList_array,
-      currentBrand,
-    );
+    sizeBrandListDropdown.selection = brandList_array.indexOf(currentBrand);
 
     /* Apply field dynamic value end */
 
