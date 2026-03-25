@@ -39,6 +39,8 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
  */
 const staticModeDialog = () => {
   try {
+    Organizer.checkDocument();
+
     // ─── Size definitions ────────────────────────────────────────────────
     // Split into two groups so we can render side-by-side columns:
     //   adultSizes → left column of the table
@@ -160,7 +162,7 @@ const staticModeDialog = () => {
     });
     brandDropdown.preferredSize.width = 68;
     brandDropdown.helpTip =
-      "Size chart brand — determines garment dimensions loaded from JFT_CONF";
+      "Size chart brand - determines garment dimensions loaded from JFT_CONF";
 
     // Populate brand list from JFT_CONF.sizes keys
     const brandKeys = Object.keys(JFT_CONF.sizes);
@@ -181,7 +183,8 @@ const staticModeDialog = () => {
     const itemsGapInput = gapCell.add(
       'edittext {justify: "center", properties: {name: "itemsGapInput"}}',
     );
-    itemsGapInput.helpTip = "Gap between placed items in inches (e.g. 0.1)";
+    itemsGapInput.helpTip =
+      "Gap between distributed placed items in inches (e.g. 0.1)";
     itemsGapInput.text = 0.1;
     itemsGapInput.preferredSize.width = 90;
 
@@ -200,7 +203,7 @@ const staticModeDialog = () => {
 
     const rangeChk = checkRow.add("checkbox", undefined, "Range");
     rangeChk.helpTip =
-      "Range: merge adjacent sizes (e.g. XS–S, M–L) so sleeve pieces share a single layout document";
+      "Range: merge adjacent sizes (e.g. XS-S, M-L) so sleeve pieces share a single layout document";
     rangeChk.value = true; // always default true regardless of current CONFIG state
 
     // ── Separator ────────────────────────────────────────────────────────

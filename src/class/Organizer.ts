@@ -4,14 +4,22 @@
  */
 class Organizer {
   /**
+   * Validates that a document is currently open in the application.
+   * @throws If no documents are open.
+   */
+  static checkDocument() {
+    if (!app.documents.length) {
+      throw new Error("No document opened!");
+    }
+  }
+
+  /**
    * Verifies that there is an active document and a valid selection.
    *
    * @returns {SelectionVerifyChainReturn} An object containing the active document and selection if valid; otherwise.
    */
   static selectionVerifyChain(): SelectionVerifyChainReturn {
-    if (!app.documents.length) {
-      throw new Error("No open document found.");
-    }
+    this.checkDocument();
 
     const doc = app.activeDocument;
 
@@ -783,10 +791,9 @@ class Organizer {
    */
   static repairDocumentError() {
     try {
+      this.checkDocument();
+
       const actDoc = app.activeDocument;
-      if (!actDoc) {
-        throw new Error("No open document found.");
-      }
 
       if (!actDoc.path.fsName) {
         throw new Error(

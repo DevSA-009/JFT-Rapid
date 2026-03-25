@@ -7,6 +7,8 @@ Code for Import https://scriptui.joonas.me — (Triple click to select):
 // ==========
 const automateInfoDialog = () => {
   try {
+    Organizer.checkDocument();
+
     // DIALOGROOT
     // ==========
     const dialogRoot = new Window("dialog");
