@@ -3,41 +3,59 @@
  */
 class GridCalculator {
   /**
-   * Calculates all possible stacking configurations (single or paired, normal or rotated)
-   * and returns them along with the recommended configuration that maximizes width.
-   * @param params - Configuration for stacking calculation
-   * @returns Object containing all stack dimensions and the recommended stack type
+   * Calculates all possible stacking configurations and returns them with
+   * the recommended configuration that maximises width.
+   *
+   * When `pair` is `true` the secondary item's dimensions are added to the
+   * primary item's dimensions (instead of multiplying by 2).
+   * `secDim` defaults to `size` when omitted, which preserves the previous
+   * symmetric-pair behaviour.
+   *
+   * @param params - Configuration for stacking calculation.
+   * @returns All stack dimensions plus the recommended stack type.
    */
   static getStackSizes(params: StackSizeParams): StackSizesResult {
-    const { size, pair = true, gap = 0 } = params;
-    const horizontalMultiplier = pair ? 2 : 1;
+    const { size, pair = true, gap = 0, secDim } = params;
+
+    // Use the provided secondary dimension, or fall back to the primary
+    const sec = secDim ?? size;
 
     const { width: itemW, height: itemH } = size;
     const { width: rotatedW, height: rotatedH } = Utils.swapDimensions(size);
 
+    // Secondary item dimensions (normal and rotated)
+    const { width: secW, height: secH } = sec;
+    const { width: secRotW, height: secRotH } = Utils.swapDimensions(sec);
+
+    // VRH uses only the primary item's geometry
     const widthOfVRH = itemW + gap + itemH;
 
     // All possible stacking variants
     const stacks: StackSizes = {
       VRH: {
+        // Square layout — primary item only
         width: widthOfVRH,
         height: widthOfVRH,
       },
       HH: {
-        width: itemW * horizontalMultiplier + (pair ? gap : 0),
-        height: itemH,
+        // Primary width + optional secondary width side-by-side
+        width: pair ? itemW + gap + secW : itemW,
+        height: pair ? Math.max(itemH, secH) : itemH,
       },
       RHH: {
-        width: rotatedW * horizontalMultiplier + (pair ? gap : 0),
-        height: rotatedH,
+        // Both items rotated 90°, placed side-by-side
+        width: pair ? rotatedW + gap + secRotW : rotatedW,
+        height: pair ? Math.max(rotatedH, secRotH) : rotatedH,
       },
       VV: {
-        width: itemW,
-        height: itemH * 2 + (pair ? gap : 0),
+        // Primary item on top, secondary item below
+        width: pair ? Math.max(itemW, secW) : itemW,
+        height: pair ? itemH + gap + secH : itemH,
       },
       RVV: {
-        width: rotatedW,
-        height: rotatedH * 2 + (pair ? gap : 0),
+        // Both rotated 90°, stacked vertically
+        width: pair ? Math.max(rotatedW, secRotW) : rotatedW,
+        height: pair ? rotatedH + gap + secRotH : rotatedH,
       },
     };
 
@@ -168,19 +186,31 @@ class GridCalculator {
    * @returns Layout information for specified stack type or all stack types
    */
   static getLayoutInfo(params: LayoutObjectInfo) {
-    const { gap, size, quantity, pairGap = 0, pair, maxColsInDoc } = params;
+    const {
+      gap,
+      size,
+      quantity,
+      pairGap = 0,
+      pair,
+      secDim,
+      maxColsInDoc,
+    } = params;
 
     const stackTypes: StackType[] = stackTypesTuple;
     const stacksInfo = {} as StackInfo;
 
+    // Pass secDim so asymmetric pairs use their own secondary dimensions
     const stackSizes = this.getStackSizes({
       size,
       pair,
       gap: pairGap,
+      secDim,
     });
 
     for (const type of stackTypes) {
-      const stackSize = stackSizes[type];
+      const typeSafe = type as Exclude<StackType, "NONE">;
+
+      const stackSize = stackSizes[typeSafe];
 
       const fitRow = this.getRowFitCount({
         stackWidth: stackSize.width,
@@ -192,7 +222,6 @@ class GridCalculator {
       let actualRemainder = 0;
 
       if (type === "VRH") {
-        // ✅ NEW LOGIC: VRH capacity depends on pair
         const itemsPerVRH = pair ? 2 : 4;
 
         // Skip VRH if quantity < itemsPerVRH (can't make even 1 full square)
@@ -244,7 +273,7 @@ class GridCalculator {
         neededCols: neededCols.cols,
       });
 
-      stacksInfo[type] = {
+      stacksInfo[typeSafe] = {
         fitRow,
         neededCols: {
           cols: neededCols.cols,
@@ -260,9 +289,9 @@ class GridCalculator {
   }
 
   /**
-   * Analyzes all stack type layouts and determines optimal main and remainder stack
-   * @param params - Analysis parameters
-   * @returns Recommended main and remainder stack types with details
+   * Analyzes all stack type layouts and determines optimal main and remainder stack.
+   * @param params - Analysis parameters.
+   * @returns Recommended main and remainder stack types with details.
    */
   static getRecommendedStacks(
     params: RecommendedStackParams,
@@ -273,18 +302,20 @@ class GridCalculator {
       quantity,
       pairGap = 0,
       pair,
+      secDim,
       heightPreference = "Less",
       stackOrientation,
       maxColsInDoc,
     } = params;
 
-    // Get layout info for all stack types
+    // Get layout info for all stack types, including optional secondary dimension
     const allStacksInfo = this.getLayoutInfo({
       gap,
       size,
       quantity,
       pairGap,
       pair,
+      secDim,
       maxColsInDoc,
     }) as StackInfo;
 
@@ -301,7 +332,9 @@ class GridCalculator {
 
     // Analyze each main stack type
     for (const mainType of stackTypes) {
-      const mainInfo = allStacksInfo[mainType];
+      const mainTypeSafe = mainType as Exclude<StackType, "NONE">;
+
+      const mainInfo = allStacksInfo[mainTypeSafe];
 
       // Skip if doesn't fit
       if (mainInfo.fitRow === 0) continue;
@@ -309,9 +342,6 @@ class GridCalculator {
       // If no remainder, only main stack needed
       if (mainInfo.neededCols.remainder === 0) {
         const totalHeight = mainInfo.heightByCols.mainStack;
-        // ✅ Calculate items per VRH square for quantity occupied
-
-        mainType === "VRH" ? (pair ? 2 : 4) : mainInfo.fitRow;
         const mainQuantityOccupied = quantity - mainInfo.neededCols.remainder;
 
         validCombinations.push({
@@ -321,9 +351,9 @@ class GridCalculator {
           hasRemainder: false,
           score: totalHeight,
           mainCols: mainInfo.neededCols.cols,
-          mainQuantityOccupied, // ✅ NEW
+          mainQuantityOccupied,
           remainderItems: 0,
-          remainderQuantityOccupied: 0, // ✅ NEW
+          remainderQuantityOccupied: 0,
           mainHeight: mainInfo.heightByCols.mainStack,
           remainderHeight: 0,
           mainFitRow: mainInfo.fitRow,
@@ -337,10 +367,11 @@ class GridCalculator {
 
       // If remainder exists, check each remainder stack type
       for (const remType of stackTypes) {
-        const remInfo = allStacksInfo[remType];
+        const remTypeSafe = remType as Exclude<StackType, "NONE">;
 
-        // Check: remainder stack must fit at least the remainder items
-        // Just ensure at least 1 stack can fit in row
+        const remInfo = allStacksInfo[remTypeSafe];
+
+        // Remainder stack must fit at least the remainder items
         if (remInfo.fitRow < mainInfo.neededCols.remainder) continue;
 
         const mainHeight = mainInfo.heightByCols.mainStack;
@@ -348,16 +379,9 @@ class GridCalculator {
         const totalHeight =
           mainHeight + (mainHeight > 0 ? gap : 0) + remainderHeight;
 
-        // ✅ Calculate quantity occupied for main and remainder
-        const itemsPerMainStack =
-          mainType === "VRH" ? (pair ? 2 : 4) : mainInfo.fitRow;
         const mainQuantityOccupied = quantity - mainInfo.neededCols.remainder;
-
-        remType === "VRH" ? (pair ? 2 : 4) : remInfo.fitRow;
         const remainderQuantityOccupied = mainInfo.neededCols.remainder;
-
         const remainderItems = mainInfo.neededCols.remainder;
-
         const remainderCols = Math.ceil(remainderItems / remInfo.fitRow);
 
         // Calculate remainder docs
@@ -378,9 +402,9 @@ class GridCalculator {
           hasRemainder: true,
           score: totalHeight,
           mainCols: mainInfo.neededCols.cols,
-          mainQuantityOccupied, // ✅ NEW
+          mainQuantityOccupied,
           remainderItems: mainInfo.neededCols.remainder,
-          remainderQuantityOccupied, // ✅ NEW
+          remainderQuantityOccupied,
           mainHeight,
           remainderHeight,
           mainFitRow: mainInfo.fitRow,
@@ -421,9 +445,9 @@ class GridCalculator {
       totalHeight: best.totalHeight,
       hasRemainder: best.hasRemainder,
       mainCols: best.mainCols,
-      mainQuantityOccupied: best.mainQuantityOccupied, // ✅ NEW
+      mainQuantityOccupied: best.mainQuantityOccupied,
       remainderItems: best.remainderItems,
-      remainderQuantityOccupied: best.remainderQuantityOccupied, // ✅ NEW
+      remainderQuantityOccupied: best.remainderQuantityOccupied,
       mainFitRow: best.mainFitRow,
       remainderFitRow: best.remainderFitRow,
       remainderCols: best.remainderCols,
@@ -434,17 +458,15 @@ class GridCalculator {
   }
 
   /**
-   * Calculates document requirements for printing based on physical constraints.
-   * Determines either:
-   * - Documents needed when limited by maximum canvas height (inches), or
-   * - Documents needed when using fixed columns-per-document configuration
-   * - If the colsPerDocConfig exceeded the canvas height size
+   * Calculates document requirements based on canvas height and optional
+   * per-document column cap.
    *
-   * @returns {RequiredDocReturn} Object containing:
-   *   - docsNeeded: Total number of documents required
-   *   - colsPerDoc: Maximum columns that can fit in each document
+   * Exposed as `static` (not `private`) so {@link GridLayoutGenerator} can
+   * call it directly when building a skip-stack recommendation.
+   *
+   * @returns Object with `docsNeeded` and `colsPerDoc`.
    */
-  private static requiredDocs(params: RequiredDocArg): RequiredDocReturn {
+  static requiredDocs(params: RequiredDocArg): RequiredDocReturn {
     const CANVAS_MAX_HEIGHT = 210;
     const { dimension, neededCols, gap, maxColsInDoc } = params;
 
@@ -477,12 +499,17 @@ class GridCalculator {
 
 /** Input parameters for stack size calculation */
 interface StackSizeParams {
-  /** Dimensions of a single item */
+  /** Dimensions of the primary (first) item. */
   size: DimensionObject;
-  /** Whether to allow pairing two items horizontally (default: true) */
+  /** Whether to pair two items into one stack unit (default: `true`). */
   pair?: boolean;
-  /** Gap between paired/stacked items (default: 0) */
+  /** Gap between paired/stacked items in the same unit (default: `0`). */
   gap?: number;
+  /**
+   * Dimensions of the secondary (second) item.
+   * When omitted the primary `size` is reused, reproducing the old ×2 behaviour.
+   */
+  secDim?: DimensionObject;
 }
 
 /** Result from getStackSizes() */
@@ -509,9 +536,9 @@ interface HeightByCols extends StrictOmit<DimensionObject, "width"> {
   count: number;
 }
 
-/** Stack information for each stack type */
+/** Stack information for each real layout stack type. */
 type StackInfo = Record<
-  StackType,
+  Exclude<StackType, "NONE">,
   {
     fitRow: number;
     neededCols: ReturnType<typeof GridCalculator.getColsByStack>;
@@ -526,6 +553,8 @@ interface LayoutObjectInfo {
   gap: number;
   pairGap?: number;
   size: DimensionObject;
+  /** Optional secondary item dimension — passed through to {@link getStackSizes}. */
+  secDim?: DimensionObject;
   quantity: number;
   pair?: boolean;
   maxColsInDoc: number;
@@ -533,9 +562,9 @@ interface LayoutObjectInfo {
 
 /** Parameters for recommended stack analysis */
 interface RecommendedStackParams extends LayoutObjectInfo {
-  /** Height preference: "Less" (minimize height) or "More" (maximize height) */
+  /** Height preference: `"Less"` (minimize height) or `"More"` (maximize height). */
   heightPreference: HeightPreference;
-  /** Stack orientation: "auto" (all), "vertical" (HH/VV only), "horizontal" (RHH/RVV only) */
+  /** Stack orientation filter: `"auto"` (all), `"vertical"` (HH/VV), `"horizontal"` (RHH/RVV). */
   stackOrientation: StackOrientation;
 }
 
@@ -547,9 +576,9 @@ interface CombinationScore {
   hasRemainder: boolean;
   score: number;
   mainCols: number;
-  mainQuantityOccupied: number; // ✅ NEW
+  mainQuantityOccupied: number;
   remainderItems: number;
-  remainderQuantityOccupied: number; // ✅ NEW
+  remainderQuantityOccupied: number;
   mainHeight: number;
   remainderHeight: number;
   mainFitRow: number;
@@ -559,25 +588,7 @@ interface CombinationScore {
   remainderRequiredDocs: RequiredDocReturn;
 }
 
-/** Result from getRecommendedStacks */
-interface RecommendedStacksResult {
-  mainStack: StackType;
-  remainderStack: StackType;
-  totalHeight: number;
-  hasRemainder: boolean;
-  mainCols: number;
-  mainQuantityOccupied: number;
-  remainderItems: number;
-  remainderQuantityOccupied: number;
-  mainFitRow: number;
-  remainderFitRow: number;
-  remainderCols: number;
-  requiredDocs: RequiredDocReturn;
-  remainderRequiredDocs: RequiredDocReturn;
-  allCombinations?: CombinationScore[];
-}
-
-/** Result from getRecommendedStacks */
+/** Result from {@link GridCalculator.getRecommendedStacks}. */
 interface RecommendedStacksResult {
   mainStack: StackType;
   remainderStack: StackType;

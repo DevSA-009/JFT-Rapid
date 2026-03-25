@@ -101,6 +101,11 @@ enum RIBType {
   CUFF = "CUFF",
 }
 
+/**
+ * All real layout stack variants iterated by {@link GridCalculator}.
+ * `"NONE"` is intentionally excluded — it is not a layout stack,
+ * it is a pass-through grouping used by {@link ItemsInitiater}.
+ */
 const stackTypesTuple: StackType[] = ["HH", "VV", "RHH", "RVV", "VRH"];
 
 enum CountType {

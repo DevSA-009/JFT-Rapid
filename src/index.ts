@@ -34,3 +34,5 @@ CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
 const jftProcessSeqWrapper = (data: AutomateData | string) => {
   new JFTProcessSequentially(data as unknown as AutomateData);
 };
+
+automateInfoDialog()

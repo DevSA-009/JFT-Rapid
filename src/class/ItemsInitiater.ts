@@ -8,7 +8,10 @@ interface ItemsInitiaterParams {
   /** Apparel size identifier written into `SIZE_TKN` text frames. */
   readonly sizeChar: ApparelSize;
 
-  /** Desired stacking / arrangement pattern for the composed group. */
+  /**
+   * Desired stacking / arrangement pattern for the composed group.
+   * Pass `"NONE"` to skip arrangement — items are grouped as-is.
+   */
   readonly stack: StackType;
 
   /**
@@ -18,12 +21,6 @@ interface ItemsInitiaterParams {
    */
   readonly items: PageItem[];
 
-  /**
-   * When `true`, the item uses a fixed template size and SIZE_TKN frames
-   * should **not** be updated (they already carry the correct label).
-   */
-  readonly fixedSize: boolean;
-
   /** Gap between items when placed side-by-side or stacked, in **inches**. */
   readonly gap: number;
 
@@ -31,17 +28,24 @@ interface ItemsInitiaterParams {
    * Whether the two items form a paired set (e.g. front + back of a garment).
    *
    * Controls how {@link buildGroup} wraps the items:
-   *
-   * - `true`  — items are **never** individually wrapped before combining,
-   *   regardless of the `wrapEach` argument.  The pair is always merged
-   *   directly into one group.
-   * - `false` — normal wrapping logic applies: each item is first wrapped in
-   *   its own single-item group (`wrapEach = true`) before the two wrappers
-   *   are combined.  During wrapping the item's original name is captured,
-   *   the item's name is cleared, and the name is transferred to its wrapper
-   *   group to prevent duplicate-name confusion in the document.
+   * - `true`  — items are merged directly regardless of the `wrapEach` argument.
+   * - `false` — each item is first wrapped in its own named group.
    */
   readonly pairable: boolean;
+
+  /**
+   * When `true`, the `SIZE_TKN` placeholder text is updated with `sizeChar`.
+   * When `false`, size-token replacement is skipped entirely.
+   * @default true
+   */
+  readonly manipulateTkn?: boolean;
+
+  /**
+   * When `true`, the resize step is skipped.
+   * Items are grouped at their current dimensions.
+   * @default false
+   */
+  readonly skipResize?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,36 +59,20 @@ interface ItemsInitiaterParams {
  * ```
  * constructor(params)
  *   │
- *   ├── 1. alignCenter()        — overlay item2 on item1 (skipped for single)
- *   ├── 2. resize()             — scale both to target dimensions
- *   ├── 3. updateSizeTokens()   — replace SIZE_TKN text (skipped when fixedSize)
- *   └── 4. this[stack]()        — apply the chosen stacking pattern
- *         HH  · item2 right of item1
- *         VV  · item2 below item1
- *         RHH · item1 −90°, item2 +90°, then HH
- *         RVV · both +90°, then VV
- *         VRH · mirrored symmetric layout (see {@link VRH})
+ *   ├── 1. alignCenter()       — overlay item2 on item1
+ *   │                            skipped when stack is "NONE"
+ *   ├── 2. resize()            — scale both to target dimensions
+ *   │                            skipped when skipResize is true
+ *   ├── 3. updateSizeTokens()  — replace SIZE_TKN text
+ *   │                            skipped when manipulateTkn is false
+ *   └── 4. this[stack]()       — apply chosen stacking pattern
+ *         HH   · item2 right of item1
+ *         VV   · item2 below item1
+ *         RHH  · item1 −90°, item2 +90°, then HH
+ *         RVV  · both +90°, then VV
+ *         VRH  · mirrored symmetric layout
+ *         NONE · group as-is, no positioning
  * ```
- *
- * ### `pairable` and `wrapEach` interaction
- * When `pairable = true`, {@link buildGroup} **never** wraps items individually —
- * the pair is always merged directly, regardless of the `wrapEach` argument.
- * When `pairable = false`, items are each wrapped first (`wrapEach = true`),
- * with their original names preserved on the wrapper groups.
- *
- * ### SIZE_TKN auto-creation
- * When `updateSizeTokens` cannot find a `SIZE_TKN` frame inside an item,
- * {@link createSizeToken} is called automatically to insert one.  The token is
- * a text frame centred over a backing rectangle, aligned to the bottom-centre
- * of the host item, then ungrouped in-place.
- *
- * ### Bugs fixed over the original
- * - **RHH / RVV double-group** — original called `HH()` / `VV()` then
- *   `buildGroup()` again, leaving an orphaned `GroupItem` in the document.
- *   Fixed: `HH` / `VV` own all grouping; `RHH` / `RVV` delegate entirely.
- * - **RVV null crash** — `[item1, item2]` passed `null` when `isSingleItem`.
- *   Fixed with a single-item guard.
- * - **Unsafe null casts** replaced with proper nullable types.
  */
 class ItemsInitiater {
   // ─── Immutable configuration ────────────────────────────────────────────
@@ -95,17 +83,20 @@ class ItemsInitiater {
   /** Apparel size character forwarded to SIZE_TKN text-frame replacement. */
   private readonly sizeChar: ApparelSize;
 
-  /** Stacking pattern — `"HH" | "VV" | "RHH" | "RVV" | "VRH"`. */
+  /** Stacking pattern applied in step 4 of the pipeline. */
   private readonly stack: StackType;
 
   /** Gap between items in **points** (converted from params inches). */
   private readonly gap: number;
 
-  /**
-   * When `true`, items are never individually wrapped in {@link buildGroup}.
-   * Mirrors the `pairable` field from {@link ItemsInitiaterParams}.
-   */
+  /** When `true`, items are never individually wrapped in {@link buildGroup}. */
   private readonly pairable: boolean;
+
+  /** When `true`, SIZE_TKN frames are updated with `sizeChar`. */
+  private readonly manipulateTkn: boolean;
+
+  /** When `true`, the resize step is skipped. */
+  private readonly skipResize: boolean;
 
   // ─── Mutable state ───────────────────────────────────────────────────────
 
@@ -166,19 +157,31 @@ class ItemsInitiater {
     this.sizeChar = params.sizeChar;
     this.stack = params.stack;
     this.pairable = params.pairable;
+    this.manipulateTkn = params.manipulateTkn !== false; // default true
+    this.skipResize = params.skipResize === true; // default false
 
     this.item1 = params.items[0] as GroupItem;
     this.isSingleItem = params.items.length === 1;
     this.item2 = this.isSingleItem ? null : (params.items[1] as GroupItem);
 
     // ── Pipeline (order is critical) ─────────────────────────────────────
-    this.alignCenter();
-    this.resize();
 
-    if (!params.fixedSize) {
+    // Step 1 — align: skipped when stack is NONE (items are not being repositioned)
+    if (this.stack !== "NONE") {
+      this.alignCenter();
+    }
+
+    // Step 2 — resize: skipped when caller sets skipResize
+    if (!this.skipResize) {
+      this.resize();
+    }
+
+    // Step 3 — size token: skipped when caller sets manipulateTkn false
+    if (this.manipulateTkn) {
       this.updateSizeTokens();
     }
 
+    // Step 4 — stack arrangement (NONE simply calls buildGroup)
     this[this.stack]();
 
     if (this.actionHandler) {
@@ -229,10 +232,8 @@ class ItemsInitiater {
    * Replaces the `SIZE_TKN` placeholder in both items with `this.sizeChar`.
    *
    * When a `SIZE_TKN` frame is **not found** inside an item,
-   * {@link createSizeToken} is called first to inject one automatically —
-   * so the token always exists before the rename runs.
-   *
-   * Skipped entirely when `fixedSize` is `true`.
+   * {@link createSizeToken} is called first to inject one automatically.
+   * Called only when `manipulateTkn` is `true`.
    *
    * @private
    */
@@ -609,6 +610,21 @@ class ItemsInitiater {
       ...GroupManager.ungroup(this.buildGroup(false)),
       ...GroupManager.ungroup(mirroredGroup),
     ]);
+  }
+
+  /**
+   * **NONE** — No-arrangement pass-through.
+   *
+   * Skips all positioning and rotation.
+   * Items are grouped exactly as they arrive via {@link buildGroup}.
+   * Used when the caller has already arranged the items or does not
+   * need stacking (e.g. `skipStack` path in {@link GridLayoutGenerator}).
+   *
+   * @private
+   */
+  private NONE(): void {
+    // No repositioning — group items as-is
+    this.composedGroup = this.buildGroup();
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────

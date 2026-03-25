@@ -43,7 +43,15 @@ type AlignPosition =
 type SizesDetails = {
   [key in ApparelSize]: {
     [key in keyof typeof PairObjectMarkers]: DimensionObject;
-  };
+  } & Readonly<
+    Record<
+      | "SHORT_PANT_FRONT"
+      | "SHORT_PANT_BACK"
+      | "LONG_PANT_FRONT"
+      | "LONG_PANT_BACK",
+      DimensionObject
+    >
+  >;
 };
 
 interface SizeContainer {
@@ -113,13 +121,16 @@ type PropertyKey = string | number | symbol;
 
 /**
  * Keys of Stack Type.
+ * `"NONE"` skips all arrangement — items are grouped as-is.
  */
-type StackType = "HH" | "VV" | "RHH" | "RVV" | "VRH";
+type StackType = "HH" | "VV" | "RHH" | "RVV" | "VRH" | "NONE";
 
 /**
  * Possible stacking configurations.
+ * `"NONE"` is intentionally excluded — it is a pass-through grouping,
+ * not a measurable layout stack.
  */
-type StackSizes = Record<StackType, DimensionObject>;
+type StackSizes = Record<Exclude<StackType, "NONE">, DimensionObject>;
 
 /**
  * stack configurations.

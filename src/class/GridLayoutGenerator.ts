@@ -3,8 +3,6 @@ const FILL_REC_STRIP_HEIGHT_INCH = 20;
 
 /** Constructor parameters for {@link GridLayoutGenerator}. */
 interface GridLayoutGeneratorParams {
-  /** Apparel size identifier used for SIZE_TKN text replacement. */
-  sizeChar: ApparelSize;
   /** Total number of items to place across all generated documents. */
   quantity: number;
   /** Target artwork dimensions in inches. */
@@ -19,6 +17,34 @@ interface GridLayoutGeneratorParams {
   data: AutomateData["details"]["L"]["DATA"] | null;
   /** Gap between placed items in inches. */
   distributeGap: number;
+  /**
+   * When `true`, forces `isPaired = true` (unless `isSingleItem` is also true).
+   * @default false
+   */
+  forcePair?: boolean;
+  /**
+   * When `false`, the alternating 180° rotation on RHH/RVV stacks is disabled.
+   * @default true
+   */
+  altRotate?: boolean;
+  /**
+   * Forwarded to {@link ItemsInitiater} — controls SIZE_TKN replacement.
+   * @default true
+   */
+  manipulateTkn?: boolean;
+  /**
+   * When `true`, skips the normal stack-recommendation path.
+   * Layout is built with `fitRow = 1` and `cols = quantity`.
+   * `ItemsInitiater` is still called with stack `"NONE"`.
+   * Also skips the white-fill cleanup step.
+   * @default false
+   */
+  skipStack?: boolean;
+  /**
+   * Forwarded to {@link ItemsInitiater} — skips the resize step.
+   * @default false
+   */
+  skipResize?: boolean;
 }
 
 /** Parameters shared by layout pass entry points. */
@@ -81,10 +107,12 @@ type ResolveMixedEntriesResult = {
  * @remarks
  * The full pipeline executed in the constructor:
  * 1. Duplicate source artwork from the active layer.
- * 2. Remove white-fill placeholder items.
- * 3. Apply special-case validations (NECK single-sided, low-quantity forced pair).
- * 4. If `fixedSize + isFillRec` → delegate to the fill-rectangle strip path.
- * 5. Otherwise: ask {@link GridCalculator} for the best stack recommendation,
+ * 2. Remove white-fill placeholder items (skipped when `skipStack` is `true`).
+ * 3. Apply `forcePair` and special-case validations (NECK single-sided, low-quantity forced pair).
+ * 4. **skipStack path** — if `skipStack` is `true`: build reference group with stack `"NONE"`,
+ *    create grid with `fitRow = 1` and `cols = quantity`, then return.
+ * 5. Otherwise: if `fixedSize + isFillRec` → delegate to the fill-rectangle strip path.
+ * 6. Otherwise: ask {@link GridCalculator} for the best stack recommendation,
  *    build the composed reference group via {@link ItemsInitiater}, then run
  *    the main layout pass. If a remainder exists, run a second pass.
  */
@@ -157,6 +185,22 @@ class GridLayoutGenerator {
   /** TextFrameProcessor instance rebuilt at the start of each layout pass. */
   private textProcessor: TextFrameProcessor | null = null;
 
+  /** When `false`, alternating 180° rotation on RHH/RVV stacks is disabled. */
+  private readonly altRotate: boolean;
+
+  /** Forwarded to {@link ItemsInitiater} — controls SIZE_TKN replacement. */
+  private readonly manipulateTkn: boolean;
+
+  /**
+   * When `true`, bypasses stack-recommendation entirely.
+   * Layout uses `fitRow = 1`, `cols = quantity`, stack = `"NONE"`.
+   * Also skips the white-fill cleanup step.
+   */
+  private readonly skipStack: boolean;
+
+  /** Forwarded to {@link ItemsInitiater} — skips the resize step. */
+  private readonly skipResize: boolean;
+
   // ─── Constructor ──────────────────────────────────────────────────────
 
   /**
@@ -180,23 +224,55 @@ class GridLayoutGenerator {
     // Deep-copy the data queue so mutations here do not affect the caller's array
     this.data = params.data ? Utils.deepCopy([...params.data]) : null;
 
+    // Store new feature flags (all default to their safe baseline values)
+    this.altRotate = params.altRotate !== false; // default true
+    this.manipulateTkn = params.manipulateTkn !== false; // default true
+    this.skipStack = params.skipStack === true; // default false
+    this.skipResize = params.skipResize === true; // default false
+
     this.countType = this.jftItem.info.countType;
     this.isPaired = this.jftItem.info.pair;
 
     // Create working duplicates of source artwork — originals are never modified
     this.artworkItems = this.duplicateSourceItems();
 
-    // Remove any white-fill placeholder rectangle from the artwork array
-    this.cleanWhiteFillItem();
+    // White-fill cleanup is skipped when skipStack is active
+    if (!this.skipStack) {
+      this.cleanWhiteFillItem();
+    }
 
     // Nothing to do if all items were cleaned out
     if (!this.artworkItems.length) return;
 
-    // Mark as single-item when only one artwork survived cleanup
+    // Mark as single-item when only one artwork survived
     if (this.artworkItems.length === 1) this.isSingleItem = true;
+
+    // forcePair: honour only when two items exist
+    if (params.forcePair && !this.isSingleItem) {
+      this.isPaired = true;
+      this.countType = CountType.SET;
+    }
 
     // Apply NECK / low-quantity special-case rules
     this.specialValidation();
+
+    // ── skipStack path ────────────────────────────────────────────────────
+    if (this.skipStack) {
+      // Build a forced recommendation (fitRow=1, cols=qty, no remainder)
+      this.stackRecommendation = this.buildSkipStackRecommendation();
+
+      // Build the reference group with stack "NONE" (no repositioning)
+      this.composedReferenceItem = this.buildComposedReference("NONE");
+
+      this.layoutPassTracker = this.buildPassTracker("main");
+      this.begin("main");
+
+      this.composedReferenceItem!.remove();
+      this.composedReferenceItem = null;
+      return;
+    }
+
+    // ── Normal path ───────────────────────────────────────────────────────
 
     // Fill-rectangle items use a simpler strip-document path
     if (this.shouldUseFillRecPath()) {
@@ -534,6 +610,48 @@ class GridLayoutGenerator {
   }
 
   /**
+   * Builds a forced {@link RecommendedStacksResult} for the `skipStack` path.
+   *
+   * The result hardcodes:
+   * - `mainFitRow = 1` — one item per row
+   * - `mainCols = quantity` — each item gets its own column/document slot
+   * - `hasRemainder = false` — no remainder pass needed
+   * - `mainStack = "NONE"` — no stacking arrangement
+   * - `requiredDocs` — computed via {@link GridCalculator.requiredDocs}
+   *   using the primary dimension and the current quantity.
+   *
+   * @returns A `RecommendedStacksResult`-shaped object for the skip-stack path.
+   */
+  private buildSkipStackRecommendation(): RecommendedStacksResult {
+    // Each item occupies its own slot — one per column
+    const cols = this.quantity;
+
+    // Compute required documents the same way the normal path does
+    const reqDocs = GridCalculator.requiredDocs({
+      dimension: this.dimension,
+      gap: this.distributeGap,
+      maxColsInDoc: CONFIG.PER_DOC,
+      neededCols: cols,
+    });
+
+    return {
+      mainStack: "NONE",
+      remainderStack: "NONE",
+      hasRemainder: false,
+      totalHeight: this.dimension.height * cols,
+      mainFitRow: 1,
+      mainCols: cols,
+      mainQuantityOccupied: this.quantity,
+      remainderItems: 0,
+      remainderQuantityOccupied: 0,
+      remainderFitRow: 1,
+      remainderCols: 0,
+      requiredDocs: reqDocs,
+      remainderRequiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
+    };
+  }
+
+  /**
    * Constructs the composed reference GroupItem for the given stack type via
    * {@link ItemsInitiater}. This group is duplicated for every grid cell.
    *
@@ -543,11 +661,12 @@ class GridLayoutGenerator {
     return new ItemsInitiater({
       dimension: this.dimension,
       items: this.artworkItems,
-      fixedSize: this.jftItem.info.fixedSize,
       sizeChar: this.sizeTkn as ApparelSize,
       stack: stackType,
       gap: this.distributeGap,
       pairable: this.isPaired,
+      manipulateTkn: this.manipulateTkn,
+      skipResize: this.skipResize,
     }).getItem();
   }
 
@@ -762,7 +881,9 @@ class GridLayoutGenerator {
     });
 
     // Alternating 180° rotation applies only to unpaired, non-single RHH/RVV stacks
+    // and only when altRotate is enabled (default true)
     const applyAltRotation =
+      this.altRotate &&
       (this.layoutPassTracker.stack === "RHH" ||
         this.layoutPassTracker.stack === "RVV") &&
       !this.isPaired &&
@@ -1045,13 +1166,12 @@ class GridLayoutGenerator {
 
         if (!isVrhStack) {
           // Find the static and dynamic sub-items inside the composed reference group
-          const staticItem = this.composedReferenceItem!.pageItems.find(
-            (itm) => itm.name === staticEntry.object.name,
-          );
-
-          const dynamicItem = this.composedReferenceItem!.pageItems.find(
-            (itm) => itm.name === dynamicEntry.object.name,
-          );
+          const staticItem = Organizer.pageItemsToArray(
+            this.composedReferenceItem!.pageItems,
+          ).find((itm) => itm.name === staticEntry.object.name);
+          const dynamicItem = Organizer.pageItemsToArray(
+            this.composedReferenceItem!.pageItems,
+          ).find((itm) => itm.name === dynamicEntry.object.name);
 
           // Both sub-items must be locatable — otherwise the reference group is corrupt
           if (!staticItem || !dynamicItem) {
