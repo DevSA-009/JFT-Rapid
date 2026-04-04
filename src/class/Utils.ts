@@ -1107,16 +1107,12 @@ class Utils {
   /**
    * Filters `details` to only the sizes that have **meaningful work** to do.
    *
-   * A size is considered active when at least one of the following is true:
-   * - `DATA.length > 0` — at least one player data row exists
-   * - Any `SUMMARY.SLEEVE` count > 0
-   * - Any `SUMMARY.PANT` count > 0
-   *
-   * Sizes that are entirely zero are excluded up-front so no stage method
+   * A size is considered active when `SUMMARY.BODY > 0`.
+   * Sizes with all-zero counts are excluded up-front so no pipeline stage
    * ever receives an empty size and wastes a cache lookup.
    *
    * @param detailsData - Full `AutomateData.details` map to filter.
-   * @returns Ordered array of active `ApparelSize` values.
+   * @returns Ascending-sorted array of active {@link ApparelSize} values.
    */
   static getActiveDataSizes(
     detailsData: AutomateData["details"],

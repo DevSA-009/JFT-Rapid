@@ -88,8 +88,6 @@ class JFTGarmentPipeline {
   /** Forwarded to {@link GridLayoutGenerator} for the current call. */
   private _skipResize: boolean = false;
 
-  private _fixedSizeChar: ApparelSize = "L";
-
   /** Quantity multiplier applied to each size's count. Defaults to `1`. */
   private _qtyMultiply: number = 1;
 
@@ -101,6 +99,31 @@ class JFTGarmentPipeline {
 
   /** Deep-copied working snapshot of `data` — reset at the start of each `generateLayoutDoc` call. */
   private _tempData: JFTGarmentPipelineParams["data"];
+
+  /**
+   * When `true`, size-range merges are applied even if `CONFIG.DIMENSION_RANGE`
+   * is `false`.  Set by collar and rib stages that always need range grouping.
+   */
+  private _forceSizeRanges: boolean = false;
+
+  /**
+   * When `true`, forces `isPaired = true` inside `GridLayoutGenerator`
+   * regardless of the item's auto-detected pairing state.  Used by the pant
+   * stage which always needs paired front/back layout.
+   */
+  private _forcePair: boolean = false;
+
+  /**
+   * When set, provides an asymmetric secondary dimension to `GridLayoutGenerator`
+   * for items whose two pieces have different dimensions (e.g. pant front vs back).
+   */
+  private _secondaryDimension: DimensionObject | null = null;
+
+  /**
+   * The `FlatSummary` key used to look up the quantity when `itemType` is not
+   * itself a key of `FlatSummary` (e.g. rib markers).  Defaults to `"BODY"`.
+   */
+  private _qtyItemType: keyof FlatSummary = "BODY";
 
   // ─── Constructor ──────────────────────────────────────────────────────
 
@@ -153,8 +176,11 @@ class JFTGarmentPipeline {
     this._tknManip = true;
     this._skipStack = false;
     this._skipResize = false;
-    this._fixedSizeChar = "L";
     this._qtyMultiply = 1;
+    this._forceSizeRanges = false;
+    this._forcePair = false;
+    this._secondaryDimension = null;
+    this._qtyItemType = "BODY";
     this._trackRangeSizeChar = {} as TrackRangeSizeChar;
     this._apparelSizesChar = Object.keys(this.data.details) as ApparelSize[];
     this._tempData = Utils.deepCopy(this.data);
@@ -200,54 +226,67 @@ class JFTGarmentPipeline {
   }
 
   /**
-   * Merges all sizes within a range into the largest size's detail entry
-   * and removes the merged sizes from `apparelSizesChar`.
+   * Merges all sizes in a range into the largest size's detail entry.
    *
-   * @remarks
-   * After merging, the largest size in the range carries the combined SUMMARY
-   * counts and the concatenated DATA rows of all merged sizes. Smaller sizes
-   * in the range are spliced out so they are not processed individually later.
+   * Smaller sizes are removed from `_apparelSizesChar` after merging so
+   * they are not processed again. The target size's original DATA rows are
+   * appended last so smaller-size players always appear first in the queue.
+   * Routing fields (`SLEEVE`, `PANT`) are preserved — stripped later by
+   * {@link filterAndStripData}.
    *
-   * @param sizeRange - The size range to merge.
+   * @param sizeRange - Inclusive `{ from, to }` range to merge.
    */
   private handleSizeRange(sizeRange: SizeRanges[0]) {
-    // Find all active sizes that fall within this range
+    // Collect only the active sizes that fall within this range
     const range = this.filterSizeRange(sizeRange);
 
     const { from, to } = sizeRange;
 
-    // Build the combined size-range label e.g. "XS-S"
+    // Build the combined range label used in output filenames e.g. "XS-S"
     const sizeChar = `${from}-${to}` as ApparelSizeRange;
 
-    // The largest size in the range acts as the merge target
+    // The largest (last) size in the range is the merge target
     const details = this._tempData.details[sizeRange.to];
+
+    // Snapshot the target's own DATA before clearing it — appended last
+    // so smaller-size players precede the target size's players in the queue
+    const targetSizeCharDetailsData = details.DATA;
+
+    // Clear the target DATA so smaller sizes are prepended cleanly
+    details.DATA = [];
 
     for (const size of range) {
       const sizeType = size as ApparelSize;
 
       if (sizeType === sizeRange.to) {
-        // Record the range label for the target size so filenames use it
+        // Record the range label for this target size — used in filenames
         this._trackRangeSizeChar[sizeType] = sizeChar;
         continue;
       }
 
-      // Retrieve the smaller size's detail entry
+      // Pull the smaller size's detail entry
       const nestDetails = this._tempData.details[sizeType];
 
-      // Accumulate SUMMARY counts into the target size's entry
+      // Add every SUMMARY count from the smaller size into the target
       for (const key in details.SUMMARY) {
         const keyType = key as keyof FlatSummary;
         details.SUMMARY[keyType] =
           details.SUMMARY[keyType] + nestDetails.SUMMARY[keyType];
       }
 
-      // Append this size's DATA rows to the target's DATA array
+      // Append this smaller size's DATA rows into the growing merged array
       details.DATA = Utils.deepCopy([...details.DATA, ...nestDetails.DATA]);
 
-      // Remove the merged size from the active list
+      // Remove the now-merged size from the active list to skip it later
       const idx = this._apparelSizesChar.indexOf(sizeType);
       this._apparelSizesChar.splice(idx, 1);
     }
+
+    // Append the target size's own original rows last — preserves size order
+    details.DATA = Utils.deepCopy([
+      ...details.DATA,
+      ...targetSizeCharDetailsData,
+    ]);
   }
 
   // ─── Private: Layout dispatch ─────────────────────────────────────────
@@ -277,18 +316,8 @@ class JFTGarmentPipeline {
       return;
     }
 
-    // Check whether this item has dynamic injection on either side
-    const hasDync = jftItem.items[0].isDynamic || jftItem.items[1].isDynamic;
-
-    // ── Fixed-size routing ────────────────────────────────────────────────
-    if (jftItem.info.fixedSize) {
-      if (!this._overrideDim) {
-        this._overrideDim = CONFIG.SIZES_DETAILS[this._fixedSizeChar][itemType];
-      }
-    }
-
     // ── Size-range merges (skipped when fixed-size override is active) ────
-    if (!this._overrideDim && sizeRanges && CONFIG.DIMENSION_RANGE) {
+    if (sizeRanges && (CONFIG.DIMENSION_RANGE || this._forceSizeRanges)) {
       for (const range of sizeRanges) {
         this.handleSizeRange(range);
       }
@@ -308,7 +337,14 @@ class JFTGarmentPipeline {
       const details = this._tempData.details[sizeChar];
       // Skip sizes with no body quantity
       if (!details.SUMMARY.BODY) continue;
-      const data = details.DATA;
+
+      // Filter the flat DATA array to only the players that belong to this
+      // garment-type pass, then strip the routing fields (SLEEVE / PANT) so
+      // GridLayoutGenerator receives clean { NAME, NUMBER } objects only.
+      const data: SizeMarkerEntries | null =
+        details.DATA && details.DATA.length
+          ? JFTGarmentPipeline.filterAndStripData(details.DATA, itemType)
+          : null;
 
       // Use the merged range label when available, otherwise the raw size char
       let sizeTkn = this._trackRangeSizeChar[sizeChar]
@@ -316,34 +352,36 @@ class JFTGarmentPipeline {
         : sizeChar;
 
       // Use _overrideDim when present (fixedSize+dyn path), else conf lookup
-      const dimension = this._overrideDim
+      const primaryDimension = this._overrideDim
         ? this._overrideDim
         : CONFIG.SIZES_DETAILS[sizeChar][itemType];
 
+      const secondaryDimension = this._secondaryDimension;
+
       let qty = details["SUMMARY"][itemType as keyof FlatSummary];
 
-      if (jftItem.info.fixedSize && !hasDync) {
-        sizeTkn = "ALL";
-        qty = this._tempData.basic.total;
+      if (typeof qty === "undefined") {
+        qty = details.SUMMARY[this._qtyItemType];
       }
+
+      // Skip
+      if (!qty) continue;
 
       // Delegate to GridLayoutGenerator for this size
       new GridLayoutGenerator({
-        dimension,
+        primaryDimension,
+        secondaryDimension,
         data,
         distributeGap: CONFIG.DIST_ITEMS_GAP,
         sizeTkn,
         jftItem,
         orientation,
+        forcePair: this._forcePair,
         quantity: qty * this._qtyMultiply,
         manipulateTkn: this._tknManip,
         skipStack: this._skipStack,
         skipResize: this._skipResize,
       });
-
-      if (jftItem.info.fixedSize && !hasDync) {
-        break;
-      }
     }
 
     // Clear per-call overrides after every execution
@@ -360,16 +398,24 @@ class JFTGarmentPipeline {
    * they carry fixed labels that must not be overwritten.
    */
   private collarFlowHandle() {
+    const sizeRanges: SizeRanges = [{ from: "XS", to: "16" }];
+
     if (this.data.basic.type === JerseyType.POLO) {
       // POLO requires a placket piece in addition to the collar
 
       // Placket — fixed label, no size-token update
       this._tknManip = false;
-      this.generateLayoutDoc({ itemType: "PLACKET" });
+      this._forceSizeRanges = true;
+      this.generateLayoutDoc({
+        itemType: "PLACKET",
+        sizeRanges,
+        orientation: "vertical",
+      });
 
       // Collar — fixed label, no size-token update
       this._tknManip = false;
-      this.generateLayoutDoc({ itemType: "COLLAR" });
+      this._forceSizeRanges = true;
+      this.generateLayoutDoc({ itemType: "COLLAR", sizeRanges });
     } else {
       // T-shirt uses a single neck piece in vertical orientation
       // Neck — fixed label, no size-token update
@@ -377,6 +423,7 @@ class JFTGarmentPipeline {
       this.generateLayoutDoc({
         itemType: "NECK",
         orientation: "vertical",
+        sizeRanges,
       });
     }
   }
@@ -390,21 +437,28 @@ class JFTGarmentPipeline {
    */
   private ribFlowHandler() {
     const ribInfo = this.data.basic.rib;
+    const sizeRanges: SizeRanges = [{ from: "XS", to: "16" }];
 
     if (ribInfo.type !== RIBType.NO) {
       if (ribInfo.apply.length >= 2) {
         // Both short and long sleeve ribs are needed — disable tkn for each call
         this._tknManip = false;
+        this._forceSizeRanges = true;
         this._qtyMultiply = ribInfo.type === RIBType.CUFF ? 2 : 1;
+        this._qtyItemType = "SHORT_SLEEVE";
         this.generateLayoutDoc({
           itemType: "SHORT_SLEEVE_RIB",
           orientation: "vertical",
+          sizeRanges,
         });
 
         this._tknManip = false;
+        this._forceSizeRanges = true;
+        this._qtyItemType = "LONG_SLEEVE";
         this.generateLayoutDoc({
           itemType: "LONG_SLEEVE_RIB",
           orientation: "vertical",
+          sizeRanges,
         });
       } else {
         // Only one rib type is needed — derive the key from the apply array
@@ -416,9 +470,12 @@ class JFTGarmentPipeline {
 
         // Disable tkn for rib
         this._tknManip = false;
+        this._forceSizeRanges = true;
+        this._qtyItemType = `${ribInfo.apply[0]}_SLEEVE`;
         this.generateLayoutDoc({
           itemType: enumKey,
           orientation: "vertical",
+          sizeRanges,
         });
       }
     }
@@ -473,6 +530,14 @@ class JFTGarmentPipeline {
   private pantFlowHandle() {
     const pantInfo = this.data.basic.pant;
 
+    const sizeRanges: SizeRanges = [
+      { from: "XS", to: "S" },
+      { from: "M", to: "XL" },
+      { from: "2XL", to: "5XL" },
+      { from: "2", to: "10" },
+      { from: "12", to: "16" },
+    ];
+
     const sPantFront = CONFIG.SIZES_DETAILS["5XL"].SHORT_PANT_FRONT;
     const sPantBack = CONFIG.SIZES_DETAILS["5XL"].SHORT_PANT_BACK;
 
@@ -482,7 +547,7 @@ class JFTGarmentPipeline {
         : sPantBack.height;
 
     const sPantDimension: DimensionObject = {
-      width: sPantFront.width + CONFIG.DIST_ITEMS_GAP + sPantBack.width,
+      width: sPantBack.width,
       height: sPantHeight,
     };
 
@@ -495,29 +560,104 @@ class JFTGarmentPipeline {
         : lPantBack.height;
 
     const lPantDimension: DimensionObject = {
-      width: lPantFront.width + CONFIG.DIST_ITEMS_GAP + lPantBack.width,
+      width: lPantBack.width,
       height: lPantHeight,
     };
 
     if (pantInfo.length >= 2) {
       // Both short and long pant are required
+      this._forceSizeRanges = true;
+      this._forcePair = true;
       this._skipResize = true;
+      this._skipStack = true;
       this._overrideDim = sPantDimension;
-      this.generateLayoutDoc({ itemType: "SHORT_PANT" });
+      this.generateLayoutDoc({ itemType: "SHORT_PANT", sizeRanges });
+      this._forceSizeRanges = true;
+      this._forcePair = true;
       this._skipResize = true;
       this._overrideDim = lPantDimension;
       this._skipStack = true;
-      this.generateLayoutDoc({ itemType: "LONG_PANT" });
+      this.generateLayoutDoc({ itemType: "LONG_PANT", sizeRanges });
     } else {
+      this._forceSizeRanges = true;
       this._skipResize = true;
+      this._skipStack = true;
+      this._forcePair = true;
       this._overrideDim = sPantDimension;
       // Only one pant type — derive the key from the pant array
       const enumKey: keyof Workflow = `${pantInfo[0]}_PANT`;
       if (pantInfo[0] === SleeveType.LONG) {
         this._overrideDim = lPantDimension;
-        this._skipStack = true;
       }
-      this.generateLayoutDoc({ itemType: enumKey });
+      this.generateLayoutDoc({ itemType: enumKey, sizeRanges });
     }
+  }
+
+  // ─── Private: Data filtering ──────────────────────────────────────────
+
+  /**
+   * Filters the flat `DATA` array to only the players relevant for
+   * `itemType`, then returns a new array with the routing fields
+   * (`SLEEVE`, `PANT`) stripped so only `NAME`, `NUMBER`, and any other
+   * artwork-frame keys remain.
+   *
+   * ### Filtering rules by item type
+   * | `itemType`       | Keep rows where…                        |
+   * |------------------|-----------------------------------------|
+   * | `SHORT_SLEEVE`   | `SLEEVE === "SHORT"` (or no SLEEVE key) |
+   * | `LONG_SLEEVE`    | `SLEEVE === "LONG"`  (or no SLEEVE key) |
+   * | `SHORT_PANT`     | `PANT === "SHORT"`   (or no PANT key)   |
+   * | `LONG_PANT`      | `PANT === "LONG"`    (or no PANT key)   |
+   * | `BODY` / others  | all rows (no routing filter applied)    |
+   *
+   * When a row has no routing field for the requested type it is included —
+   * this keeps backward-compatible payloads (no SLEEVE/PANT fields) working
+   * as before.
+   *
+   * @param data     - Full flat DATA array for the current size.
+   * @param itemType - Garment-part key being processed by the current stage.
+   * @returns Filtered array with `SLEEVE` and `PANT` fields removed from every entry.
+   */
+  private static filterAndStripData(
+    data: SizeMarkerEntries,
+    itemType: keyof JFTItemCache,
+  ): SizeMarkerEntries {
+    const filtered: SizeMarkerEntries = [];
+
+    for (let i = 0; i < data.length; i++) {
+      const entry = data[i];
+      let include = true;
+
+      // Apply routing filter based on the garment type being processed
+      if (itemType === "SHORT_SLEEVE") {
+        // Include rows that explicitly target SHORT, or have no SLEEVE key at all
+        include = !entry.SLEEVE || entry.SLEEVE === SleeveType.SHORT;
+      } else if (itemType === "LONG_SLEEVE") {
+        // Include rows that explicitly target LONG, or have no SLEEVE key at all
+        include = !entry.SLEEVE || entry.SLEEVE === SleeveType.LONG;
+      } else if (itemType === "SHORT_PANT") {
+        // Include rows that explicitly target SHORT pant, or have no PANT key
+        include = !entry.PANT || entry.PANT === SleeveType.SHORT;
+      } else if (itemType === "LONG_PANT") {
+        // Include rows that explicitly target LONG pant, or have no PANT key
+        include = !entry.PANT || entry.PANT === SleeveType.LONG;
+      }
+      // BODY, COLLAR, NECK, PLACKET, RIB — no routing filter; all rows pass
+
+      if (!include) continue;
+
+      // Strip the routing fields so GridLayoutGenerator only receives
+      // NAME, NUMBER, and any other artwork-frame keys — never SLEEVE or PANT
+      const clean: Record<string, string> = {};
+      for (const key in entry) {
+        if (key !== "SLEEVE" && key !== "PANT") {
+          clean[key] = entry[key];
+        }
+      }
+
+      filtered.push(clean as PlayerEntry);
+    }
+
+    return filtered;
   }
 }

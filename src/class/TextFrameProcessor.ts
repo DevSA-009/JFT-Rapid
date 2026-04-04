@@ -101,14 +101,18 @@ interface TextFrameProcessorParams {
    *
    * Obtain this value from `!!GridLayoutGenerator.resolveMixedEntries()`.
    */
-  readonly isMixedDynamic: boolean;
+  readonly isMixed: boolean;
 
   /**
    * Shared FIFO data queue passed **by reference**.
-   * Each element is a `Record<frameName, replacementText>` row consumed via
-   * `Array.shift()`.  `null` when no dynamic text injection is needed.
+   *
+   * Each element is a {@link PlayerEntry} row consumed via `Array.shift()`.
+   * The caller must pass the correct garment-type bucket (e.g.
+   * `details.DATA.SHORT_SLEEVE`) so only the matching players are injected.
+   * `null` when no dynamic text injection is needed (static mode or
+   * collar/rib parts that carry no player data).
    */
-  readonly data: AutomateData["details"]["L"]["DATA"] | null;
+  readonly data: SizeMarkerEntries | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -160,9 +164,20 @@ interface TextFrameProcessorParams {
 class TextFrameProcessor {
   // ─── Immutable config ──────────────────────────────────────────────────
 
+  /** Active stack type for this layout pass — drives axis selection and gradient expansion. */
   private readonly stack: StackType;
-  private readonly isMixedDynamic: boolean;
-  private readonly data: AutomateData["details"]["L"]["DATA"] | null;
+  /**
+   * `true` when one JFT item is dynamic and the other is static.
+   * Controls the deferred-shift logic in {@link advanceDataQueue}.
+   */
+  private readonly isMixed: boolean;
+  /** FIFO player-entry queue for the current garment-type pass. */
+  private readonly data: SizeMarkerEntries | null;
+  /**
+   * Accumulates live `TextFrame` references that need gradient expansion
+   * after the entire placed-item loop completes.  Cleared after each
+   * `process()` call and after `expandAppearanceTextFrames()` runs.
+   */
   private modifiedTextFrames: TextFrame[] = [];
 
   /**
@@ -191,7 +206,7 @@ class TextFrameProcessor {
    */
   constructor(params: TextFrameProcessorParams) {
     this.stack = params.stack;
-    this.isMixedDynamic = params.isMixedDynamic;
+    this.isMixed = params.isMixed;
     this.data = params.data;
 
     this.needsGradientExpansion =
@@ -441,7 +456,7 @@ class TextFrameProcessor {
   private advanceDataQueue(): void {
     if (!this.data) return;
 
-    if (this.isMixedDynamic) {
+    if (!this.isMixed) {
       // Deferred shift: commit only on even encounters
       if (!Utils.isOdd(this.currentPassed)) {
         this.data.shift();
@@ -456,6 +471,18 @@ class TextFrameProcessor {
     this.data.shift();
   }
 
+  /**
+   * Expands appearance (gradient fills) on all tracked modified text frames
+   * and optionally outlines them.
+   *
+   * Only relevant for rotated stacks (RHH, RVV, VRH) — HH and VV stacks
+   * are axis-aligned and do not require gradient expansion.
+   *
+   * Called at the end of {@link process} when `needsGradientExpansion` is
+   * `true` and `CONFIG.OUTLINE_TEXT` is `true`.
+   *
+   * @private
+   */
   private expandAppearanceTextFrames() {
     // Gradient expansion (rotated stacks only)
     if (this.modifiedTextFrames.length) {

@@ -6,15 +6,26 @@ interface GridLayoutGeneratorParams {
   /** Total number of items to place across all generated documents. */
   quantity: number;
   /** Target artwork dimensions in inches. */
-  dimension: DimensionObject;
+  primaryDimension: DimensionObject;
+  /** Target artwork dimensions in inches. */
+  secondaryDimension?: DimensionObject | null;
   /** Resolved garment-part descriptor containing source PageItems and pairing metadata. */
   jftItem: JFTItem;
   /** Preferred stack orientation: `"auto"` | `"vertical"` | `"horizontal"`. */
   orientation: StackOrientation;
   /** Size token written into SIZE_TKN frames. Defaults to `"ALL"` when omitted. */
   sizeTkn?: ApparelSize | ApparelSizeRange;
-  /** FIFO data queue for dynamic text injection. `null` when no injection is needed. */
-  data: AutomateData["details"]["L"]["DATA"] | null;
+  /**
+   * Pre-filtered FIFO player-entry queue for dynamic text injection.
+   *
+   * Must already be filtered to only the players for this garment-type pass
+   * via {@link JFTGarmentPipeline.filterAndStripData} — routing fields
+   * (`SLEEVE`, `PANT`) are stripped before this array is passed in, so every
+   * entry contains only `NAME`, `NUMBER`, and any artwork-frame keys.
+   * Pass `null` when no dynamic injection is needed (static mode or
+   * collar / rib parts that carry no player data).
+   */
+  data: SizeMarkerEntries | null;
   /** Gap between placed items in inches. */
   distributeGap: number;
   /**
@@ -91,11 +102,11 @@ interface LayoutPassTracker {
  * Result of {@link GridLayoutGenerator.resolveMixedEntries}.
  * `null` when both JFT items share the same `isDynamic` flag.
  */
-type ResolveMixedEntriesResult = {
+type ResolveMixedObjectsResult = {
   /** The static (non-dynamic) item entry. */
-  staticEntry: ItemInfoEntry;
+  stc: { index: number; itemEntry: ItemInfoEntry };
   /** The dynamic item entry. */
-  dynamicEntry: ItemInfoEntry;
+  dyn: { index: number; itemEntry: ItemInfoEntry };
 } | null;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -120,7 +131,9 @@ class GridLayoutGenerator {
   // ─── Immutable configuration ──────────────────────────────────────────
 
   /** Target dimensions in inches as received from the pipeline. */
-  private readonly dimension: DimensionObject;
+  private readonly primaryDimension: DimensionObject;
+
+  private readonly secondaryDimension: DimensionObject | null;
 
   /** Resolved garment-part descriptor — source items and pairing metadata. */
   private readonly jftItem: JFTItem;
@@ -179,8 +192,8 @@ class GridLayoutGenerator {
     cols: 0,
   };
 
-  /** FIFO data queue for dynamic text injection. Shared by reference across all passes. */
-  private data: AutomateData["details"]["L"]["DATA"] | null;
+  /** FIFO player-entry queue. Shared by reference across all layout passes. */
+  private data: SizeMarkerEntries | null;
 
   /** TextFrameProcessor instance rebuilt at the start of each layout pass. */
   private textProcessor: TextFrameProcessor | null = null;
@@ -216,10 +229,11 @@ class GridLayoutGenerator {
     this.distributeGap = params.distributeGap;
     this.quantity = params.quantity;
     this.jftItem = params.jftItem;
-    this.dimension = params.dimension;
+    this.primaryDimension = params.primaryDimension;
+    this.secondaryDimension = params.secondaryDimension || null;
 
     // Prefer the caller's orientation; fall back to the global CONFIG setting
-    this.stackOrientation = params.orientation ?? CONFIG.ORIENTATION;
+    this.stackOrientation = params.orientation;
 
     // Deep-copy the data queue so mutations here do not affect the caller's array
     this.data = params.data ? Utils.deepCopy([...params.data]) : null;
@@ -238,7 +252,7 @@ class GridLayoutGenerator {
 
     // White-fill cleanup is skipped when skipStack is active
     if (!this.skipStack) {
-      this.cleanWhiteFillItem();
+      this.cleanSkipItem();
     }
 
     // Nothing to do if all items were cleaned out
@@ -320,7 +334,7 @@ class GridLayoutGenerator {
     this.countType = CountType.SET;
 
     // Remove any white-fill items from the fresh duplicates
-    this.cleanWhiteFillItem();
+    this.cleanSkipItem();
 
     // Recalculate the stack recommendation with updated pairing state
     this.stackRecommendation = this.calculateStackRecommendation();
@@ -355,9 +369,6 @@ class GridLayoutGenerator {
   private shouldUseFillRecPath(): boolean {
     const e1 = this.jftItem.items[0];
     const e2 = this.jftItem.items[1];
-
-    // Fill-rec path only applies to fixed-size items
-    if (!this.jftItem.info.fixedSize) return false;
 
     // Single item — check only the first entry
     if (this.isSingleItem) return e1.isFillRec;
@@ -476,7 +487,7 @@ class GridLayoutGenerator {
 
     // How many items fit side-by-side across the full paper width
     const fitRow = GridCalculator.getRowFitCount({
-      stackWidth: this.dimension.width,
+      stackWidth: this.primaryDimension.width,
       gap: 0,
     });
 
@@ -487,7 +498,7 @@ class GridLayoutGenerator {
     const cols = Math.ceil(qty / fitRow);
 
     // Total raw height in inches for all rows combined
-    const height = this.dimension.height * cols;
+    const height = this.primaryDimension.height * cols;
 
     // Find the most printable height factorisation within FILL_REC_STRIP_HEIGHT_INCH
     const { baseHeight, divider } = Utils.getBestDividerAndHeight(height);
@@ -601,7 +612,7 @@ class GridLayoutGenerator {
       gap: this.distributeGap,
       maxColsInDoc: CONFIG.PER_DOC,
       quantity: this.quantity,
-      size: this.dimension,
+      size: this.primaryDimension,
       pair: this.isPaired,
       pairGap: this.distributeGap,
       heightPreference: "Less",
@@ -628,7 +639,7 @@ class GridLayoutGenerator {
 
     // Compute required documents the same way the normal path does
     const reqDocs = GridCalculator.requiredDocs({
-      dimension: this.dimension,
+      dimension: this.primaryDimension,
       gap: this.distributeGap,
       maxColsInDoc: CONFIG.PER_DOC,
       neededCols: cols,
@@ -638,7 +649,7 @@ class GridLayoutGenerator {
       mainStack: "NONE",
       remainderStack: "NONE",
       hasRemainder: false,
-      totalHeight: this.dimension.height * cols,
+      totalHeight: this.primaryDimension.height * cols,
       mainFitRow: 1,
       mainCols: cols,
       mainQuantityOccupied: this.quantity,
@@ -659,7 +670,7 @@ class GridLayoutGenerator {
    */
   private buildComposedReference(stackType: StackType): GroupItem {
     return new ItemsInitiater({
-      dimension: this.dimension,
+      dimension: this.primaryDimension,
       items: this.artworkItems,
       sizeChar: this.sizeTkn as ApparelSize,
       stack: stackType,
@@ -708,20 +719,17 @@ class GridLayoutGenerator {
    * Such items are placeholders and must not appear in the output layout.
    * Sets `isPaired = false` and `countType = PCS` when an item is removed.
    */
-  private cleanWhiteFillItem(): void {
-    this.artworkItems.forEach((item, idx) => {
-      if (
-        item &&
-        item.typename === PageItemType.PathItem &&
-        Utils.isWhiteFill(item as PathItem)
-      ) {
-        // Remove the white placeholder from the working array
+  private cleanSkipItem(): void {
+    this.jftItem.items.forEach((item, idx) => {
+      if (item && item.isSkip) {
+        // Remove the skip placeholder from the working array
+        const skipObject = this.artworkItems[idx];
         this.artworkItems.splice(idx, 1);
         this.isPaired = false;
         this.countType = CountType.PCS;
 
         // Delete the duplicate from the Illustrator document
-        item.remove();
+        skipObject.remove();
       }
     });
   }
@@ -784,7 +792,7 @@ class GridLayoutGenerator {
     if (this.isSingleItem && e1.isDynamic) return true;
 
     // Paired document — either side being dynamic makes the whole document dynamic
-    return e1.isDynamic || this.jftItem.items[1].isDynamic;
+    return this.jftItem.info.dync;
   }
 
   /**
@@ -805,7 +813,7 @@ class GridLayoutGenerator {
     forceStatic: boolean = false,
   ): string {
     const { rows, cols, targetQty } = this.layoutPassTracker;
-    const sizeSegment = this.jftItem.info.fixedSize ? "" : this.sizeTkn;
+    const sizeSegment = !this.manipulateTkn ? "" : this.sizeTkn;
     const isDocDynamic = this.isDocumentDynamic();
 
     // Default quantity segment — may be overridden below
@@ -1125,16 +1133,22 @@ class GridLayoutGenerator {
    * @returns An object with `staticEntry` and `dynamicEntry` when mixed;
    *          `null` when both entries share the same dynamic state.
    */
-  private resolveMixedEntries(): ResolveMixedEntriesResult {
+  private resolveMixedObjects(): ResolveMixedObjectsResult {
     const e1 = this.jftItem.items[0];
     const e2 = this.jftItem.items[1];
 
     // If both flags are equal, there is no mixed state
-    if (e1.isDynamic === e2.isDynamic) return null;
+    if (!this.jftItem.info.mixed) return null;
 
     return {
-      staticEntry: e1.isDynamic ? e2 : e1,
-      dynamicEntry: e1.isDynamic ? e1 : e2,
+      stc: {
+        index: e1.isDynamic ? 1 : 0,
+        itemEntry: e1.isDynamic ? e2 : e1,
+      },
+      dyn: {
+        index: e1.isDynamic ? 0 : 1,
+        itemEntry: e1.isDynamic ? e1 : e2,
+      },
     };
   }
 
@@ -1159,19 +1173,15 @@ class GridLayoutGenerator {
     const isVrhStack = this.layoutPassTracker.stack === "VRH";
 
     if (!this.isPaired && !this.isSingleItem) {
-      const mixedEntries = this.resolveMixedEntries();
+      const mixedObjects = this.resolveMixedObjects();
 
-      if (mixedEntries) {
-        const { staticEntry, dynamicEntry } = mixedEntries;
+      if (mixedObjects) {
+        const { stc, dyn } = mixedObjects;
 
         if (!isVrhStack) {
           // Find the static and dynamic sub-items inside the composed reference group
-          const staticItem = Organizer.pageItemsToArray(
-            this.composedReferenceItem!.pageItems,
-          ).find((itm) => itm.name === staticEntry.object.name);
-          const dynamicItem = Organizer.pageItemsToArray(
-            this.composedReferenceItem!.pageItems,
-          ).find((itm) => itm.name === dynamicEntry.object.name);
+          const staticItem = this.composedReferenceItem!.pageItems[stc.index];
+          const dynamicItem = this.composedReferenceItem!.pageItems[dyn.index];
 
           // Both sub-items must be locatable — otherwise the reference group is corrupt
           if (!staticItem || !dynamicItem) {
@@ -1183,7 +1193,7 @@ class GridLayoutGenerator {
           // Save the static side as a single document
           this.saveStaticDocument(
             staticItem,
-            staticEntry.direction as DirectionMarkers,
+            stc.itemEntry.direction as DirectionMarkers,
           );
 
           // Process the dynamic side as a grid
@@ -1192,7 +1202,7 @@ class GridLayoutGenerator {
             reqDocs,
             rows,
             dynamicItem,
-            direction: dynamicEntry.direction as DirectionMarkers,
+            direction: dyn.itemEntry.direction as DirectionMarkers,
           });
           return;
         }
@@ -1202,15 +1212,15 @@ class GridLayoutGenerator {
         this.composedReferenceItem = null;
 
         // Static side: build its own VRH reference and save as a single document
-        this.artworkItems = [staticEntry.object.duplicate()];
+        this.artworkItems = [stc.itemEntry.object.duplicate()];
         const staticVrh = this.buildComposedReference("VRH");
         this.saveStaticDocument(
           staticVrh,
-          staticEntry.direction as DirectionMarkers,
+          stc.itemEntry.direction as DirectionMarkers,
         );
 
         // Dynamic side: build its own VRH reference and process as a grid
-        this.artworkItems = [dynamicEntry.object.duplicate()];
+        this.artworkItems = [dyn.itemEntry.object.duplicate()];
         const dynamicVrh = this.buildComposedReference("VRH");
         this.composedReferenceItem = dynamicVrh;
         this.processDynamicPass({
@@ -1218,7 +1228,7 @@ class GridLayoutGenerator {
           reqDocs,
           rows,
           dynamicItem: dynamicVrh,
-          direction: dynamicEntry.direction as DirectionMarkers,
+          direction: dyn.itemEntry.direction as DirectionMarkers,
         });
         return;
       }
@@ -1249,7 +1259,7 @@ class GridLayoutGenerator {
     this.textProcessor = new TextFrameProcessor({
       stack: this.layoutPassTracker.stack,
       isPaired: this.isPaired,
-      isMixedDynamic: !this.resolveMixedEntries(),
+      isMixed: this.jftItem.info.mixed,
       data: this.data,
     });
 

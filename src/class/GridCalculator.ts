@@ -192,7 +192,7 @@ class GridCalculator {
       quantity,
       pairGap = 0,
       pair,
-      secDim,
+      secDim = null,
       maxColsInDoc,
     } = params;
 
@@ -509,7 +509,7 @@ interface StackSizeParams {
    * Dimensions of the secondary (second) item.
    * When omitted the primary `size` is reused, reproducing the old ×2 behaviour.
    */
-  secDim?: DimensionObject;
+  secDim?: DimensionObject | null;
 }
 
 /** Result from getStackSizes() */
@@ -554,7 +554,7 @@ interface LayoutObjectInfo {
   pairGap?: number;
   size: DimensionObject;
   /** Optional secondary item dimension — passed through to {@link getStackSizes}. */
-  secDim?: DimensionObject;
+  secDim?: DimensionObject | null;
   quantity: number;
   pair?: boolean;
   maxColsInDoc: number;

@@ -81,7 +81,7 @@ class JFTItemResolver {
     if (!collected.length) return null;
 
     // Derive pairing metadata and per-item flags from the collected items
-    const { items, countType, pair, fixedSize } = this.itemInfo(collected);
+    const { items, countType, pair, dync, mixed } = this.itemInfo(collected);
 
     return {
       // Prefer the enum key name (e.g. "BODY") over the raw value
@@ -90,7 +90,7 @@ class JFTItemResolver {
           PairObjectMarkers,
           marker as PairObjectMarkers,
         ) || marker,
-      info: { countType, pair, fixedSize },
+      info: { countType, pair, dync, mixed },
       items,
     };
   }
@@ -173,6 +173,16 @@ class JFTItemResolver {
     let obj1Direction = getLastMatch(obj1.name);
     let obj2Direction = getLastMatch(obj2.name);
 
+    if (obj1Direction === obj2Direction && !wasSingleItem) {
+      const opposite = getOppositeDirection(obj1Direction);
+
+      if (opposite && obj2Direction !== opposite) {
+        obj2.name = obj1.name.replace(`_${obj1Direction}_`, `_${opposite}_`);
+
+        obj2Direction = opposite;
+      }
+    }
+
     // ── 3. Dynamic flag — read before direction assignment ───────────────
 
     const isObj1Dyn = obj1.name.includes(`_${BasicMarkers.DYNAMIC}_`);
@@ -205,39 +215,10 @@ class JFTItemResolver {
     // ── 5. Classification flags ──────────────────────────────────────────
 
     const isObj1Pair = obj1.name.includes(`_${BasicMarkers.PAIR}_`);
-    const isObj1Fsz = obj1.name.includes(`_${BasicMarkers.FIXED_SIZE}_`);
+    const isObj1Skip = obj1.name.includes(`_${BasicMarkers.SKIP}_`);
     const isObj2Dyn = obj2.name.includes(`_${BasicMarkers.DYNAMIC}_`);
     const isObj2Pair = obj2.name.includes(`_${BasicMarkers.PAIR}_`);
-    const isObj2Fsz = obj2.name.includes(`_${BasicMarkers.FIXED_SIZE}_`);
-
-    // ── GLOBAL STATIC MODE OVERRIDE ─────────────────────────────────────
-    // In static mode all items are treated as non-dynamic paired sets
-
-    if (CONFIG.STATIC_MODE) {
-      return {
-        pair: true,
-        countType: CountType.SET,
-        fixedSize: isObj1Fsz || isObj2Fsz,
-        items: [
-          {
-            object: obj1,
-            isDynamic: false,
-            isFillRec:
-              obj1.typename === PageItemType.PathItem &&
-              Utils.isRectangleShape(obj1 as PathItem),
-            direction: obj1Direction as keyof typeof DirectionMarkers | "",
-          },
-          {
-            object: obj2,
-            isDynamic: false,
-            isFillRec:
-              obj2.typename === PageItemType.PathItem &&
-              Utils.isRectangleShape(obj2 as PathItem),
-            direction: obj2Direction as keyof typeof DirectionMarkers | "",
-          },
-        ],
-      };
-    }
+    const isObj2Skip = obj2.name.includes(`_${BasicMarkers.SKIP}_`);
 
     // ── 6. Pair decision ─────────────────────────────────────────────────
 
@@ -256,28 +237,110 @@ class JFTItemResolver {
 
     // ── 7. Build and return result ────────────────────────────────────────
 
+    const items: ItemInfoEntry[] = [
+      {
+        object: obj1,
+        isDynamic: CONFIG.STATIC_MODE ? false : isObj1Dyn,
+        isSkip: isObj1Skip,
+        isFillRec:
+          obj1.typename === PageItemType.PathItem &&
+          Utils.isRectangleShape(obj1 as PathItem),
+        direction: obj1Direction as keyof typeof DirectionMarkers | "",
+      },
+      {
+        object: obj2,
+        isDynamic: CONFIG.STATIC_MODE ? false : isObj2Dyn,
+        isSkip: isObj2Skip,
+        isFillRec:
+          obj2.typename === PageItemType.PathItem &&
+          Utils.isRectangleShape(obj2 as PathItem),
+        direction: obj2Direction as keyof typeof DirectionMarkers | "",
+      },
+    ];
+
+    if (
+      obj1Direction === DirectionMarkers.BACK ||
+      obj1Direction === DirectionMarkers.RIGHT
+    ) {
+      const first = items[0];
+      const second = items[1];
+      items[0] = second;
+      items[1] = first;
+    }
+
     return {
-      pair: isPaired,
-      countType: isPaired ? CountType.SET : CountType.PCS,
-      fixedSize: isObj1Fsz || isObj2Fsz,
-      items: [
-        {
-          object: obj1,
-          isDynamic: isObj1Dyn,
-          isFillRec:
-            obj1.typename === PageItemType.PathItem &&
-            Utils.isRectangleShape(obj1 as PathItem),
-          direction: obj1Direction as keyof typeof DirectionMarkers | "",
-        },
-        {
-          object: obj2,
-          isDynamic: isObj2Dyn,
-          isFillRec:
-            obj2.typename === PageItemType.PathItem &&
-            Utils.isRectangleShape(obj2 as PathItem),
-          direction: obj2Direction as keyof typeof DirectionMarkers | "",
-        },
-      ],
+      pair: CONFIG.STATIC_MODE ? true : isPaired,
+      countType: CONFIG.STATIC_MODE
+        ? CountType.SET
+        : isPaired
+          ? CountType.SET
+          : CountType.PCS,
+      dync: CONFIG.STATIC_MODE ? false : isObj1Dyn || isObj2Dyn,
+      mixed: CONFIG.STATIC_MODE ? false : isObj1Dyn !== isObj2Dyn,
+      items,
     };
   }
+}
+
+// ─── Shared Types ─────────────────────────────────────────────────────────────
+
+/**
+ * One entry in the per-item array built by `JFTItemResolver.itemInfo()`.
+ * Carries both the raw `PageItem` reference and all classification flags
+ * derived from the item's name at resolution time.
+ */
+interface ItemInfoEntry {
+  /** The raw Illustrator `PageItem`. */
+  object: PageItem;
+  /**
+   * `true` when the item name contains `_DYN_`.
+   * Dynamic items receive player-data text injection during grid layout.
+   */
+  isDynamic: boolean;
+  /**
+   * `true` when the item is a plain axis-aligned filled rectangle.
+   * These items are handled by the fill-rec strip path in `GridLayoutGenerator`.
+   */
+  isFillRec: boolean;
+  /**
+   * Direction marker found in the item name (`"FRONT"`, `"BACK"`, `"LEFT"`,
+   * `"RIGHT"`) or `""` when none is present.
+   */
+  direction: keyof typeof DirectionMarkers | "";
+
+  isSkip: boolean;
+}
+
+/**
+ * Raw pairing metadata returned by `JFTItemResolver.itemInfo()` before it is
+ * wrapped into a `JFTItem`.
+ */
+interface ItemsInfo {
+  /** Whether the two items form a paired set. */
+  pair: boolean;
+  /** Count label written into the output filename (`SET`, `PCS`, or `CMD`). */
+  countType: CountType;
+  /** One or two resolved `ItemInfoEntry` records. */
+  items: ItemInfoEntry[];
+
+  dync: boolean;
+
+  mixed: boolean;
+}
+
+/**
+ * Complete resolved descriptor for one garment-part marker.
+ * Passed directly to `GridLayoutGenerator` for layout generation.
+ */
+interface JFTItem {
+  /** Enum key name of the matched `PairObjectMarkers` value (e.g. `"BODY"`). */
+  order: string;
+  /** Pairing and fixed-size metadata — excludes the `items` array. */
+  info: Omit<ItemsInfo, "items">;
+  /**
+   * Exactly two `ItemInfoEntry` records after `itemInfo()` completes.
+   * The second entry is always present (auto-duplicated when only one item
+   * was found in the document).
+   */
+  items: ItemInfoEntry[];
 }

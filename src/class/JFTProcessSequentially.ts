@@ -19,66 +19,6 @@
 // ─── Shared Types ─────────────────────────────────────────────────────────────
 
 /**
- * One entry in the per-item array built by `JFTItemResolver.itemInfo()`.
- * Carries both the raw `PageItem` reference and all classification flags
- * derived from the item's name at resolution time.
- */
-interface ItemInfoEntry {
-  /** The raw Illustrator `PageItem`. */
-  object: PageItem;
-  /**
-   * `true` when the item name contains `_DYN_`.
-   * Dynamic items receive player-data text injection during grid layout.
-   */
-  isDynamic: boolean;
-  /**
-   * `true` when the item is a plain axis-aligned filled rectangle.
-   * These items are handled by the fill-rec strip path in `GridLayoutGenerator`.
-   */
-  isFillRec: boolean;
-  /**
-   * Direction marker found in the item name (`"FRONT"`, `"BACK"`, `"LEFT"`,
-   * `"RIGHT"`) or `""` when none is present.
-   */
-  direction: keyof typeof DirectionMarkers | "";
-}
-
-/**
- * Raw pairing metadata returned by `JFTItemResolver.itemInfo()` before it is
- * wrapped into a `JFTItem`.
- */
-interface ItemsInfo {
-  /** Whether the two items form a paired set. */
-  pair: boolean;
-  /** Count label written into the output filename (`SET`, `PCS`, or `CMD`). */
-  countType: CountType;
-  /** One or two resolved `ItemInfoEntry` records. */
-  items: ItemInfoEntry[];
-  /**
-   * `true` when either item carries `_FSZ_`.
-   * Fixed-size items are dispatched once regardless of how many sizes are active.
-   */
-  fixedSize: boolean;
-}
-
-/**
- * Complete resolved descriptor for one garment-part marker.
- * Passed directly to `GridLayoutGenerator` for layout generation.
- */
-interface JFTItem {
-  /** Enum key name of the matched `PairObjectMarkers` value (e.g. `"BODY"`). */
-  order: string;
-  /** Pairing and fixed-size metadata — excludes the `items` array. */
-  info: Omit<ItemsInfo, "items">;
-  /**
-   * Exactly two `ItemInfoEntry` records after `itemInfo()` completes.
-   * The second entry is always present (auto-duplicated when only one item
-   * was found in the document).
-   */
-  items: ItemInfoEntry[];
-}
-
-/**
  * Parameters forwarded to every `process*Item` method in `JFTGarmentPipeline`.
  */
 interface ProcessItemParams {
@@ -346,6 +286,8 @@ class JFTProcessSequentially {
       const sp = entry ? entry.sp : 0;
       const lp = entry ? entry.lp : 0;
 
+      // Static mode carries no player names or numbers — DATA stays empty.
+      // The filter step in generateLayoutDoc is a no-op on an empty array.
       fake_details[sizeChar] = {
         SUMMARY: {
           BODY: body,
