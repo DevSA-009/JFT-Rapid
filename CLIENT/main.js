@@ -98,6 +98,7 @@ const markNameBtn = selectElementById(`markName`);
 const markNumberBtn = selectElementById(`markNumber`);
 const markDynamicBtn = selectElementById(`markDynamic`);
 const markPairBtn = selectElementById(`markPair`);
+const markSkipBtn = selectElementById(`markSkip`);
 
 markFrontBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('FRONT')");
@@ -124,6 +125,9 @@ markDynamicBtn.onclick = () => {
 };
 markPairBtn.onclick = () => {
   csInterface.evalScript("Organizer.objectMarkByName('PAIR')");
+};
+markSkipBtn.onclick = () => {
+  csInterface.evalScript("Organizer.objectMarkByName('SKP')");
 };
 
 markCollarBtn.onclick = () => {
