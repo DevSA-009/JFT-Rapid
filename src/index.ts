@@ -108,11 +108,3 @@ CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
 const jftProcessSeqWrapper = (data: AutomateData | string) => {
   new JFTProcessSequentially(data as unknown as AutomateData);
 };
-
-// ─── Development entry point ──────────────────────────────────────────────────
-
-// Launch a test run immediately using the built-in `test` payload.
-// Comment this line out (or wrap in a condition) before shipping a
-// production build — it will run against whatever document is open.
-// automateInfoDialog();
-new JFTProcessSequentially(test as unknown as AutomateData);
