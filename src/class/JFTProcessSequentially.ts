@@ -95,10 +95,16 @@ class JFTProcessSequentially {
     if (Utils.isEmptyObject(this.jftItemsCache)) return;
 
     // ── Step 3: Run the five-stage garment pipeline ───────────────────
-    new JFTGarmentPipeline({
+    const pipeline = new JFTGarmentPipeline({
       data: Utils.deepCopy(resolvedData),
       jftItemsCache: this.jftItemsCache,
     });
+
+    // ── Step 4: Display run summary ───────────────────────────────────
+    // Build and show the summary after the pipeline completes so the user
+    // can immediately see what was processed and what was missing.
+    const summary = pipeline.buildSummary();
+    alertDialogSA(summary,true);
   }
 
   /**

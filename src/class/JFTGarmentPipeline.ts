@@ -188,12 +188,6 @@ class JFTGarmentPipeline {
 
   // ─── Private: Pipeline entry ──────────────────────────────────────────
 
-  /**
-   * Runs all active pipeline stages in the required order.
-   * Each stage is responsible for one garment-part family.
-   * Garbage collection is requested after all stages complete to reclaim
-   * memory held by duplicated artwork and closed documents.
-   */
   private run() {
     this.collarFlowHandle();
     this.ribFlowHandler();
@@ -201,9 +195,97 @@ class JFTGarmentPipeline {
     this.bodyFlowHandle();
     this.pantFlowHandle();
 
-    // Request garbage collection after the full pipeline completes — releases
-    // memory from all duplicated artwork, temp groups, and closed documents
+    // Request garbage collection after the full pipeline completes
     if (typeof $ !== "undefined") $.gc();
+  }
+
+  /**
+   * Builds a human-readable summary string of the completed pipeline run.
+   *
+   * Reports:
+   * - Which garment-part markers were missing from the active layer.
+   * - Total quantities processed per garment type across all sizes.
+   * - Grand total body count (= total garment sets).
+   *
+   * @returns Multi-line summary string ready for display.
+   */
+  buildSummary(): string {
+    const cache = this.jftItemsCache;
+    const details = this.data.details;
+
+    // ── Missed items ──────────────────────────────────────────────────────
+    // A marker is "missed" when it was expected by the job config but not
+    // found in the active layer.
+    const expectedMarkers = Object.keys(
+      PairObjectMarkers,
+    ) as (keyof typeof PairObjectMarkers)[];
+    const missedItems: string[] = [];
+
+    for (let i = 0; i < expectedMarkers.length; i++) {
+      const key = expectedMarkers[i];
+      if (!cache[key]) {
+        missedItems.push(key);
+      }
+    }
+
+    // ── Quantity totals per garment type ──────────────────────────────────
+    const totals: FlatSummary = {
+      BODY: 0,
+      SHORT_SLEEVE: 0,
+      LONG_SLEEVE: 0,
+      SHORT_PANT: 0,
+      LONG_PANT: 0,
+    };
+
+    const allSizes = Object.keys(details) as ApparelSize[];
+    for (let s = 0; s < allSizes.length; s++) {
+      const entry = details[allSizes[s]];
+      if (!entry) continue;
+      const summary = entry.SUMMARY;
+      totals.BODY += summary.BODY || 0;
+      totals.SHORT_SLEEVE += summary.SHORT_SLEEVE || 0;
+      totals.LONG_SLEEVE += summary.LONG_SLEEVE || 0;
+      totals.SHORT_PANT += summary.SHORT_PANT || 0;
+      totals.LONG_PANT += summary.LONG_PANT || 0;
+    }
+
+    // ── Build output lines ────────────────────────────────────────────────
+    const lines: string[] = [];
+
+    lines.push("========================================");
+    lines.push("  JFT-Rapid -- Run Summary");
+    lines.push("========================================");
+
+    // Missed markers
+    if (missedItems.length > 0) {
+      lines.push("");
+      lines.push("  [!] MISSED ITEMS:");
+      lines.push("      " + missedItems.join(", "));
+    } else {
+      lines.push("");
+      lines.push("  [OK] All markers found in layer.");
+    }
+
+    // Quantity breakdown
+    lines.push("");
+    lines.push("  PROCESSED QUANTITIES:");
+    lines.push("  ---------------------------------");
+    lines.push("  BODY           : " + totals.BODY);
+    lines.push("  SHORT SLEEVE   : " + totals.SHORT_SLEEVE);
+    lines.push("  LONG SLEEVE    : " + totals.LONG_SLEEVE);
+    lines.push("  SHORT PANT     : " + totals.SHORT_PANT);
+    lines.push("  LONG PANT      : " + totals.LONG_PANT);
+    lines.push("  ---------------------------------");
+    lines.push("  TOTAL SETS     : " + totals.BODY);
+
+    lines.push("");
+    lines.push("  Brand : " + CONFIG.BRAND);
+    lines.push(
+      "  Mode  : " + (CONFIG.STATIC_MODE ? "Static" : "Normal (NA/NO)"),
+    );
+    lines.push("========================================");
+
+    return lines.join("\n");
   }
 
   // ─── Private: Size-range handling ────────────────────────────────────

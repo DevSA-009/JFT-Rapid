@@ -297,7 +297,7 @@ const automateInfoDialog = () => {
     actionEngineThreadCheckBox.helpTip =
       "when true script for transformation happend engine base";
     actionEngineThreadCheckBox.text = "Action Thread";
-    actionEngineThreadCheckBox.value = true;
+    actionEngineThreadCheckBox.value = false;
 
     // RANGEGRP
     // ========
@@ -327,12 +327,10 @@ const automateInfoDialog = () => {
     enterBtnGrp.spacing = 10;
     enterBtnGrp.margins = 0;
 
-    const enterActionBtn = enterBtnGrp.add("button", undefined, undefined, {
-      name: "enterActionBtn",
+    const enterActionBtn = enterBtnGrp.add("button", undefined, "Start", {
+      name: "ok",
     });
     enterActionBtn.helpTip = "Start Action";
-    enterActionBtn.text = "Start";
-
     // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html )
     dialogRoot.items = {
       dialogRoot: dialogRoot, // dialog

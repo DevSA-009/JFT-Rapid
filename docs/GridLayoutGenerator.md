@@ -144,6 +144,36 @@ When `jftItem.info.fixedSize && jftItem.items[x].isFillRec`, the item is a plain
 
 ---
 
+### Fill-Wide (CMD) Mode — `CONFIG.FILL_X_AXIS`
+
+When `CONFIG.FILL_X_AXIS = true`, non-dynamic items bypass the normal stack calculation. Instead, a single row is filled across the full paper width per document:
+
+- `fitRow` = how many composed stacks fit horizontally within `PAPER_MAX_SIZE`.
+- Each document holds `fitRow` side-by-side copies.
+- Total documents = `ceil(qty / fitRow)`.
+- Filename uses `N CMD` suffix (e.g. `3 CMD` for 3 docs).
+- Remainder items (when `qty % fitRow > 0`) get their own document using only the leftover count.
+- Dynamic items are **not** affected — they fall through to the normal grid path so text injection works correctly.
+
+### Long-Sleeve Tweak — `CONFIG.LONG_SLV_TWEAK`
+
+> ⚠️ **Known issue — recommended to keep disabled (`false`) in production until resolved.**
+>
+> The transformation sequence (resize → rotate → shift) produces inconsistent visual results depending on the source sleeve dimensions. The sleeve unit composition itself works correctly, but the resulting layout may misalign in certain dimension combinations.
+
+When `CONFIG.LONG_SLV_TWEAK = true` and the item is `LONG_SLEEVE` and **non-dynamic**:
+
+1. Both sleeve pieces are duplicated and resized to `primaryDimension`.
+2. Item 2 is placed to the right of item 1, rotated 180°, then shifted left by a width-proportional offset.
+3. Both pieces are tilted −7.5° and re-aligned vertically.
+4. A fine-tune horizontal shift is applied to set the final gap.
+5. Both pieces are grouped into one "full sleeve unit".
+6. `fitRow` is calculated for the unit width.
+7. If `fitRow < 2` — unit is too wide; tweak is aborted and normal layout continues.
+8. If `fitRow >= 2` — `skipStack = true`, `quantity = ceil(qty / fitRow)`, `artworkItems = [unit, unit_copy]`. The skipStack path then handles document creation.
+
+**Single-item support:** When only one sleeve item exists in the layer, a duplicate is created automatically to form the pair.
+
 ---
 
 <a id="বাংলা"></a>
@@ -194,3 +224,14 @@ When `jftItem.info.fixedSize && jftItem.items[x].isFillRec`, the item is a plain
 **লো-কোয়ান্টিটি ফোর্স পেয়ার:** পরিমাণ ৩-এর কম হলে আনপেয়ার্ড আইটেম স্বয়ংক্রিয়ভাবে পেয়ারড হয়।
 
 **ফিল-রেক্টাঙ্গেল স্ট্রিপ পাথ:** সাদা রেক্টাঙ্গেল আইটেমের জন্য ২০ ইঞ্চি পর্যন্ত ভার্টিক্যাল স্ট্রিপ ডকুমেন্ট তৈরি হয়।
+
+**ফিল-ওয়াইড (CMD) মোড — `CONFIG.FILL_X_AXIS`:**
+`true` হলে non-dynamic আইটেম পেপার জুড়ে এক সারিতে সাজানো হয়। প্রতিটি ডকুমেন্টে `fitRow` টি কপি পাশাপাশি থাকে। মোট ডকুমেন্ট = `ceil(qty / fitRow)`। ফাইলনামে `N CMD` থাকে। Dynamic আইটেম এই পাথ bypass করে স্বাভাবিক গ্রিড পাথে যায়।
+
+**লং-স্লিভ টুইক — `CONFIG.LONG_SLV_TWEAK`:**
+
+> ⚠️ **পরিচিত সমস্যা — প্রোডাকশনে `false` রাখার পরামর্শ দেওয়া হচ্ছে যতক্ষণ না সমাধান হয়।**
+>
+> ট্রান্সফর্মেশন সিকোয়েন্স (resize → rotate → shift) সোর্স স্লিভ ডাইমেনশন ভেদে অসামঞ্জস্যপূর্ণ ফলাফল দেয়।
+
+`true` এবং আইটেম `LONG_SLEEVE` এবং non-dynamic হলে: উভয় স্লিভ পিস রিসাইজ, ঘুরানো এবং কম্পোজ করে একটি "full sleeve unit" তৈরি হয়। `fitRow < 2` হলে টুইক বাতিল হয়। `fitRow >= 2` হলে `skipStack = true` এবং `quantity = ceil(qty / fitRow)` আপডেট হয়।

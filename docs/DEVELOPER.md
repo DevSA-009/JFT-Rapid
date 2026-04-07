@@ -315,6 +315,17 @@ All dimensions are in **inches**. To add a new brand, add a new key alongside `"
 3. Add it to `stackTypesTuple` in `enums.ts`.
 4. Handle it in `ItemsInitiater` (the method named after the stack key).
 
+### Toggling Fill-Wide and Long-Sleeve Tweak
+
+Both features are controlled by `CONFIG` flags and default to `false`:
+
+```typescript
+CONFIG.FILL_X_AXIS = true; // enable CMD fill-wide mode for non-dynamic items
+CONFIG.LONG_SLV_TWEAK = true; // enable full-sleeve tweak for LONG_SLEEVE items
+```
+
+`FILL_X_AXIS` is safe to enable in production. `LONG_SLV_TWEAK` has a known visual inconsistency bug and should remain `false` until resolved — see `docs/GridLayoutGenerator.md` for details.
+
 ---
 
 ## Coding Standards
@@ -511,6 +522,12 @@ details.DATA = [
 4. `jft.conf`-এ প্রতিটি সাইজের ডাইমেনশন যোগ করুন।
 5. `JFTGarmentPipeline.ts`-এ একটি নতুন প্রাইভেট `xxxFlowHandle()` মেথড লিখুন।
 6. সঠিক ক্রমে `run()`-এ কল করুন।
+
+### FILL_X_AXIS এবং LONG_SLV_TWEAK টগল করা
+
+উভয় ফিচার `CONFIG` ফ্ল্যাগ দিয়ে নিয়ন্ত্রিত, ডিফল্ট `false`:
+
+`FILL_X_AXIS` প্রোডাকশনে নিরাপদে চালু করা যায়। `LONG_SLV_TWEAK`-এ পরিচিত ভিজ্যুয়াল বাগ আছে — সমাধান না হওয়া পর্যন্ত `false` রাখুন।
 
 ---
 
