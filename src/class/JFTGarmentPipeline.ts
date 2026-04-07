@@ -191,6 +191,8 @@ class JFTGarmentPipeline {
   /**
    * Runs all active pipeline stages in the required order.
    * Each stage is responsible for one garment-part family.
+   * Garbage collection is requested after all stages complete to reclaim
+   * memory held by duplicated artwork and closed documents.
    */
   private run() {
     this.collarFlowHandle();
@@ -198,6 +200,10 @@ class JFTGarmentPipeline {
     this.sleeveFlowHandle();
     this.bodyFlowHandle();
     this.pantFlowHandle();
+
+    // Request garbage collection after the full pipeline completes — releases
+    // memory from all duplicated artwork, temp groups, and closed documents
+    if (typeof $ !== "undefined") $.gc();
   }
 
   // ─── Private: Size-range handling ────────────────────────────────────
@@ -375,6 +381,8 @@ class JFTGarmentPipeline {
         distributeGap: CONFIG.DIST_ITEMS_GAP,
         sizeTkn,
         jftItem,
+        _threadEngine: CONFIG.THREAD_ENGINE,
+        fullSlvTweak: CONFIG.LONG_SLV_TWEAK,
         orientation,
         forcePair: this._forcePair,
         quantity: qty * this._qtyMultiply,
@@ -486,6 +494,16 @@ class JFTGarmentPipeline {
    * Handles one or both sleeve types. Size ranges are always applied to
    * group adjacent sizes for more efficient paper usage.
    */
+  /**
+   * Stage 3 — Sleeve.
+   * Handles one or both sleeve types. Size ranges are always applied to
+   * group adjacent sizes for more efficient paper usage.
+   *
+   * When `CONFIG.LONG_SLV_TWEAK` is active, `CONFIG.FILL_X_AXIS` is
+   * temporarily forced `true` for the long-sleeve call so
+   * `GridLayoutGenerator` dispatches to the full-sleeve tweak path.
+   * It is restored after the call so other stages are not affected.
+   */
   private sleeveFlowHandle() {
     const slvInfo = this.data.basic.sleeve;
 
@@ -507,11 +525,27 @@ class JFTGarmentPipeline {
         itemType: "SHORT_SLEEVE",
         sizeRanges: slvRange,
       });
+
+      // For long sleeve: if LONG_SLV_TWEAK is on, enable FILL_X_AXIS so
+      // GridLayoutGenerator enters the full-sleeve tweak path automatically.
+      // Save and restore so downstream stages are not affected.
+      const prevFillXAxis = CONFIG.FILL_X_AXIS;
+      if (CONFIG.LONG_SLV_TWEAK) {
+        CONFIG.FILL_X_AXIS = true;
+      }
       this.generateLayoutDoc({ itemType: "LONG_SLEEVE", sizeRanges: slvRange });
+      CONFIG.FILL_X_AXIS = prevFillXAxis;
     } else {
-      // Only one sleeve type — derive the key from the sleeve array
       const enumKey: keyof Workflow = `${slvInfo[0]}_SLEEVE`;
+
+      // Single sleeve type — apply full-sleeve tweak only when LONG_SLEEVE
+      const isLong = slvInfo[0] === SleeveType.LONG;
+      const prevFillXAxis = CONFIG.FILL_X_AXIS;
+      if (CONFIG.LONG_SLV_TWEAK && isLong) {
+        CONFIG.FILL_X_AXIS = true;
+      }
       this.generateLayoutDoc({ itemType: enumKey });
+      CONFIG.FILL_X_AXIS = prevFillXAxis;
     }
   }
 

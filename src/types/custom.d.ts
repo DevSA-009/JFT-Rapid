@@ -41,6 +41,26 @@ interface JFTRapid_Config {
   STATIC_MODE: boolean;
   /** When `true`, adjacent sizes are merged into shared dimension ranges. */
   DIMENSION_RANGE: boolean;
+  /**
+   * When `true`, non-dynamic items fill the full paper width in a single row
+   * per document (CMD mode).  Each doc gets `fitRow` copies side-by-side;
+   * total docs = `ceil(qty / fitRow)`.  Remainder items use their own CMD doc.
+   */
+  FILL_X_AXIS: boolean;
+  /**
+   * When `true`, long-sleeve items are processed with the full-sleeve tweak:
+   * both pieces are rotated and paired into a composed unit (matching
+   * `Organizer.fSlv2SetInit`), then laid out in fill-X-axis CMD mode.
+   * Automatically implies `FILL_X_AXIS` for the long-sleeve stage.
+   */
+  LONG_SLV_TWEAK: boolean;
+  /**
+   * Milliseconds to sleep after each `app.doScript()` call when
+   * `THREAD_ENGINE === "action"`.  Gives Illustrator time to flush its
+   * action queue before the next transformation is dispatched.
+   * @default 50
+   */
+  ACTION_DELAY_MS: number;
 }
 
 // ─── Illustrator DOM helpers ──────────────────────────────────────────────────
@@ -270,7 +290,7 @@ interface SelectItemsInDocParams {
  * | `PANT`   | no       | `"SHORT"` \| `"LONG"`  | Routes player to pant pass      |
  */
 type PlayerEntry = Record<BasicMarkers.NAME | BasicMarkers.NUMBER, string> &
-  Record<JFTCONFKeywords.SLEEVE | JFTCONFKeywords.PANT, SleeveType> &
+  Partial<Record<"SLEEVE" | "PANT", string>> &
   Record<string, string>;
 
 /**
@@ -283,10 +303,7 @@ type PlayerEntry = Record<BasicMarkers.NAME | BasicMarkers.NUMBER, string> &
  *
  * Consumed sequentially (FIFO) by {@link TextFrameProcessor}.
  */
-type SizeMarkerEntries = Exclude<
-  PlayerEntry,
-  JFTCONFKeywords.PANT | JFTCONFKeywords.SLEEVE
->[];
+type SizeMarkerEntries = PlayerEntry[];
 
 /**
  * Quantity summary for every garment-part type within a single size.

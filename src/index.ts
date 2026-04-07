@@ -85,6 +85,21 @@ const CONFIG: JFTRapid_Config = {
   WRAP_TEXT: false,
   /** Run without player-data injection when `true` (Static Mode). */
   STATIC_MODE: false,
+  /**
+   * When `true`, non-dynamic items fill the full paper width (CMD mode).
+   * Each document gets `fitRow` copies side-by-side.
+   */
+  FILL_X_AXIS: false,
+  /**
+   * When `true`, long-sleeve items use the full-sleeve tweak layout.
+   * Automatically enables CMD fill-X behaviour for that stage.
+   */
+  LONG_SLV_TWEAK: false,
+  /**
+   * Milliseconds to sleep after each action-engine `doScript` call.
+   * Only active when `THREAD_ENGINE === "action"`.
+   */
+  ACTION_DELAY_MS: 50,
 };
 
 // Override SIZES_DETAILS using the brand declared in the config file.

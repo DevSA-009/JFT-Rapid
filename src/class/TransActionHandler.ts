@@ -349,6 +349,7 @@ class TransActionHandler {
     if (this.currentSets[setName]) {
       // Execute cached action
       app.doScript(setName, setName);
+      this.afterScript();
       // app.redraw();
       return;
     }
@@ -378,6 +379,7 @@ class TransActionHandler {
     // Load and execute the action set
     this.loadActionSet(setName, template);
     app.doScript(setName, setName);
+    this.afterScript();
     app.unloadAction(setName, "");
     this.currentSets = {};
   }
@@ -515,6 +517,7 @@ class TransActionHandler {
     if (this.currentSets[setName]) {
       // Execute cached action
       app.doScript(setName, setName);
+      this.afterScript();
       this.selectionHandler([targetObject], false);
 
       // Ungroup if objects were grouped
@@ -570,7 +573,7 @@ class TransActionHandler {
     // Load and execute the action set
     this.loadActionSet(setName, template);
     app.doScript(setName, setName);
-
+    this.afterScript();
     // Deselect after transformation
     this.selectionHandler([targetObject], false);
 
@@ -654,6 +657,7 @@ class TransActionHandler {
     if (this.currentSets[setName]) {
       // Execute cached action
       app.doScript(setName, setName);
+      this.afterScript();
       this.selectionHandler([targetObject], false);
 
       // Ungroup if objects were grouped
@@ -689,7 +693,7 @@ class TransActionHandler {
     // Load and execute the action set
     this.loadActionSet(setName, template);
     app.doScript(setName, setName);
-
+    this.afterScript();
     // Deselect after transformation
     this.selectionHandler([targetObject], false);
 
@@ -752,6 +756,7 @@ class TransActionHandler {
     if (this.currentSets[setName]) {
       // Execute cached action
       app.doScript(setName, setName);
+      this.afterScript();
       this.selectionHandler([targetObject], false);
 
       // Ungroup if objects were grouped
@@ -784,7 +789,7 @@ class TransActionHandler {
     // Load and execute the action set
     this.loadActionSet(setName, template);
     app.doScript(setName, setName);
-
+    this.afterScript();
     // Deselect after transformation
     this.selectionHandler([targetObject], false);
 
@@ -808,6 +813,33 @@ class TransActionHandler {
    * handler.removeAll(); // Clean up
    * ```
    */
+
+  /**
+   * Called immediately after every `app.doScript()` invocation.
+   *
+   * When `THREAD_ENGINE === "action"`, Illustrator's action queue can get
+   * confused if the next action is dispatched before the previous one has
+   * fully completed — especially during tight loops with many
+   * rotate/resize/move operations.  This helper:
+   * 1. Forces a synchronous redraw so UI and internal state are flushed.
+   * 2. Sleeps for `CONFIG.ACTION_DELAY_MS` ms to give Illustrator time to
+   *    settle before the next action is created and dispatched.
+   *
+   * No-op when `THREAD_ENGINE === "script"`.
+   *
+   * @private
+   */
+  private afterScript(): void {
+    // Only needed in action-engine mode — no-op otherwise
+    if (!Utils.isActionThreadEngine()) return;
+
+    // Flush the Illustrator UI command queue synchronously
+    app.redraw();
+
+    // Wait before the next action so object state is stable
+    $.sleep(CONFIG.ACTION_DELAY_MS);
+  }
+
   removeAll(): void {
     // Iterate through all cached action set names
     for (const setName in this.currentSets) {

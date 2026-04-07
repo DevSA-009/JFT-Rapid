@@ -56,6 +56,9 @@ interface GridLayoutGeneratorParams {
    * @default false
    */
   skipResize?: boolean;
+  fillWide?: boolean;
+  fullSlvTweak?: boolean;
+  _threadEngine: ThreadEngine;
 }
 
 /** Parameters shared by layout pass entry points. */
@@ -131,7 +134,7 @@ class GridLayoutGenerator {
   // ─── Immutable configuration ──────────────────────────────────────────
 
   /** Target dimensions in inches as received from the pipeline. */
-  private readonly primaryDimension: DimensionObject;
+  private primaryDimension: DimensionObject;
 
   private readonly secondaryDimension: DimensionObject | null;
 
@@ -209,10 +212,32 @@ class GridLayoutGenerator {
    * Layout uses `fitRow = 1`, `cols = quantity`, stack = `"NONE"`.
    * Also skips the white-fill cleanup step.
    */
-  private readonly skipStack: boolean;
+  private skipStack: boolean;
 
   /** Forwarded to {@link ItemsInitiater} — skips the resize step. */
-  private readonly skipResize: boolean;
+  private skipResize: boolean;
+
+  /**
+   * When `true`, non-dynamic items fill the full paper width in one row per
+   * document (CMD mode). Each doc gets `fitRow` side-by-side copies.
+   * Remainder items are handled in a separate CMD doc.
+   * @default false
+   */
+  fillWide?: boolean;
+  /**
+   * When `true`, applies the long-sleeve tweak composition for long-sleeve
+   * items.  Controlled via `CONFIG.LONG_SLV_TWEAK`; this param is reserved
+   * for future per-call override support.
+   * @default false
+   */
+  longSlvTweak?: boolean;
+  /**
+   * Execution engine for geometric transformations.
+   * Forwarded to {@link AlignmentHandler} and the `smartRotate` / `smartMove`
+   * helpers so all movement is consistent throughout the layout pass.
+   * Should match `CONFIG.THREAD_ENGINE` at call time.
+   */
+  _threadEngine: ThreadEngine;
 
   // ─── Constructor ──────────────────────────────────────────────────────
 
@@ -229,9 +254,11 @@ class GridLayoutGenerator {
     this.distributeGap = params.distributeGap;
     this.quantity = params.quantity;
     this.jftItem = params.jftItem;
+    this._threadEngine = params._threadEngine;
     this.primaryDimension = params.primaryDimension;
     this.secondaryDimension = params.secondaryDimension || null;
-
+    this.fillWide = !!params.fillWide;
+    this.longSlvTweak = !!params.fullSlvTweak;
     // Prefer the caller's orientation; fall back to the global CONFIG setting
     this.stackOrientation = params.orientation;
 
@@ -269,6 +296,14 @@ class GridLayoutGenerator {
 
     // Apply NECK / low-quantity special-case rules
     this.specialValidation();
+
+    if (
+      CONFIG.LONG_SLV_TWEAK &&
+      this.jftItem.order === "LONG_SLEEVE" &&
+      !this.isDocumentDynamic()
+    ) {
+      this.runLongSlvTweak();
+    }
 
     // ── skipStack path ────────────────────────────────────────────────────
     if (this.skipStack) {
@@ -520,7 +555,8 @@ class GridLayoutGenerator {
     this.alignAllItemsCenter(newDoc);
     docHandler.save({ filePath: this.outputFolderPath, format: "EPS" });
     docHandler.close();
-
+    // Release document memory immediately after closing
+    if (typeof $ !== "undefined") $.gc();
     // Advance the file index for the next output document
     this.outputFileIndex++;
   }
@@ -537,33 +573,36 @@ class GridLayoutGenerator {
     doc: Document;
     item: PageItem;
     fitRow: number;
-  }): void {
-    const { item, fitRow } = params;
+    gap?: number;
+  }) {
+    const { item, fitRow, gap = this.distributeGap } = params;
 
     // Convert gap from inches to points
     const gapPt = Utils.convertLength({
-      value: this.distributeGap,
+      value: gap,
       from: "inch",
       to: "pt",
     });
 
+    const items = [];
+
     let current = item;
 
     // Duplicate and place each copy to the right of the previous
-    for (let i = 1; i < fitRow; i++) {
+    for (let i = 1; i <= fitRow; i++) {
       const next = current.duplicate();
+      items.push(next);
       AlignmentHandler.moveObjectAfter({
         base: current,
         moving: next,
         position: "R",
         gap: gapPt,
-        engine: CONFIG.THREAD_ENGINE,
+        engine: this._threadEngine,
       });
       current = next;
     }
 
-    // Remove the original seed item — only the copies remain
-    item.remove();
+    return items;
   }
 
   // ─── Private: Initialisation helpers ─────────────────────────────────
@@ -798,52 +837,55 @@ class GridLayoutGenerator {
   /**
    * Builds the output filename for the current layout pass.
    *
-   * @remarks
-   * The quantity/count-type segments are omitted when:
-   * - The document is dynamic (player names vary per copy).
-   * - Only a single cell exists in the grid.
-   * A `CMD` suffix replaces `SET`/`PCS` when the grid has exactly one row with
-   * multiple columns (a strip/command layout).
+   * Quantity and count type are omitted for dynamic documents (unless forceStatic=true)
+   * and for single-cell layouts.
    *
-   * @param direction   - Optional direction marker appended for unpaired items.
-   * @param forceStatic - When `true`, always include quantity even for dynamic docs.
+   * Uses CMD naming for strip layouts (1 row, multiple columns) or when forceFillRow=true.
+   *
+   * @param direction   - Direction marker for unpaired items (e.g. "-A", "-B").
+   * @param forceStatic - If true, include quantity even for dynamic documents.
+   * @param forceFillRow - If true, forces CMD naming when cols > 1, or omits quantity when rows === targetQty.
    */
   private buildDocName(
     direction: DirectionMarkers | null = null,
     forceStatic: boolean = false,
+    forceFillRow: boolean = false,
   ): string {
     const { rows, cols, targetQty } = this.layoutPassTracker;
     const sizeSegment = !this.manipulateTkn ? "" : this.sizeTkn;
     const isDocDynamic = this.isDocumentDynamic();
 
-    // Default quantity segment — may be overridden below
     let quantitySegment = `-${targetQty.toString()}`;
     let countTypeSegment = ` ${this.countType}` as string;
 
-    if (isDocDynamic && !forceStatic) {
-      // Dynamic documents do not encode quantity in the filename
+    if (forceFillRow) {
+      if (cols > 1) {
+        quantitySegment = `-${cols.toString()}`;
+        countTypeSegment = ` ${CountType.CMD}`;
+      } else if (rows === targetQty) {
+        quantitySegment = "";
+        countTypeSegment = "";
+      }
+    } else if (isDocDynamic && !forceStatic) {
       quantitySegment = "";
       countTypeSegment = "";
     } else if (rows === 1 && cols === 1) {
-      // Single-cell grid — quantity is implicit
       quantitySegment = "";
       countTypeSegment = "";
     } else if (targetQty === 1 && cols === 1) {
-      // Only one item in a single column — no quantity needed
       quantitySegment = "";
       countTypeSegment = "";
     } else if (rows === 1 && cols > 1) {
-      // Strip layout — use CMD count type and column count as quantity
       quantitySegment = `-${cols.toString()}`;
       countTypeSegment = ` ${CountType.CMD}`;
     }
 
-    // Direction suffix is only added for unpaired items
     const fileOrderSegment = this.isPaired
       ? `${this.jftItem.order}`
       : `${this.jftItem.order}${direction ? `-${direction}` : ""}`;
 
     const sizeJoin = sizeSegment ? `-${sizeSegment}` : "";
+
     return `${fileOrderSegment}${sizeJoin}${quantitySegment}${countTypeSegment}`;
   }
 
@@ -942,7 +984,7 @@ class GridLayoutGenerator {
           moving: nextItem,
           position: "R",
           gap: gapPt,
-          engine: CONFIG.THREAD_ENGINE,
+          engine: this._threadEngine,
         });
 
         if (applyAltRotation)
@@ -975,7 +1017,7 @@ class GridLayoutGenerator {
           moving: newColFirst,
           position: "B",
           gap: gapPt,
-          engine: CONFIG.THREAD_ENGINE,
+          engine: this._threadEngine,
         });
 
         columnFirstItem = newColFirst;
@@ -1022,7 +1064,8 @@ class GridLayoutGenerator {
     item: PageItem,
     placementIndex: number,
   ): void {
-    item.rotate(placementIndex % 2 === 0 ? 180 : -180);
+    const deg = placementIndex % 2 === 0 ? 180 : -180;
+    Utils.smartRotate(deg, [item]);
   }
 
   /**
@@ -1064,7 +1107,7 @@ class GridLayoutGenerator {
 
     for (let docNum = 1; docNum <= reqDocs.docsNeeded; docNum++) {
       // Build the filename for this document
-      const docTitle = `${this.padZero(this.outputFileIndex)}-${this.buildDocName(direction)}`;
+      const docTitle = `${this.padZero(this.outputFileIndex)}-${this.buildDocName(direction, false, this.fillWide)}`;
       const docHandler = new IllustratorDocument(docTitle);
 
       // Create the document and copy dynamicItem into it as the seed
@@ -1072,6 +1115,15 @@ class GridLayoutGenerator {
 
       // Retrieve the seed item that was copied into the new document
       const seedItem = newDoc.activeLayer.pageItems[0] as PageItem;
+
+      if (this.fillWide && !isDynamic) {
+        this.fillWideArea({
+          doc: newDoc,
+          fitRow: rows,
+          item: seedItem,
+        });
+        seedItem.remove();
+      }
 
       if (isDynamic) {
         // Fill the document with a full grid; remove the seed after grid is built
@@ -1089,6 +1141,8 @@ class GridLayoutGenerator {
       this.alignAllItemsCenter(newDoc);
       docHandler.save({ filePath: this.outputFolderPath, format: "EPS" });
       docHandler.close();
+      // Release document memory immediately after closing
+      if (typeof $ !== "undefined") $.gc();
 
       this.outputFileIndex++;
 
@@ -1118,6 +1172,8 @@ class GridLayoutGenerator {
 
     docHandler.save({ filePath: this.outputFolderPath, format: "EPS" });
     docHandler.close();
+    // Release document memory immediately after closing
+    if (typeof $ !== "undefined") $.gc();
 
     // Remove the item from the source document after saving
     staticItem.remove();
@@ -1280,6 +1336,124 @@ class GridLayoutGenerator {
     this.processDocumentAndLayout(passParams);
   }
 
+  // ─── Private: Full-sleeve tweak path ─────────────────────────────────
+
+  /**
+   * Full-sleeve tweak layout for long-sleeve items (`CONFIG.LONG_SLV_TWEAK`).
+   *
+   * Replicates the `Organizer.fSlv2SetInit` composition logic inside the
+   * pipeline:
+   * 1. Duplicate both source items.
+   * 2. Centre item2 on item1, then move item2 to the right of item1.
+   * 3. Rotate item2 180°; rotate both items −7.5° together; re-align vertically.
+   * 4. Group the pair into one "full sleeve unit".
+   * 5. Apply the fill-X-axis CMD layout to the composed unit.
+   * 6. If any item is dynamic, also run text injection via `TextFrameProcessor`.
+   *
+   * `skipStack` is implicitly `true` here — the arrangement is manual.
+   *
+   * @private
+   */
+  private runLongSlvTweak(): void {
+    const obj1 = this.artworkItems[0];
+    const obj2 = this.isSingleItem ? obj1.duplicate() : this.artworkItems[1];
+
+    const tempObj1 = obj1.duplicate();
+    const tempObj2 = obj2.duplicate();
+
+    // Align obj2 centre-on-centre with obj1
+    AlignmentHandler.alignObject({
+      base: tempObj1,
+      moving: tempObj2,
+      engine: this._threadEngine,
+    });
+
+    Utils.resizeObject(
+      [tempObj1, tempObj2],
+      Utils.convertLength({
+        value: this.primaryDimension.width,
+        from: "inch",
+        to: "pt",
+      }),
+      Utils.convertLength({
+        value: this.primaryDimension.height,
+        from: "inch",
+        to: "pt",
+      }),
+    );
+
+    AlignmentHandler.moveObjectAfter({
+      base: tempObj1,
+      moving: tempObj2,
+      position: "R",
+      engine: this._threadEngine,
+    });
+
+    Utils.smartRotate(180, [tempObj2]);
+
+    const move1Base = -2.2;
+
+    const move1 = move1Base * (this.primaryDimension.width / 18);
+
+    Utils.smartMove(
+      Utils.convertLength({ value: move1, from: "inch", to: "pt" }),
+      0,
+      [tempObj2],
+    );
+
+    Utils.smartRotate(-7.5, [tempObj1, tempObj2]);
+
+    // Re-align vertically after rotation
+    AlignmentHandler.alignObject({
+      base: tempObj1,
+      moving: tempObj2,
+      engine: this._threadEngine,
+      position: "CY",
+    });
+
+    Utils.smartMove(
+      Utils.convertLength({ value: 0.4, from: "inch", to: "pt" }),
+      0,
+      [tempObj2],
+    );
+
+    // Group both pieces into one composed "full sleeve unit"
+    const sleeveUnit = GroupManager.group([tempObj1, tempObj2]);
+
+    // Measure the composed unit so we know how many fit across the paper
+    const unitDim = Utils.getDimension(Utils.getObjectBounds(sleeveUnit));
+
+    // How many sleeve units fit side-by-side across the full paper width
+    const fitRow = GridCalculator.getRowFitCount({
+      stackWidth: Utils.convertLength({ value: unitDim.width }),
+    });
+
+    if (fitRow < 2) {
+      sleeveUnit.remove();
+      this.longSlvTweak = false;
+      return;
+    }
+
+    const items = this.fillWideArea({
+      doc: app.activeDocument,
+      fitRow: fitRow,
+      item: sleeveUnit,
+    });
+
+    obj1.remove();
+    obj2.remove();
+
+    sleeveUnit.remove();
+
+    this.artworkItems = [items[0], items[1]];
+
+    this.quantity = Math.ceil(this.quantity / fitRow);
+
+    this.skipResize = true;
+
+    this.skipStack = true;
+  }
+
   // ─── Private: Alignment ───────────────────────────────────────────────
 
   /**
@@ -1305,7 +1479,7 @@ class GridLayoutGenerator {
       doc,
       objects: targets as Selection,
       position: "C",
-      engine: CONFIG.THREAD_ENGINE,
+      engine: this._threadEngine,
     });
 
     // Shrink the artboard to a minimal size after alignment

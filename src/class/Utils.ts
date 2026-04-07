@@ -433,6 +433,8 @@ class Utils {
       if (height > targetWidth || width > targetWidth) {
         this.resizeObject(sizeTextFrame, targetWidth);
       }
+
+      (sizeTextFrame as TextFrame).createOutline();
     } else {
       throw new Error(`Size token not found in ${item.name}`);
     }
@@ -1186,6 +1188,96 @@ class Utils {
     }
 
     return result;
+  }
+
+  /**
+   * Rotates one or more `PageItem`s by `deg` degrees using the correct engine.
+   *
+   * - **Action engine** (`THREAD_ENGINE === "action"`) — delegates to
+   *   {@link TransActionHandler.rotate} so masked/compound-path objects
+   *   behave predictably.
+   * - **Script engine** — delegates to {@link Utils.rotateItems} which calls
+   *   the native ExtendScript `rotate()` method on each object.
+   *
+   * @param deg   - Rotation angle in degrees (positive = counter-clockwise).
+   * @param objects - One or more PageItems to rotate.
+   */
+  static smartRotate(deg: number, objects: PageItem[]): void {
+    if (Utils.isActionThreadEngine()) {
+      // Use action-based rotation for reliable behaviour on complex objects
+      const transAct = new TransActionHandler();
+      transAct.rotate({ deg, objects: objects });
+      transAct.removeAll();
+    } else {
+      // Script-engine path — native rotate() on each object
+      Utils.rotateItems(objects as Selection, deg);
+    }
+  }
+
+  /**
+   * Translates one or more `PageItem`s by `(x, y)` points using the correct engine.
+   *
+   * - **Action engine** — delegates to {@link TransActionHandler} so the
+   *   transformation is applied consistently even on masked or grouped objects.
+   * - **Script engine** — calls `translate(x, y)` on every item in the array
+   *   so all objects move by the same delta (fixes the previous single-item bug).
+   *
+   * @param x     - Horizontal delta in points (positive = right).
+   * @param y     - Vertical delta in points (positive = up in ExtendScript coords).
+   * @param objects - One or more PageItems to translate.
+   */
+  static smartMove(
+    x: number,
+    y: number,
+    objects: PageItem[],
+    useAbsolute = false,
+  ): void {
+    if (Utils.isActionThreadEngine()) {
+      // Action engine handles grouped/masked objects correctly
+      const transAct = new TransActionHandler();
+      transAct.move({ x, y, objects: objects, useAbsolute });
+      transAct.removeAll();
+    } else {
+      // Check if multiple objects need to be grouped
+      const needsGrouping = objects.length > 1;
+      let tempGroup: GroupItem | null = null;
+      let targetObject: PageItem;
+
+      if (needsGrouping) {
+        // Group multiple objects before transformation
+        tempGroup = GroupManager.group(objects);
+        targetObject = tempGroup;
+      } else {
+        // Use single object directly
+        targetObject = objects[0];
+      }
+
+      // Get current bounds of the target object
+      const bounds = Utils.getObjectBounds(targetObject);
+
+      // Initialize final coordinates
+      let finalX = x;
+      let finalY = y;
+
+      // Calculate final position based on mode
+      if (useAbsolute) {
+        // Get center XY value based on engine type
+        const { centerX, centerY } = Utils.getCenterXY({
+          bounds,
+        });
+
+        // Add delta to current position
+        finalX -= centerX;
+        finalY -= centerY;
+      }
+
+      targetObject.translate(finalX, finalY);
+
+      // Ungroup if objects were grouped
+      if (needsGrouping && tempGroup) {
+        GroupManager.ungroup(tempGroup);
+      }
+    }
   }
 }
 
