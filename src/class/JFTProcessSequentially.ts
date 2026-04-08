@@ -100,11 +100,10 @@ class JFTProcessSequentially {
       jftItemsCache: this.jftItemsCache,
     });
 
-    // ── Step 4: Display run summary ───────────────────────────────────
-    // Build and show the summary after the pipeline completes so the user
-    // can immediately see what was processed and what was missing.
-    const summary = pipeline.buildSummary();
-    alertDialogSA(summary,true);
+    // ── Step 4: Show run summary ──────────────────────────────────────
+    // Display after the pipeline completes so the user sees what was
+    // processed and which expected markers were absent from the layer.
+    alertDialogSA(pipeline.buildSummary(), true);
   }
 
   /**

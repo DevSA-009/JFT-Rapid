@@ -308,6 +308,11 @@ interface ItemInfoEntry {
    */
   direction: keyof typeof DirectionMarkers | "";
 
+  /**
+   * `true` when the item name contains `_SKP_`.
+   * Skip items are excluded from dynamic text injection but still placed in
+   * the grid layout.
+   */
   isSkip: boolean;
 }
 
@@ -316,15 +321,15 @@ interface ItemInfoEntry {
  * wrapped into a `JFTItem`.
  */
 interface ItemsInfo {
-  /** Whether the two items form a paired set. */
+  /** `true` when the two items form a paired set (front+back, left+right, etc.). */
   pair: boolean;
   /** Count label written into the output filename (`SET`, `PCS`, or `CMD`). */
   countType: CountType;
-  /** One or two resolved `ItemInfoEntry` records. */
+  /** One or two resolved `ItemInfoEntry` records (always exactly two after `itemInfo`). */
   items: ItemInfoEntry[];
-
+  /** `true` when at least one of the two items carries the `_DYN_` marker. */
   dync: boolean;
-
+  /** `true` when one item is dynamic and the other is static (mixed pair). */
   mixed: boolean;
 }
 

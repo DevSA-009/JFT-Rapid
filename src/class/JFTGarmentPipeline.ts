@@ -188,6 +188,12 @@ class JFTGarmentPipeline {
 
   // ─── Private: Pipeline entry ──────────────────────────────────────────
 
+  /**
+   * Runs all active pipeline stages in the required order.
+   * Each stage is responsible for one garment-part family.
+   * Garbage collection is requested after all stages complete to reclaim
+   * memory held by duplicated artwork and closed documents.
+   */
   private run() {
     this.collarFlowHandle();
     this.ribFlowHandler();
@@ -195,40 +201,77 @@ class JFTGarmentPipeline {
     this.bodyFlowHandle();
     this.pantFlowHandle();
 
-    // Request garbage collection after the full pipeline completes
+    // Request garbage collection after the full pipeline completes — releases
+    // memory from all duplicated artwork, temp groups, and closed documents
     if (typeof $ !== "undefined") $.gc();
   }
 
+  // ─── Public: Run summary ──────────────────────────────────────────────
+
   /**
-   * Builds a human-readable summary string of the completed pipeline run.
+   * Builds a human-readable run summary based on what the job actually needed.
    *
-   * Reports:
-   * - Which garment-part markers were missing from the active layer.
-   * - Total quantities processed per garment type across all sizes.
-   * - Grand total body count (= total garment sets).
+   * ### Missed items logic
+   * Expected markers are derived from the input config (`basic`), not from all
+   * possible markers.  Only markers that the job required are checked:
+   * - POLO → COLLAR + PLACKET; TSHIRT → NECK
+   * - BODY — always
+   * - SHORT_SLEEVE / LONG_SLEEVE — when present in `basic.sleeve`
+   * - SHORT_SLEEVE_RIB / LONG_SLEEVE_RIB — when `rib.type !== NO` and sleeve applies
+   * - SHORT_PANT / LONG_PANT — when present in `basic.pant`
    *
-   * @returns Multi-line summary string ready for display.
+   * @returns Multi-line summary string ready to pass to `alertDialogSA`.
    */
   buildSummary(): string {
-    const cache = this.jftItemsCache;
+    const basic = this.data.basic;
     const details = this.data.details;
+    const cache = this.jftItemsCache;
 
-    // ── Missed items ──────────────────────────────────────────────────────
-    // A marker is "missed" when it was expected by the job config but not
-    // found in the active layer.
-    const expectedMarkers = Object.keys(
-      PairObjectMarkers,
-    ) as (keyof typeof PairObjectMarkers)[];
-    const missedItems: string[] = [];
+    // ── 1. Determine which markers this job needed ────────────────────────
+    const needed: string[] = [];
 
-    for (let i = 0; i < expectedMarkers.length; i++) {
-      const key = expectedMarkers[i];
-      if (!cache[key]) {
-        missedItems.push(key);
+    // Body is always required
+    needed.push("BODY");
+
+    // Collar pieces depend on jersey type
+    if (basic.type === JerseyType.POLO) {
+      needed.push("COLLAR");
+      needed.push("PLACKET");
+    } else {
+      needed.push("NECK");
+    }
+
+    // Sleeves
+    const sleeve = basic.sleeve || [];
+    for (let s = 0; s < sleeve.length; s++) {
+      if (sleeve[s] === SleeveType.SHORT) needed.push("SHORT_SLEEVE");
+      if (sleeve[s] === SleeveType.LONG) needed.push("LONG_SLEEVE");
+    }
+
+    // Ribs — only when rib type is active
+    if (basic.rib && basic.rib.type !== RIBType.NO) {
+      const ribApply = basic.rib.apply || sleeve;
+      for (let r = 0; r < ribApply.length; r++) {
+        if (ribApply[r] === SleeveType.SHORT) needed.push("SHORT_SLEEVE_RIB");
+        if (ribApply[r] === SleeveType.LONG) needed.push("LONG_SLEEVE_RIB");
       }
     }
 
-    // ── Quantity totals per garment type ──────────────────────────────────
+    // Pants
+    const pant = basic.pant || [];
+    for (let p = 0; p < pant.length; p++) {
+      if (pant[p] === SleeveType.SHORT) needed.push("SHORT_PANT");
+      if (pant[p] === SleeveType.LONG) needed.push("LONG_PANT");
+    }
+
+    // ── 2. Find which needed markers were absent from the layer ───────────
+    const missed: string[] = [];
+    for (let n = 0; n < needed.length; n++) {
+      const key = needed[n] as keyof JFTItemCache;
+      if (!cache[key]) missed.push(needed[n]);
+    }
+
+    // ── 3. Sum quantities across all active sizes ─────────────────────────
     const totals: FlatSummary = {
       BODY: 0,
       SHORT_SLEEVE: 0,
@@ -239,56 +282,83 @@ class JFTGarmentPipeline {
 
     const allSizes = Object.keys(details) as ApparelSize[];
     for (let s = 0; s < allSizes.length; s++) {
-      const entry = details[allSizes[s]];
-      if (!entry) continue;
-      const summary = entry.SUMMARY;
-      totals.BODY += summary.BODY || 0;
-      totals.SHORT_SLEEVE += summary.SHORT_SLEEVE || 0;
-      totals.LONG_SLEEVE += summary.LONG_SLEEVE || 0;
-      totals.SHORT_PANT += summary.SHORT_PANT || 0;
-      totals.LONG_PANT += summary.LONG_PANT || 0;
+      const sm = details[allSizes[s]] && details[allSizes[s]].SUMMARY;
+      if (!sm) continue;
+      totals.BODY += sm.BODY || 0;
+      totals.SHORT_SLEEVE += sm.SHORT_SLEEVE || 0;
+      totals.LONG_SLEEVE += sm.LONG_SLEEVE || 0;
+      totals.SHORT_PANT += sm.SHORT_PANT || 0;
+      totals.LONG_PANT += sm.LONG_PANT || 0;
     }
 
-    // ── Build output lines ────────────────────────────────────────────────
+    // ── 4. Assemble output ────────────────────────────────────────────────
+    const HR = "=========================================";
+    const SEP = "----";
     const lines: string[] = [];
 
-    lines.push("========================================");
-    lines.push("  JFT-Rapid -- Run Summary");
-    lines.push("========================================");
+    lines.push(HR);
+    lines.push("  JFT" + SEP + "Rapid " + SEP + " Run Summary");
+    lines.push(HR);
+    lines.push("");
 
-    // Missed markers
-    if (missedItems.length > 0) {
-      lines.push("");
-      lines.push("  [!] MISSED ITEMS:");
-      lines.push("      " + missedItems.join(", "));
+    // Missed items section
+    if (missed.length > 0) {
+      lines.push("  [!] MISSED ITEMS");
+      lines.push("  " + SEP + " " + missed.join(", "));
     } else {
-      lines.push("");
-      lines.push("  [OK] All markers found in layer.");
+      lines.push("  [OK] All required markers found.");
     }
 
-    // Quantity breakdown
     lines.push("");
-    lines.push("  PROCESSED QUANTITIES:");
-    lines.push("  ---------------------------------");
-    lines.push("  BODY           : " + totals.BODY);
-    lines.push("  SHORT SLEEVE   : " + totals.SHORT_SLEEVE);
-    lines.push("  LONG SLEEVE    : " + totals.LONG_SLEEVE);
-    lines.push("  SHORT PANT     : " + totals.SHORT_PANT);
-    lines.push("  LONG PANT      : " + totals.LONG_PANT);
-    lines.push("  ---------------------------------");
-    lines.push("  TOTAL SETS     : " + totals.BODY);
+    lines.push("  PROCESSED QUANTITIES");
+    lines.push("  " + SEP + SEP + SEP + SEP + SEP + SEP + SEP + SEP);
+
+    // Body — always shown
+    lines.push("  TOTAL BODY         " + SEP + " " + totals.BODY);
+
+    // Sleeve rows — only what this job ordered
+    for (let s = 0; s < sleeve.length; s++) {
+      if (sleeve[s] === SleeveType.SHORT) {
+        lines.push("  SHORT SLEEVE       " + SEP + " " + totals.SHORT_SLEEVE);
+      }
+      if (sleeve[s] === SleeveType.LONG) {
+        lines.push("  LONG SLEEVE        " + SEP + " " + totals.LONG_SLEEVE);
+      }
+    }
+
+    // Rib rows
+    if (basic.rib && basic.rib.type !== RIBType.NO) {
+      const ribApply = basic.rib.apply || sleeve;
+      for (let r = 0; r < ribApply.length; r++) {
+        if (ribApply[r] === SleeveType.SHORT) {
+          lines.push("  SHORT SLEEVE RIB   " + SEP + " " + totals.SHORT_SLEEVE);
+        }
+        if (ribApply[r] === SleeveType.LONG) {
+          lines.push("  LONG SLEEVE RIB    " + SEP + " " + totals.LONG_SLEEVE);
+        }
+      }
+    }
+
+    // Pant rows
+    for (let p = 0; p < pant.length; p++) {
+      if (pant[p] === SleeveType.SHORT) {
+        lines.push("  SHORT PANT         " + SEP + " " + totals.SHORT_PANT);
+      }
+      if (pant[p] === SleeveType.LONG) {
+        lines.push("  LONG PANT          " + SEP + " " + totals.LONG_PANT);
+      }
+    }
 
     lines.push("");
-    lines.push("  Brand : " + CONFIG.BRAND);
+    lines.push("  Brand  : " + CONFIG.BRAND);
+    lines.push("  Type   : " + basic.type);
     lines.push(
-      "  Mode  : " + (CONFIG.STATIC_MODE ? "Static" : "Normal (NA/NO)"),
+      "  Mode   : " + (CONFIG.STATIC_MODE ? "Static" : "Normal (NA/NO)"),
     );
-    lines.push("========================================");
+    lines.push(HR);
 
     return lines.join("\n");
   }
-
-  // ─── Private: Size-range handling ────────────────────────────────────
 
   /**
    * Filters the current active size list to only those within `sizeRange`.
@@ -463,8 +533,6 @@ class JFTGarmentPipeline {
         distributeGap: CONFIG.DIST_ITEMS_GAP,
         sizeTkn,
         jftItem,
-        _threadEngine: CONFIG.THREAD_ENGINE,
-        fullSlvTweak: CONFIG.LONG_SLV_TWEAK,
         orientation,
         forcePair: this._forcePair,
         quantity: qty * this._qtyMultiply,
@@ -581,7 +649,7 @@ class JFTGarmentPipeline {
    * Handles one or both sleeve types. Size ranges are always applied to
    * group adjacent sizes for more efficient paper usage.
    *
-   * When `CONFIG.LONG_SLV_TWEAK` is active, `CONFIG.FILL_X_AXIS` is
+   * When `CONFIG.FULL_SLV_TWEAK` is active, `CONFIG.FILL_X_AXIS` is
    * temporarily forced `true` for the long-sleeve call so
    * `GridLayoutGenerator` dispatches to the full-sleeve tweak path.
    * It is restored after the call so other stages are not affected.
@@ -608,7 +676,7 @@ class JFTGarmentPipeline {
         sizeRanges: slvRange,
       });
 
-      // For long sleeve: if LONG_SLV_TWEAK is on, enable FILL_X_AXIS so
+      // For long sleeve: if FULL_SLV_TWEAK is on, enable FILL_X_AXIS so
       // GridLayoutGenerator enters the full-sleeve tweak path automatically.
       // Save and restore so downstream stages are not affected.
       const prevFillXAxis = CONFIG.FILL_X_AXIS;
@@ -626,7 +694,7 @@ class JFTGarmentPipeline {
       if (CONFIG.LONG_SLV_TWEAK && isLong) {
         CONFIG.FILL_X_AXIS = true;
       }
-      this.generateLayoutDoc({ itemType: enumKey });
+      this.generateLayoutDoc({ itemType: enumKey, sizeRanges: slvRange });
       CONFIG.FILL_X_AXIS = prevFillXAxis;
     }
   }

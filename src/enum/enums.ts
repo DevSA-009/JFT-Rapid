@@ -238,9 +238,9 @@ enum PairObjectMarkers {
   /** Long-pant piece (front or back). */
   LONG_PANT = "L_PANT",
   /** Short-sleeve rib/cuff piece. */
-  SHORT_SLEEVE_RIB = "S_SLV_RIB",
+  SHORT_SLEEVE_RIB = "S_RIB",
   /** Long-sleeve rib/cuff piece. */
-  LONG_SLEEVE_RIB = "L_SLV_RIB",
+  LONG_SLEEVE_RIB = "L_RIB",
 }
 
 /**

@@ -11,7 +11,7 @@
 
 // ─── Config file paths ────────────────────────────────────────────────────────
 
-$.gc()
+$.gc();
 /**
  * Absolute path to `jft.conf` in the installed CEP extension folder.
  * This is the path used when the script runs inside the production panel.

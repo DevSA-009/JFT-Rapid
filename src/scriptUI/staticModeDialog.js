@@ -196,7 +196,11 @@ const staticModeDialog = () => {
     checkRow.margins = [0, 4, 0, 0];
     checkRow.alignment = ["center", "top"]; // center the row itself inside the panel
 
-    const actionThreadChk = checkRow.add("checkbox", undefined, "Action Thread");
+    const actionThreadChk = checkRow.add(
+      "checkbox",
+      undefined,
+      "Action Thread",
+    );
     actionThreadChk.helpTip =
       "Action engine: uses Illustrator action files for transforms — more reliable on masked or compound artwork";
     actionThreadChk.value = CONFIG.THREAD_ENGINE === "action";
@@ -395,8 +399,8 @@ const staticModeDialog = () => {
         function addCell(suffix, tip, w) {
           const cell = row.add(
             'edittext {justify: "center", properties: {name: "' +
-            suffix +
-            '"}}',
+              suffix +
+              '"}}',
           );
           cell.preferredSize.width = w;
           cell.helpTip = tip;
@@ -453,7 +457,9 @@ const staticModeDialog = () => {
     bottomRow.spacing = 0;
     bottomRow.margins = [0, 2, 0, 0];
 
-    const startBtn = bottomRow.add("button", undefined, "Start", { name: "ok" });
+    const startBtn = bottomRow.add("button", undefined, "Start", {
+      name: "ok",
+    });
     startBtn.helpTip =
       "Validate, apply CONFIG settings, and run the JFT static-mode layout pipeline";
     startBtn.preferredSize.width = 80;
@@ -480,7 +486,7 @@ const staticModeDialog = () => {
       // Global keys
       parts.push(
         "TYPE=" +
-        (typeDropdown.selection ? typeDropdown.selection.text : "POLO"),
+          (typeDropdown.selection ? typeDropdown.selection.text : "POLO"),
       );
       parts.push(
         "RIB=" + (ribDropdown.selection ? ribDropdown.selection.text : "NO"),
@@ -566,6 +572,10 @@ const staticModeDialog = () => {
       ) {
         event.preventDefault();
       }
+
+      if (key === "Enter") {
+        startBtn.notify();
+      }
     }
 
     paperWidthInput.addEventListener("keydown", floatKeydown);
@@ -593,6 +603,9 @@ const staticModeDialog = () => {
         }
         if (!/[0-9]/.test(key) && key !== "Backspace" && key !== "Delete") {
           event.preventDefault();
+        }
+        if (key === "Enter") {
+          startBtn.notify();
         }
       }
 

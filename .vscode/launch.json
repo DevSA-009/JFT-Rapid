@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Launch Script in ExtendScript Engine",
       "hostAppSpecifier": "illustrator",
-      "engineName": "main"
+      "engineName": "transient"
     }
   ]
 }

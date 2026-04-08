@@ -331,6 +331,7 @@ const automateInfoDialog = () => {
       name: "ok",
     });
     enterActionBtn.helpTip = "Start Action";
+
     // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html )
     dialogRoot.items = {
       dialogRoot: dialogRoot, // dialog
@@ -443,7 +444,7 @@ const automateInfoDialog = () => {
       }
 
       if (key === "Enter") {
-        enterBn.notify();
+        enterActionBtn.notify();
       }
     };
 
@@ -486,7 +487,7 @@ const automateInfoDialog = () => {
         event.preventDefault();
       }
       if (key === "Enter") {
-        enterBn.notify();
+        enterActionBtn.notify();
       }
     });
 
@@ -510,7 +511,7 @@ const automateInfoDialog = () => {
         event.preventDefault();
       }
       if (key === "Enter") {
-        enterBn.notify();
+        enterActionBtn.notify();
       }
     });
 
