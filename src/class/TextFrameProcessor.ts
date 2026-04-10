@@ -287,6 +287,10 @@ class TextFrameProcessor {
       // ── 2. Inject content ───────────────────────────────────────────────
       textFrame.contents = replacementText;
 
+      // Flush the text layout engine so adjustFontSize reads correct bounds —
+      // stale bounds cause wrong font corrections in action engine mode
+      if (Utils.isActionThreadEngine()) app.redraw();
+
       // ── 3. Font correction ──────────────────────────────────────────────
       this.adjustFontSize(textFrame, originalSize, subItemIndex);
 
@@ -314,6 +318,9 @@ class TextFrameProcessor {
       // ── 6. Outline — MUST be last (destroys TextFrame reference) ────────
       if (willBeOutlined) {
         textFrame.createOutline();
+        // Force scene graph commit after outline — next duplicate() must see
+        // the new GroupItem node, not the destroyed TextFrame
+        if (Utils.isActionThreadEngine()) app.redraw();
       }
     }
   }

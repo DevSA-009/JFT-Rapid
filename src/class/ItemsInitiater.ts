@@ -174,6 +174,8 @@ class ItemsInitiater {
     // Step 2 — resize: skipped when caller sets skipResize
     if (!this.skipResize) {
       this.resize();
+      // Flush resize before reading text frame positions in updateSizeTokens
+      if (Utils.isActionThreadEngine()) app.redraw();
     }
 
     // Step 3 — size token: skipped when caller sets manipulateTkn false

@@ -223,6 +223,10 @@ class GridLayoutGenerator {
    */
   private readonly fillXAxis: boolean;
 
+  /** Temporary document used for safe duplication of source artwork */
+  private tempInitDoc: Document | null = null;
+  private tempInitDocHandler: IllustratorDocument | null = null;
+
   // ─── Constructor ──────────────────────────────────────────────────────
 
   /**
@@ -258,8 +262,9 @@ class GridLayoutGenerator {
     this.countType = this.jftItem.info.countType;
     this.isPaired = this.jftItem.info.pair;
 
-    // Create working duplicates of source artwork — originals are never modified
-    this.artworkItems = this.duplicateSourceItems();
+    this.initiateTempDoc();
+
+    this.artworkItems = this.duplicateSourceItemsIntoTemp();
 
     // White-fill cleanup is skipped when skipStack is active
     if (!this.skipStack) {
@@ -267,7 +272,10 @@ class GridLayoutGenerator {
     }
 
     // Nothing to do if all items were cleaned out
-    if (!this.artworkItems.length) return;
+    if (!this.artworkItems.length) {
+      this.closeInitiateTempDoc();
+      return;
+    }
 
     // Mark as single-item when only one artwork survived
     if (this.artworkItems.length === 1) this.isSingleItem = true;
@@ -310,6 +318,7 @@ class GridLayoutGenerator {
 
       this.composedReferenceItem!.remove();
       this.composedReferenceItem = null;
+      this.closeInitiateTempDoc();
       return;
     }
 
@@ -318,6 +327,7 @@ class GridLayoutGenerator {
     // Fill-rectangle items use a simpler strip-document path
     if (this.shouldUseFillRecPath()) {
       this.runFillRecPath();
+      this.closeInitiateTempDoc();
       return;
     }
 
@@ -343,6 +353,57 @@ class GridLayoutGenerator {
     if (this.stackRecommendation.hasRemainder) {
       this.runRemainderPass();
     }
+
+    // === Final cleanup ===
+    this.closeInitiateTempDoc();
+  }
+
+  // ─── New: Temp Document Management ───────────────────────────────────
+  private initiateTempDoc() {
+    const docHandler = new IllustratorDocument(`TEMP-${this.jftItem.order}`);
+
+    // Create the document and copy dynamicItem into it as the seed
+    const newDoc = docHandler.create(null);
+
+    this.tempInitDocHandler = docHandler;
+    this.tempInitDoc = newDoc;
+  }
+
+  /**
+   * Duplicates original JFT items into the temporary document.
+   */
+  private duplicateSourceItemsIntoTemp(): PageItem[] {
+    if (!this.tempInitDoc) {
+      throw new Error(`Temp ${this.jftItem.order} document not created`);
+    }
+
+    const duplicated: PageItem[] = [];
+
+    // Duplicate first item
+    duplicated.push(
+      this.jftItem.items[0].object.duplicate(this.tempInitDoc) as PageItem,
+    );
+
+    // Duplicate second item if it exists
+    if (this.jftItem.items[1] && this.jftItem.items[1].object) {
+      duplicated.push(
+        this.jftItem.items[1].object.duplicate(this.tempInitDoc) as PageItem,
+      );
+    }
+
+    return duplicated;
+  }
+
+  /**
+   * Closes the temporary document without saving.
+   */
+  private closeInitiateTempDoc(): void {
+    if (this.tempInitDocHandler) {
+      this.tempInitDocHandler.close();
+      this.tempInitDocHandler = null;
+      this.tempInitDoc = null;
+    }
+    if (typeof $ !== "undefined") $.gc();
   }
 
   // ─── Private: Pass orchestration ─────────────────────────────────────
@@ -354,7 +415,7 @@ class GridLayoutGenerator {
    */
   private runRemainderPass(): void {
     // Fresh duplicates for the remainder pass — avoids reusing modified artwork
-    this.artworkItems = this.duplicateSourceItems();
+    this.artworkItems = this.duplicateSourceItemsIntoTemp();
 
     // Remainder pass always pairs items to keep the grid compact
     this.isPaired = true;
@@ -362,6 +423,8 @@ class GridLayoutGenerator {
 
     // Remove any white-fill items from the fresh duplicates
     this.cleanSkipItem();
+
+    this.specialValidation();
 
     // Recalculate the stack recommendation with updated pairing state
     this.stackRecommendation = this.calculateStackRecommendation();
@@ -598,18 +661,6 @@ class GridLayoutGenerator {
   // ─── Private: Initialisation helpers ─────────────────────────────────
 
   /**
-   * Creates working duplicates of both source PageItems.
-   * The second slot may be `null` when only one item exists; callers must
-   * check `isSingleItem` before accessing index 1.
-   */
-  private duplicateSourceItems(): PageItem[] {
-    return [
-      this.jftItem.items[0].object.duplicate(),
-      this.jftItem.items[1].object.duplicate() || null,
-    ] as PageItem[];
-  }
-
-  /**
    * Builds the {@link LayoutPassTracker} snapshot from the current stack recommendation.
    *
    * @param passType - `"main"` or `"rem"` — selects the correct recommendation fields.
@@ -722,9 +773,10 @@ class GridLayoutGenerator {
     const order = this.jftItem.order;
 
     // NECK is inherently single-sided — no pairing applies
-    const isSingleSidedOrder = order === PairObjectMarkers.NECK;
+    const isSingleSidedOrder = order === "NECK";
 
     if (isSingleSidedOrder && this.artworkItems.length > 1) {
+      this.isSingleItem = isSingleSidedOrder;
       // Discard the second duplicate
       this.artworkItems.splice(1, 1);
       this.isPaired = false;
@@ -981,10 +1033,13 @@ class GridLayoutGenerator {
         // Give Illustrator time to settle between placements in action mode —
         // rapid duplication + move in tight loops can cause unexpected object
         // behaviour when the action engine is active.
-        if (Utils.isActionThreadEngine()) $.sleep(CONFIG.ACTION_DELAY_MS);
 
         // Now safe to process pendingItem — its duplicate (nextItem) is already created
         this.textProcessor!.process(pendingItem!);
+
+        // Flush after process — ensures outline/injection state is committed
+        // before the next duplicate() reads the item's DOM node
+        if (Utils.isActionThreadEngine()) app.redraw();
 
         // Advance the pending pointer to the newly placed item
         pendingItem = nextItem;
@@ -1001,6 +1056,9 @@ class GridLayoutGenerator {
         // Before creating the new column head, process the last item of the current row —
         // it will no longer be duplicated within the row loop
         this.textProcessor!.process(pendingItem!);
+        // Flush before starting the new column — stale post-outline nodes
+        // cause the new column head duplicate to inherit incorrect geometry
+        if (Utils.isActionThreadEngine()) app.redraw();
         pendingItem = null;
 
         // Position the new column head below the previous column's first item
@@ -1013,7 +1071,6 @@ class GridLayoutGenerator {
         });
 
         // Settle between column placements in action mode
-        if (Utils.isActionThreadEngine()) $.sleep(CONFIG.ACTION_DELAY_MS);
 
         columnFirstItem = newColFirst;
         currentItem = newColFirst;
@@ -1034,6 +1091,9 @@ class GridLayoutGenerator {
     // so it was never processed inside the loop — apply it now
     if (pendingItem) {
       this.textProcessor!.process(pendingItem);
+      // Final flush — ensures the last outlined/injected item is committed
+      // before alignAllItemsCenter reads the scene for bounds calculation
+      if (Utils.isActionThreadEngine()) app.redraw();
     }
 
     // ── Cleanup and alignment ─────────────────────────────────────────────
@@ -1253,7 +1313,7 @@ class GridLayoutGenerator {
         this.composedReferenceItem = null;
 
         // Static side: build its own VRH reference and save as a single document
-        this.artworkItems = [stc.itemEntry.object.duplicate()];
+        this.artworkItems = [stc.itemEntry.object.duplicate(this.tempInitDoc!)];
         const staticVrh = this.buildComposedReference("VRH");
         this.saveStaticDocument(
           staticVrh,
@@ -1261,7 +1321,7 @@ class GridLayoutGenerator {
         );
 
         // Dynamic side: build its own VRH reference and process as a grid
-        this.artworkItems = [dyn.itemEntry.object.duplicate()];
+        this.artworkItems = [dyn.itemEntry.object.duplicate(this.tempInitDoc!)];
         const dynamicVrh = this.buildComposedReference("VRH");
         this.composedReferenceItem = dynamicVrh;
         this.processDynamicPass({

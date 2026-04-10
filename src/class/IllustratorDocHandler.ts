@@ -194,11 +194,13 @@ class IllustratorDocument {
       duplicatedItems.unshift(objects[i - 1].duplicate(this.doc) as PageItem);
     }
 
+    if (Utils.isActionThreadEngine()) app.redraw();
     AlignmentHandler.alignPageItemsToArtboard({
       doc: this.doc,
       objects: duplicatedItems,
-      engine: "action",
+      engine: CONFIG.THREAD_ENGINE || "action",
     });
+    if (Utils.isActionThreadEngine()) app.redraw();
   }
 }
 

@@ -196,14 +196,21 @@ class JFTGarmentPipeline {
    */
   private run() {
     this.collarFlowHandle();
+
     this.ribFlowHandler();
+
     this.sleeveFlowHandle();
+
     this.bodyFlowHandle();
+
     this.pantFlowHandle();
 
     // Request garbage collection after the full pipeline completes — releases
     // memory from all duplicated artwork, temp groups, and closed documents
-    if (typeof $ !== "undefined") $.gc();
+    if (typeof $ !== "undefined") {
+      $.gc();
+      $.gc();
+    }
   }
 
   // ─── Public: Run summary ──────────────────────────────────────────────

@@ -54,13 +54,6 @@ interface JFTRapid_Config {
    * Automatically implies `FILL_X_AXIS` for the long-sleeve stage.
    */
   LONG_SLV_TWEAK: boolean;
-  /**
-   * Milliseconds to sleep after each `app.doScript()` call when
-   * `THREAD_ENGINE === "action"`.  Gives Illustrator time to flush its
-   * action queue before the next transformation is dispatched.
-   * @default 50
-   */
-  ACTION_DELAY_MS: number;
 }
 
 // ─── Illustrator DOM helpers ──────────────────────────────────────────────────

@@ -205,8 +205,8 @@ class JFTItemResolver {
         }
       } else {
         // No direction found — assign LEFT/RIGHT defaults
-        obj1.name += `_${DirectionMarkers.LEFT}_`;
-        obj2.name += `_${DirectionMarkers.RIGHT}_`;
+        obj1.name += `${DirectionMarkers.LEFT}_`;
+        obj2.name += `${DirectionMarkers.RIGHT}_`;
         obj1Direction = DirectionMarkers.LEFT;
         obj2Direction = DirectionMarkers.RIGHT;
       }

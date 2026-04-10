@@ -822,8 +822,6 @@ class TransActionHandler {
    * fully completed — especially during tight loops with many
    * rotate/resize/move operations.  This helper:
    * 1. Forces a synchronous redraw so UI and internal state are flushed.
-   * 2. Sleeps for `CONFIG.ACTION_DELAY_MS` ms to give Illustrator time to
-   *    settle before the next action is created and dispatched.
    *
    * No-op when `THREAD_ENGINE === "script"`.
    *
@@ -835,9 +833,6 @@ class TransActionHandler {
 
     // Flush the Illustrator UI command queue synchronously
     app.redraw();
-
-    // Wait before the next action so object state is stable
-    $.sleep(CONFIG.ACTION_DELAY_MS);
   }
 
   removeAll(): void {
