@@ -461,9 +461,8 @@ class JFTGarmentPipeline {
    * merges, then iterates over the sorted active sizes and calls
    * {@link GridLayoutGenerator} for each.
    *
-   * When `jftItem.info.fixedSize && hasDync`:
+   * When `hasDync`:
    * - Stores the `"L"` dimension in `_overrideDim` (once; skips re-assign if already set).
-   * - Bypasses `handleFixedSizeItem` and range rules.
    * - Each size in the loop uses `_overrideDim` as its dimension.
    *
    * State overrides (`_overrideDim`, `_tknManip`, `_skipStack`, `_skipResize`)
@@ -516,7 +515,7 @@ class JFTGarmentPipeline {
         ? this._trackRangeSizeChar[sizeChar]
         : sizeChar;
 
-      // Use _overrideDim when present (fixedSize+dyn path), else conf lookup
+      // Use _overrideDim when present (dyn path), else conf lookup
       const primaryDimension = this._overrideDim
         ? this._overrideDim
         : CONFIG.SIZES_DETAILS[sizeChar][itemType];

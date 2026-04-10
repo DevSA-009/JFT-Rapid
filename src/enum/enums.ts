@@ -337,13 +337,3 @@ const SIZE_TKN = "SIZE_TKN";
  * Illustrator falls back to the document default font and logs a warning.
  */
 const SIZE_TKN_FONT = "Sakana-Regular";
-
-// ─── Pairing shortcuts ────────────────────────────────────────────────────────
-
-/**
- * The two garment-part markers that form the standard "face" pair used when
- * validating collar-body pairing relationships.
- *
- * Order matters: BODY is always index 0, COLLAR is index 1.
- */
-const faceBasePair = [PairObjectMarkers.BODY, PairObjectMarkers.COLLAR];

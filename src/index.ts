@@ -63,8 +63,8 @@ const CONFIG: JFTRapid_Config = {
   DIMENSION_RANGE: false,
   /** Outline all text frames after player-data injection when `true`. */
   OUTLINE_TEXT: false,
-  /** Maximum printable paper width in inches (from jft.conf paperSize). */
-  PAPER_MAX_SIZE: 63.25,
+  /** Maximum printable paper width in inches (from jft.conf paperMaxWidth). */
+  PAPER_MAX_SIZE: JFT_CONF.config.paperMaxWidth || 63.25,
   /** Full parsed jft.conf object. */
   JFT_CONF,
   /** Shorthand alias for JFT_CONF.config. */
