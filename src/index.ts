@@ -11,7 +11,6 @@
 
 // ─── Config file paths ────────────────────────────────────────────────────────
 
-$.gc();
 /**
  * Absolute path to `jft.conf` in the installed CEP extension folder.
  * This is the path used when the script runs inside the production panel.
@@ -96,11 +95,6 @@ const CONFIG: JFTRapid_Config = {
    * Automatically enables CMD fill-X behaviour for that stage.
    */
   LONG_SLV_TWEAK: false,
-  /**
-   * Milliseconds to sleep after each action-engine `doScript` call.
-   * Only active when `THREAD_ENGINE === "action"`.
-   */
-  ACTION_DELAY_MS: 50,
 };
 
 // Override SIZES_DETAILS using the brand declared in the config file.
@@ -123,4 +117,8 @@ CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
  */
 const jftProcessSeqWrapper = (data: AutomateData | string) => {
   new JFTProcessSequentially(data as unknown as AutomateData);
+  JFTPersistConfigFetch.write({
+    ...JFT_CONF,
+    config: { brand: CONFIG.BRAND, paperMaxWidth: CONFIG.PAPER_MAX_SIZE },
+  } as PersistConfig);
 };
