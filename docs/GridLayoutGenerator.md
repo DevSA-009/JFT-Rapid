@@ -33,32 +33,53 @@ One `GridLayoutGenerator` instance handles exactly one size's worth of one garme
 new GridLayoutGenerator(params)
 │
 ├─ 1. Validate + store params
-├─ 2. Duplicate source artwork from active layer
-├─ 3. Remove white-fill placeholder rectangles (unless skipStack)
-├─ 4. Apply forcePair / NECK single-side special cases
+├─ 2. openTempDoc()  →  TEMP-<order> document created (e.g. TEMP-S_SLV)
+├─ 3. Duplicate source artwork into temp doc (originals in main doc untouched)
+├─ 4. Remove white-fill placeholder rectangles (unless skipStack)
+├─ 5. Apply forcePair / NECK single-side special cases
+│
+├─ [LONG_SLV_TWEAK + non-dynamic path]
+│   ├─ runLongSlvTweak() — compose sleeve unit, set skipStack + update qty
+│   └─ falls through to skipStack path below
 │
 ├─ [skipStack path]
-│   ├─ ItemsInitiater(stack = "NONE")  → composedReferenceItem
-│   ├─ createGrid(rows=1, cols=quantity)
+│   ├─ ItemsInitiater(stack = "NONE")  → composedReferenceItem  (in temp doc)
+│   ├─ processDynamicPass() → one EPS per qty
+│   ├─ composedReferenceItem.remove()
+│   ├─ closeTempDoc()
 │   └─ RETURN
 │
-├─ 5. [fixedSize + isFillRec path]  → fillRecStripLayout()
+├─ [isFillRec path]
+│   ├─ saveFillRecStrips()  →  resizes + saves EPS strip
+│   ├─ closeTempDoc()
+│   └─ RETURN
 │
-└─ 6. [normal path]
+└─ [normal path]
     ├─ GridCalculator.getRecommendedStacks()  → stackRecommendation
-    ├─ ItemsInitiater(stack = mainStack)       → composedReferenceItem
+    ├─ ItemsInitiater(stack = mainStack)       → composedReferenceItem (temp doc)
     ├─ mainLayoutPass()
-    │   ├─ createLayoutDoc(rows, cols, reqDocs)
     │   └─ for each document:
-    │       ├─ createGrid(rows, cols, maxCol, doc, item)
+    │       ├─ createGrid() — duplicates items inside output EPS doc
     │       ├─ TextFrameProcessor.process() per placed item
     │       └─ IllustratorDocument.save() → EPS
     │
-    └─ [if remainder]
-        ├─ ItemsInitiater(stack = remainderStack) → composedReferenceItem
-        └─ remainderLayoutPass()
-            └─ (same as main pass)
+    ├─ composedReferenceItem.remove()
+    │
+    ├─ [if remainder]  — reuses same temp doc, no new temp doc opened
+    │   ├─ ItemsInitiater(stack = remainderStack) → composedReferenceItem
+    │   └─ remainderLayoutPass()
+    │
+    ├─ closeTempDoc()
+    └─ RETURN
 ```
+
+### Temp Doc Pattern
+
+Every `GridLayoutGenerator` run creates one temporary Illustrator document named `TEMP-<order>` (e.g. `TEMP-S_SLV`, `TEMP-BODY`). All artwork duplication and composed reference groups live in this doc. When passes finish the temp doc is closed without saving, keeping the main artwork document clean.
+
+- The **remainder pass reuses the same temp doc** — no second temp doc is opened.
+- `closeTempDoc()` is called at every exit path including early returns.
+- Surviving `composedReferenceItem` and unused `artworkItems` are removed before the close.
 
 ---
 
@@ -138,9 +159,13 @@ If a NECK item has no pairable counterpart, `isPaired` is forced to `false` and 
 
 When `quantity < 3` and the item is naturally unpaired (`PCS` count type), `isPaired` is upgraded to `true` to avoid generating a single-item document.
 
-### Fill-Rectangle Strip Path
+**Fill-Rectangle Strip Path:** Creates a vertical strip (max 20").
 
-When `jftItem.info.fixedSize && jftItem.items[x].isFillRec`, the item is a plain colored rectangle. Instead of the normal grid, a vertical strip document is generated up to `FILL_REC_STRIP_HEIGHT_INCH` (20 inches) tall.
+- `pair = true` → dimensions are combined (add if secondary exists, else double)
+- `fitRow` → items per row
+- `rows = ceil(qty / fitRow)`
+- `height = dimension.height × rows`
+- if limit is exceeded → split into multiple documents (divider added)
 
 ---
 
@@ -223,7 +248,15 @@ When `CONFIG.LONG_SLV_TWEAK = true` and the item is `LONG_SLEEVE` and **non-dyna
 
 **লো-কোয়ান্টিটি ফোর্স পেয়ার:** পরিমাণ ৩-এর কম হলে আনপেয়ার্ড আইটেম স্বয়ংক্রিয়ভাবে পেয়ারড হয়।
 
-**ফিল-রেক্টাঙ্গেল স্ট্রিপ পাথ:** সাদা রেক্টাঙ্গেল আইটেমের জন্য ২০ ইঞ্চি পর্যন্ত ভার্টিক্যাল স্ট্রিপ ডকুমেন্ট তৈরি হয়।
+**ফিল-রেক্টাঙ্গেল স্ট্রিপ পাথ:** ২০ ইঞ্চি পর্যন্ত ভার্টিক্যাল স্ট্রিপ তৈরি হয়।
+
+- `pair = true` → dimension combine হয় (secondary থাকলে যোগ, না থাকলে দ্বিগুণ)
+- `fitRow` → প্রতি রোতে আইটেম সংখ্যা
+- `rows = ceil(qty / fitRow)`
+- `height = dimension.height × rows`
+- limit ছাড়ালে → একাধিক ডকুমেন্টে ভাগ হয় (divider যোগ হয়)
+
+**টেম্প ডক প্যাটার্ন:** প্রতিটি `GridLayoutGenerator` রান-এ `TEMP-<order>` নামে একটি অস্থায়ী Illustrator ডকুমেন্ট তৈরি হয়। সব আর্টওয়ার্ক ডুপ্লিকেট এবং কম্পোজড রেফারেন্স গ্রুপ এই ডকে থাকে। সব পাস শেষে ডকটি সেভ ছাড়াই বন্ধ হয়।
 
 **ফিল-ওয়াইড (CMD) মোড — `CONFIG.FILL_X_AXIS`:**
 `true` হলে non-dynamic আইটেম পেপার জুড়ে এক সারিতে সাজানো হয়। প্রতিটি ডকুমেন্টে `fitRow` টি কপি পাশাপাশি থাকে। মোট ডকুমেন্ট = `ceil(qty / fitRow)`। ফাইলনামে `N CMD` থাকে। Dynamic আইটেম এই পাথ bypass করে স্বাভাবিক গ্রিড পাথে যায়।

@@ -122,7 +122,7 @@ type ResolveMixedObjectsResult = {
  * 3. Apply `forcePair` and special-case validations (NECK single-sided, low-quantity forced pair).
  * 4. **skipStack path** — if `skipStack` is `true`: build reference group with stack `"NONE"`,
  *    create grid with `fitRow = 1` and `cols = quantity`, then return.
- * 5. Otherwise: if `fixedSize + isFillRec` → delegate to the fill-rectangle strip path.
+ * 5. Otherwise: if `isFillRec` → delegate to the fill-rectangle strip path.
  * 6. Otherwise: ask {@link GridCalculator} for the best stack recommendation,
  *    build the composed reference group via {@link ItemsInitiater}, then run
  *    the main layout pass. If a remainder exists, run a second pass.
@@ -452,7 +452,6 @@ class GridLayoutGenerator {
    * of the standard grid layout.
    *
    * @remarks
-   * Only applicable when `jftItem.info.fixedSize` is set. For unpaired
    * mixed items, either side having `isFillRec` is sufficient; for paired
    * items, both must be fill-rectangles.
    */
@@ -560,12 +559,14 @@ class GridLayoutGenerator {
   }
 
   /**
-   * Resizes `sourceItem` to fill the full paper width and saves it as a
-   * single EPS strip document.
+   * Creates vertical strip EPS documents for fill-rectangle items.
    *
-   * @param sourceItem - Artwork item to resize and save.
-   * @param pair       - When `true`, doubles the quantity before calculating
-   *                     the strip height (both sides of a pair on one strip).
+   * The artwork is resized to full paper width and stacked vertically
+   * based on quantity and calculated slot size.
+   *
+   * @param sourceItem - The rectangle artwork item.
+   * @param pair - If true, combines both sides of a pair into one slot.
+   *
    */
   private saveFillRecStrips(sourceItem: PageItem, pair: boolean): void {
     // Convert paper width from inches to points for Illustrator APIs
@@ -575,20 +576,36 @@ class GridLayoutGenerator {
       to: "pt",
     });
 
+    let dimension: DimensionObject = this.primaryDimension;
+
+    if (pair) {
+      if (this.secondaryDimension) {
+        dimension = {
+          width: dimension.width + this.secondaryDimension.width,
+          height: dimension.height + this.secondaryDimension.height,
+        };
+      } else {
+        dimension = {
+          width: dimension.width * 2,
+          height: dimension.height * 2,
+        };
+      }
+    }
+
     // How many items fit side-by-side across the full paper width
     const fitRow = GridCalculator.getRowFitCount({
-      stackWidth: this.primaryDimension.width,
+      stackWidth: dimension.width,
       gap: 0,
     });
 
     // Total quantity for this strip — doubled when both pair sides are included
-    const qty = !pair ? this.quantity : this.quantity * 2;
+    const qty = this.quantity;
 
     // Number of stacked rows needed for the full quantity
     const cols = Math.ceil(qty / fitRow);
 
     // Total raw height in inches for all rows combined
-    const height = this.primaryDimension.height * cols;
+    const height = dimension.height * cols;
 
     // Find the most printable height factorisation within FILL_REC_STRIP_HEIGHT_INCH
     const { baseHeight, divider } = Utils.getBestDividerAndHeight(height);
