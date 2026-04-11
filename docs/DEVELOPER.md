@@ -66,6 +66,8 @@ JFT-Rapid/
 │   ├── enum/
 │   │   └── enums.ts                   ← All enums, constants, and test data payloads
 │   │
+│   ├── test/                          ← All files that used for test and debug
+│   │
 │   ├── types/
 │   │   ├── custom.d.ts                ← All project-specific type definitions
 │   │   ├── es6_extend.d.ts            ← Type declarations for ES6 polyfills
