@@ -15,6 +15,20 @@
 
 ---
 
+<div align="center">
+
+<a href="https://github.com/DevSA-009/JFT-Rapid/releases/latest/download/com.jftrapid.cep.zxp">
+  <img src="https://img.shields.io/badge/Download-JFT%20Rapid%202.0-0A66C2?style=flat-square&logo=adobeillustrator&logoColor=white" width="260"/>
+</a>
+&nbsp;&nbsp;
+<a href="https://github.com/DevSA-009/JFT-Rapid/releases/download/zxp-ins-1.0/Install_ZXP_By_Drag.zip">
+  <img src="https://img.shields.io/badge/Install-ZXP%20via%20Drag%20%26%20Drop-2EA44F?style=flat-square&logo=adobe&logoColor=white" width="298"/>
+</a>
+
+</div>
+
+---
+
 ## What is JFT-Rapid?
 
 JFT-Rapid is a free, open-source Adobe Illustrator extension built specifically for **sportswear printing businesses**. If your team takes orders for jerseys, polo shirts, or sports pants — and you spend hours manually duplicating and arranging artwork for each player size — JFT-Rapid automates all of that for you.
