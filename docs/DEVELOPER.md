@@ -366,6 +366,14 @@ Before writing any code that touches `translate()`, `position`, `artboardRect`, 
 
 ---
 
+## Build & Distribution
+
+To package the extension as a signed `.zxp` and install it into the Adobe CEP folder, see the **[Build & Install Guide](BUILD.md)**.
+
+It covers: signing certificate setup, `npm run build_zxp`, `npm run install_zxp`, and the required project folder structure.
+
+---
+
 ## Contribution Guidelines
 
 1. **Fork** the repository and create a feature branch: `git checkout -b feature/my-feature`
@@ -553,6 +561,14 @@ details.DATA = [
 JFT-Rapid প্রোগ্রামেটিকভাবে Illustrator অবজেক্ট পরিচালনা করে। Illustrator প্রসঙ্গ অনুযায়ী **দুটি ভিন্ন Y-অক্ষ দিক** ব্যবহার করে — এটি ভুল হলে অবজেক্ট ভুল দিকে সরে যায়।
 
 `translate()`, `position`, `artboardRect`, বা `TransActionHandler` স্পর্শ করে এমন যেকোনো কোড লেখার আগে পড়ুন: **[Coordinate System Reference](COORDINATE-SYSTEM.md)**।
+
+---
+
+## বিল্ড ও ডিস্ট্রিবিউশন
+
+এক্সটেনশনটি সাইনড `.zxp` হিসেবে প্যাকেজ করে Adobe CEP ফোল্ডারে ইনস্টল করতে দেখুন: **[Build & Install Guide](BUILD.md)**।
+
+সার্টিফিকেট সেটআপ, `npm run build_zxp`, `npm run install_zxp` এবং প্রজেক্ট ফোল্ডার স্ট্রাকচার সেখানে বিস্তারিত আছে।
 
 ---
 

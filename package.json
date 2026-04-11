@@ -1,7 +1,9 @@
 {
   "scripts": {
     "build": "tsc",
-    "format": "npx prettier . --write"
+    "format": "npx prettier . --write",
+    "build_zxp": "cmd /c \"tools\\build_extension.cmd\"",
+    "install_zxp": "cmd /c \"tools\\install_extensions.cmd\""
   },
   "devDependencies": {
     "typescript": "^5.9.3"
