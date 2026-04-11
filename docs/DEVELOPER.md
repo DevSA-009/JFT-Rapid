@@ -85,12 +85,17 @@ JFT-Rapid/
 ├── docs/                          ← Developer and feature documentation (this folder)
 │   ├── DEVELOPER.md               ← This file
 │   ├── GridLayoutGenerator.md     ← Deep-dive: grid layout engine
+│   ├── DATA-FORMAT.md             ← Deep dive: Formatting dump data into structured & JSON exports
+│   ├── STATIC-MODE.md             ← Deep dive: Static mode syntax, value types, and order flow
+│   ├── BUILD.md                   ← Deep dive: Distributing ZXP packages and easy installation using npm
+│   ├── INSTALLATION.md            ← Deep dive: Beginner-friendly guide to installing without issues
+│   ├── COORDINATE-SYSTEM.md       ← Deep dive: Illustrator UI and ExtendScript Y-axis calculation system
 │   ├── GridCalculator.md          ← Deep-dive: stack geometry math
 │   └── TextFrameProcessor.md      ← Deep-dive: text injection pipeline
 │
+├── .debug                         ← Allowed adobe live debug
 ├── jft.conf                       ← JSON config: brand, paper size, garment dimensions
 ├── tsconfig.json                  ← TypeScript compiler config
-├── STATIC-MODE-REFERENCE.MD       ← End-user reference for static-mode input strings
 └── README.md                      ← Project overview (bilingual)
 ```
 

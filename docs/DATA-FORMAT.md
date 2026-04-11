@@ -139,7 +139,7 @@ XS=3,M=10,L=8,2XL=3
 TYPE=TSHIRT,RIB=CUFF,SLV=S,XS=3,M=10.SS5.LS5,L=8
 ```
 
-See `STATIC-MODE-REFERENCE.MD` for full static mode documentation.
+See [STATIC-MODE](STATIC-MODE.md) for full static mode documentation.
 
 ---
 
@@ -341,7 +341,7 @@ XL---PLAYER 20---20---SHORT---RIB---LONG
 XS=3,M=10,L=8,2XL=3
 ```
 
-বিস্তারিত: `STATIC-MODE-REFERENCE.MD` দেখুন।
+বিস্তারিত: [STATIC-MODE](STATIC-MODE.md) দেখুন।
 
 ---
 
