@@ -11,16 +11,22 @@ const selectElementById = (id) => {
 };
 
 // ---------- patch Automate NANO Button --------- \\
-const autoNANOBtn = selectElementById("autoNANO");
-autoNANOBtn.onclick = () => {
+const automateBtn = selectElementById("automate");
+automateBtn.onclick = () => {
   csInterface.evalScript("automateInfoDialog()");
 };
 
 // ---------- patch Grid Layout Button --------- \\
-const gridLayoutBtn = selectElementById("gridLayout");
+const staticBtn = selectElementById("static");
 
-gridLayoutBtn.onclick = () => {
+staticBtn.onclick = () => {
   csInterface.evalScript("staticModeDialog()");
+};
+// ---------- patch JFT Conf Editor Button --------- \\
+const jftConfEditorBtn = selectElementById("jftConfEditor");
+
+jftConfEditorBtn.onclick = () => {
+  csInterface.evalScript("confEditorDialog()");
 };
 
 // ---------- patch Tweak Buttons --------- \\

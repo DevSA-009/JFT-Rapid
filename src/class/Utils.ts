@@ -1279,6 +1279,112 @@ class Utils {
       }
     }
   }
+
+  /**
+   * Handles `keydown` events for ScriptUI `EditText` fields to enforce valid floating-point input.
+   *
+   * ### Allowed Input
+   * - Integers (e.g., `5`, `10`, `25`)
+   * - Floating-point numbers (e.g., `0.5`, `1.25`, `10.75`)
+   * - A single decimal separator (`.`)
+   *
+   * ### Allowed Keys
+   * - Digits: `0–9`
+   * - Decimal point: `.` (both `Period` and numpad `Decimal`)
+   *
+   * ### Allowed Control / Navigation Keys
+   * - Editing: `Backspace`, `Delete`
+   * - System: `Escape`, `Tab`
+   * - Navigation: `Left`, `Right`, `Up`, `Down`, `Home`, `End`
+   *
+   * ### Allowed Modifier Behavior
+   * - Standalone modifier keys: `Shift`, `Ctrl`, `Cmd`, `Alt`
+   * - Common shortcuts:
+   *   - `Ctrl/Cmd + A` → Select all
+   *   - `Ctrl/Cmd + C` → Copy
+   *   - `Ctrl/Cmd + V` → Paste
+   *   - `Ctrl/Cmd + X` → Cut
+   * - Other modifier combinations are not blocked (default system behavior allowed)
+   *
+   * ### Blocked Input
+   * - Non-numeric characters
+   * - More than one decimal point
+   * - Leading zero (`"0"`) unless followed by a decimal (`"0."`)
+   * - Redundant zero after `"0."` (e.g., `"0.0"`, `"0.00"`)
+   *
+   * ### Behavior Notes
+   * - Allows `"0."` as a valid intermediate state
+   * - Prevents invalid numeric formats during typing (pre-validation only)
+   * - Does NOT sanitize pasted content (should be handled separately if required)
+   * - Designed specifically for Adobe ScriptUI `EditText`
+   *
+   * @param event - ScriptUI keyboard event object (`KeyboardEvent`)
+   * @returns Nothing. Calls `event.preventDefault()` to block invalid input.
+   */
+  static floatKeydown(event: KeyboardEvent): void {
+    let key = event.keyName;
+    const textField = event.target;
+    const currentText = (textField as EditText).text;
+
+    // === Allow common Ctrl/Cmd shortcuts ===
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      (key === "A" || key === "C" || key === "V" || key === "X")
+    ) {
+      return;
+    }
+
+    // === Allow standalone modifier keys ===
+    if (
+      key === "Shift" ||
+      key === "Control" ||
+      key === "Alt" ||
+      key === "Meta"
+    ) {
+      return;
+    }
+
+    // === Allow navigation + control keys ===
+    if (
+      key === "Backspace" ||
+      key === "Delete" ||
+      key === "Escape" ||
+      key === "Tab" ||
+      key === "Enter" ||
+      key === "Left" ||
+      key === "Right" ||
+      key === "Up" ||
+      key === "Down" ||
+      key === "Home" ||
+      key === "End"
+    ) {
+      return;
+    }
+
+    if (key === "Period" || key === "Decimal") {
+      key = ".";
+    }
+
+    if (!/^[0-9]$/.test(key) && key !== ".") {
+      event.preventDefault();
+      return;
+    }
+
+    if (key === "." && currentText.indexOf(".") !== -1) {
+      event.preventDefault();
+      return;
+    }
+
+    if (key === "0" && currentText === "") {
+      event.preventDefault();
+      return;
+    }
+
+    if (key === "0" && currentText === "0.") {
+      event.preventDefault();
+      return;
+    }
+  }
 }
 
 interface ConvertParams {

@@ -105,9 +105,7 @@ const staticModeDialog = () => {
 
     paperWidthCell.add("statictext", undefined, "Paper W").justify = "center";
 
-    const paperWidthInput = paperWidthCell.add(
-      'edittext {justify: "center", properties: {name: "paperWidthInput"}}',
-    );
+    const paperWidthInput = paperWidthCell.add('edittext {justify: "center"}');
     paperWidthInput.helpTip = "Maximum paper width in inches (e.g. 63.3)";
     paperWidthInput.text = CONFIG.PAPER_MAX_SIZE.toString();
     paperWidthInput.preferredSize.width = 68;
@@ -124,7 +122,6 @@ const staticModeDialog = () => {
       "dropdownlist",
       undefined,
       undefined,
-      { name: "orientationDropdown" },
     );
     orientationDropdown.preferredSize.width = 90;
     orientationDropdown.helpTip =
@@ -157,9 +154,7 @@ const staticModeDialog = () => {
 
     brandCell.add("statictext", undefined, "Brand").justify = "center";
 
-    const brandDropdown = brandCell.add("dropdownlist", undefined, undefined, {
-      name: "brandDropdown",
-    });
+    const brandDropdown = brandCell.add("dropdownlist", undefined, undefined);
     brandDropdown.preferredSize.width = 68;
     brandDropdown.helpTip =
       "Size chart brand - determines garment dimensions loaded from JFT_CONF";
@@ -180,9 +175,7 @@ const staticModeDialog = () => {
 
     gapCell.add("statictext", undefined, "Gap").justify = "center";
 
-    const itemsGapInput = gapCell.add(
-      'edittext {justify: "center", properties: {name: "itemsGapInput"}}',
-    );
+    const itemsGapInput = gapCell.add('edittext {justify: "center"}');
     itemsGapInput.helpTip =
       "Gap between distributed placed items in inches (e.g. 0.1)";
     itemsGapInput.text = 0.1;
@@ -228,7 +221,7 @@ const staticModeDialog = () => {
       "left";
 
     const previewField = previewGrp.add(
-      'edittext {justify: "left", properties: {name: "previewField", multiline: true, readonly: true}}',
+      'edittext {justify: "left", properties: {multiline: true, readonly: true}}',
     );
     // fill both axes — height grows to match whatever space the panel has left
     previewField.alignment = ["fill", "fill"];
@@ -258,9 +251,7 @@ const staticModeDialog = () => {
     typeCell.spacing = 4;
     typeCell.add("statictext", undefined, "Type:");
 
-    const typeDropdown = typeCell.add("dropdownlist", undefined, undefined, {
-      name: "typeDropdown",
-    });
+    const typeDropdown = typeCell.add("dropdownlist", undefined, undefined);
     typeDropdown.add("item", "POLO");
     typeDropdown.add("item", "TSHIRT");
     typeDropdown.selection = 0;
@@ -275,9 +266,7 @@ const staticModeDialog = () => {
     ribCell.spacing = 4;
     ribCell.add("statictext", undefined, "RIB:");
 
-    const ribDropdown = ribCell.add("dropdownlist", undefined, undefined, {
-      name: "ribDropdown",
-    });
+    const ribDropdown = ribCell.add("dropdownlist", undefined, undefined);
     ribDropdown.add("item", "NO");
     ribDropdown.add("item", "RIB");
     ribDropdown.add("item", "CUFF");
@@ -369,18 +358,19 @@ const staticModeDialog = () => {
       hdr.alignChildren = ["center", "center"];
       hdr.spacing = COL_GAP;
 
-      function hdrCell(txt, w) {
+      function hdrCell(txt, w, helpTip) {
         const lbl = hdr.add("statictext", undefined, txt);
+        lbl.helpTip = helpTip || txt;
         lbl.preferredSize.width = w;
         lbl.justify = "center";
       }
 
       hdrCell("Size", COL_SIZE);
-      hdrCell("Qty", COL_QTY);
-      hdrCell("SS", COL_SS);
-      hdrCell("LS", COL_LS);
-      hdrCell("SP", COL_SP);
-      hdrCell("LP", COL_LP);
+      hdrCell("Qty", COL_QTY, "Quantity");
+      hdrCell("SS", COL_SS, "Short Sleeve");
+      hdrCell("LS", COL_LS, "Long Sleeve");
+      hdrCell("SP", COL_SP, "Short Pant");
+      hdrCell("LP", COL_LP, "Long Pant");
 
       // ── One data row per size ──────────────────────────────────────────
       sizeGroup.forEach(function (sizeKey) {
@@ -396,12 +386,9 @@ const staticModeDialog = () => {
         lbl.justify = "right";
 
         // Helper: one input cell with fixed width and a helpTip
-        function addCell(suffix, tip, w) {
-          const cell = row.add(
-            'edittext {justify: "center", properties: {name: "' +
-              suffix +
-              '"}}',
-          );
+        function addCell(_, tip, w) {
+          const cell = row.add('edittext {justify: "center"}');
+
           cell.preferredSize.width = w;
           cell.helpTip = tip;
           return cell;
@@ -414,22 +401,22 @@ const staticModeDialog = () => {
         );
         const ssCell = addCell(
           "ss_" + ns,
-          "Short sleeve override — blank inherits qty",
+          "Short sleeve override - blank inherits qty",
           COL_SS,
         );
         const lsCell = addCell(
           "ls_" + ns,
-          "Long sleeve override — blank inherits qty",
+          "Long sleeve override - blank inherits qty",
           COL_LS,
         );
         const spCell = addCell(
           "sp_" + ns,
-          "Short pant override — blank inherits qty",
+          "Short pant override - blank inherits qty",
           COL_SP,
         );
         const lpCell = addCell(
           "lp_" + ns,
-          "Long pant override — blank inherits qty",
+          "Long pant override - blank inherits qty",
           COL_LP,
         );
 
@@ -462,6 +449,7 @@ const staticModeDialog = () => {
     });
     startBtn.helpTip =
       "Validate, apply CONFIG settings, and run the JFT static-mode layout pipeline";
+    startBtn.active = true;
     startBtn.preferredSize.width = 80;
 
     // ══════════════════════════════════════════════════════════════════════
@@ -556,30 +544,8 @@ const staticModeDialog = () => {
     // EVENT LISTENERS
     // ══════════════════════════════════════════════════════════════════════
 
-    // Float input validator (paper width + items gap) — digits + decimal only
-    function floatKeydown(event) {
-      const key = event.keyName;
-      if (key === "Escape") {
-        dlg.close();
-        return;
-      }
-      if (
-        !/[0-9]/.test(key) &&
-        key !== "Backspace" &&
-        key !== "Delete" &&
-        key !== "Decimal" &&
-        key !== "Period"
-      ) {
-        event.preventDefault();
-      }
-
-      if (key === "Enter") {
-        startBtn.notify();
-      }
-    }
-
-    paperWidthInput.addEventListener("keydown", floatKeydown);
-    itemsGapInput.addEventListener("keydown", floatKeydown);
+    paperWidthInput.addEventListener("keydown", Utils.floatKeydown);
+    itemsGapInput.addEventListener("keydown", Utils.floatKeydown);
 
     // Right-panel global controls rebuild the preview on change
     typeDropdown.onChange = refreshPreview;
@@ -597,15 +563,47 @@ const staticModeDialog = () => {
       // Integer validator — no decimal in size quantities
       function intKeydown(event) {
         const key = event.keyName;
-        if (key === "Escape") {
-          dlg.close();
+
+        // === Allow modifier shortcuts (Ctrl/Cmd + A, C, V, X) ===
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          (key === "A" || key === "C" || key === "V" || key === "X")
+        ) {
           return;
         }
-        if (!/[0-9]/.test(key) && key !== "Backspace" && key !== "Delete") {
-          event.preventDefault();
+
+        // === Allow standalone modifier keys ===
+        if (event.ctrlKey || event.metaKey || event.altKey || key === "Shift") {
+          return;
         }
-        if (key === "Enter") {
-          startBtn.notify();
+
+        // === Allow control/navigation keys ===
+        if (
+          key === "Backspace" ||
+          key === "Delete" ||
+          key === "Escape" ||
+          key === "Tab" ||
+          key === "Left" ||
+          key === "Right" ||
+          key === "Up" ||
+          key === "Enter" ||
+          key === "Down" ||
+          key === "Home" ||
+          key === "End"
+        ) {
+          return;
+        }
+
+        // === Block decimal input explicitly ===
+        if (key === "Period" || key === "Decimal") {
+          event.preventDefault();
+          return;
+        }
+
+        // === Allow digits only (0–9) ===
+        if (!/^[0-9]$/.test(key)) {
+          event.preventDefault();
+          return;
         }
       }
 
@@ -645,10 +643,7 @@ const staticModeDialog = () => {
       // ── Write left-panel values into CONFIG ──────────────────────────
 
       const paperWidthVal = parseFloat(paperWidthInput.text);
-      CONFIG.PAPER_MAX_SIZE =
-        !isNaN(paperWidthVal) && paperWidthVal > 0
-          ? paperWidthVal
-          : CONFIG.PAPER_MAX_SIZE;
+      CONFIG.PAPER_MAX_SIZE = paperWidthVal;
 
       const itemGapVal = parseFloat(itemsGapInput.text);
       // Bug fix: was CONFIG.DIST_ITEMS_GAP — correct key is CONFIG.ITEMS_GAP
@@ -690,6 +685,7 @@ const staticModeDialog = () => {
     if (result === 1) {
       const staticStr = buildStaticString();
       jftProcessSeqWrapper(staticStr);
+      $.gc();
     }
   } catch (error) {
     alertDialogSA(error.message);

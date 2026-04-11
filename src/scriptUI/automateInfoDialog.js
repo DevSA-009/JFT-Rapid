@@ -20,9 +20,7 @@ const automateInfoDialog = () => {
 
     // PANELCONTGRP
     // ============
-    const panelContGrp = dialogRoot.add("group", undefined, {
-      name: "panelContGrp",
-    });
+    const panelContGrp = dialogRoot.add("group", undefined);
     panelContGrp.orientation = "row";
     panelContGrp.alignChildren = ["center", "center"];
     panelContGrp.spacing = 10;
@@ -30,9 +28,7 @@ const automateInfoDialog = () => {
 
     // BASICPANEL
     // ==========
-    const basicPanel = panelContGrp.add("panel", undefined, undefined, {
-      name: "basicPanel",
-    });
+    const basicPanel = panelContGrp.add("panel", undefined, undefined);
     basicPanel.text = "Basic";
     basicPanel.preferredSize.width = 200;
     basicPanel.preferredSize.height = 250;
@@ -43,9 +39,7 @@ const automateInfoDialog = () => {
 
     // PAPERWIDTHGRP
     // =============
-    const paperWidthGrp = basicPanel.add("group", undefined, {
-      name: "paperWidthGrp",
-    });
+    const paperWidthGrp = basicPanel.add("group", undefined);
     paperWidthGrp.preferredSize.width = 100;
     paperWidthGrp.orientation = "column";
     paperWidthGrp.alignChildren = ["center", "center"];
@@ -56,23 +50,18 @@ const automateInfoDialog = () => {
       "statictext",
       undefined,
       undefined,
-      { name: "paperWidthLabel" },
     );
     paperWidthLabel.helpTip = "paper width in inch";
     paperWidthLabel.text = "Paper Width";
     paperWidthLabel.justify = "center";
 
-    const paperWidthInput = paperWidthGrp.add(
-      'edittext {justify: "center", properties: {name: "paperWidthInput"}}',
-    );
+    const paperWidthInput = paperWidthGrp.add('edittext {justify: "center"}');
     paperWidthInput.text = "63.3";
     paperWidthInput.preferredSize.width = 70;
 
     // ORIENTATIONGRP
     // ==============
-    const orientationGrp = basicPanel.add("group", undefined, {
-      name: "orientationGrp",
-    });
+    const orientationGrp = basicPanel.add("group", undefined);
     orientationGrp.preferredSize.width = 100;
     orientationGrp.orientation = "column";
     orientationGrp.alignChildren = ["center", "center"];
@@ -84,7 +73,6 @@ const automateInfoDialog = () => {
       "statictext",
       undefined,
       undefined,
-      { name: "orientationLabel" },
     );
     orientationLabel.text = "Orientation:";
     orientationLabel.justify = "center";
@@ -92,7 +80,6 @@ const automateInfoDialog = () => {
       "dropdownlist",
       undefined,
       undefined,
-      { name: "orientationDropdown" },
     );
     orientationDropdown.selection = 0;
     orientationDropdown.preferredSize.width = 70;
@@ -101,9 +88,7 @@ const automateInfoDialog = () => {
 
     // PERDOCCOLSGRP
     // =============
-    const perDocColsGrp = basicPanel.add("group", undefined, {
-      name: "perDocColsGrp",
-    });
+    const perDocColsGrp = basicPanel.add("group", undefined);
     perDocColsGrp.preferredSize.width = 100;
     perDocColsGrp.orientation = "column";
     perDocColsGrp.alignChildren = ["center", "center"];
@@ -114,22 +99,17 @@ const automateInfoDialog = () => {
       "statictext",
       undefined,
       undefined,
-      { name: "perDocColsLabel" },
     );
     perDocColsLabel.text = "Per Doc Cols";
     perDocColsLabel.justify = "center";
 
-    const perDocColsInput = perDocColsGrp.add(
-      'edittext {justify: "center", properties: {name: "perDocColsInput"}}',
-    );
+    const perDocColsInput = perDocColsGrp.add('edittext {justify: "center"}');
     perDocColsInput.text = "0";
     perDocColsInput.preferredSize.width = 70;
 
     // DISTRIBUTEITEMSGAPGRP
     // =====================
-    const distributeItemsGapGrp = basicPanel.add("group", undefined, {
-      name: "distributeItemsGapGrp",
-    });
+    const distributeItemsGapGrp = basicPanel.add("group", undefined);
     distributeItemsGapGrp.preferredSize.width = 100;
     distributeItemsGapGrp.orientation = "column";
     distributeItemsGapGrp.alignChildren = ["center", "center"];
@@ -140,22 +120,19 @@ const automateInfoDialog = () => {
       "statictext",
       undefined,
       undefined,
-      { name: "distributeItemsGapLabel" },
     );
     distributeItemsGapLabel.text = "Dist. Items Gap";
     distributeItemsGapLabel.justify = "center";
 
     const distributeItemsGapInput = distributeItemsGapGrp.add(
-      'edittext {justify: "center", properties: {name: "distributeItemsGapInput"}}',
+      'edittext {justify: "center"}',
     );
     distributeItemsGapInput.text = "0.1";
     distributeItemsGapInput.preferredSize.width = 70;
 
     // REQUIREDPANEL
     // =============
-    const requiredPanel = panelContGrp.add("panel", undefined, undefined, {
-      name: "requiredPanel",
-    });
+    const requiredPanel = panelContGrp.add("panel", undefined, undefined);
     requiredPanel.text = "Data";
     requiredPanel.preferredSize.width = 200;
     requiredPanel.preferredSize.height = 250;
@@ -166,33 +143,25 @@ const automateInfoDialog = () => {
 
     // JSONDATAGRP
     // ===========
-    const jsonDataGrp = requiredPanel.add("group", undefined, {
-      name: "jsonDataGrp",
-    });
+    const jsonDataGrp = requiredPanel.add("group", undefined);
     jsonDataGrp.orientation = "column";
     jsonDataGrp.alignChildren = ["center", "center"];
     jsonDataGrp.spacing = 5;
     jsonDataGrp.margins = 0;
 
-    const jsonDataLabel = jsonDataGrp.add("statictext", undefined, undefined, {
-      name: "jsonDataLabel",
-    });
+    const jsonDataLabel = jsonDataGrp.add("statictext", undefined, undefined);
     jsonDataLabel.helpTip = "the data that will apply!";
     jsonDataLabel.text = "JSON Data";
     jsonDataLabel.justify = "center";
 
-    const jsonDataInput = jsonDataGrp.add(
-      'edittext {justify: "center", properties: {name: "jsonDataInput"}}',
-    );
+    const jsonDataInput = jsonDataGrp.add('edittext {justify: "center"}');
     jsonDataInput.helpTip = "data should be json format";
     jsonDataInput.preferredSize.width = 127;
     jsonDataInput.preferredSize.height = 50;
 
     // SIZEBRANDGRP
     // ============
-    const sizeBrandGrp = requiredPanel.add("group", undefined, {
-      name: "sizeBrandGrp",
-    });
+    const sizeBrandGrp = requiredPanel.add("group", undefined);
     sizeBrandGrp.preferredSize.width = 100;
     sizeBrandGrp.orientation = "column";
     sizeBrandGrp.alignChildren = ["center", "center"];
@@ -200,12 +169,7 @@ const automateInfoDialog = () => {
     sizeBrandGrp.margins = 0;
     sizeBrandGrp.alignment = ["center", "top"];
 
-    const sizeBrandLabel = sizeBrandGrp.add(
-      "statictext",
-      undefined,
-      undefined,
-      { name: "sizeBrandLabel" },
-    );
+    const sizeBrandLabel = sizeBrandGrp.add("statictext", undefined, undefined);
     sizeBrandLabel.text = "Size Brand";
     sizeBrandLabel.justify = "center";
 
@@ -213,7 +177,6 @@ const automateInfoDialog = () => {
       "dropdownlist",
       undefined,
       undefined,
-      { name: "sizeBrandListDropdown" },
     );
     sizeBrandListDropdown.selection = 0;
     sizeBrandListDropdown.preferredSize.width = 70;
@@ -222,9 +185,7 @@ const automateInfoDialog = () => {
 
     // TEXTMANIPULATEGRP
     // =================
-    const textManipulateGrp = requiredPanel.add("group", undefined, {
-      name: "textManipulateGrp",
-    });
+    const textManipulateGrp = requiredPanel.add("group", undefined);
     textManipulateGrp.orientation = "row";
     textManipulateGrp.alignChildren = ["left", "center"];
     textManipulateGrp.spacing = 10;
@@ -232,9 +193,7 @@ const automateInfoDialog = () => {
 
     // CREATEOUTLINEGRP
     // ================
-    const createOutlineGrp = textManipulateGrp.add("group", undefined, {
-      name: "createOutlineGrp",
-    });
+    const createOutlineGrp = textManipulateGrp.add("group", undefined);
     createOutlineGrp.orientation = "row";
     createOutlineGrp.alignChildren = ["left", "center"];
     createOutlineGrp.spacing = 10;
@@ -244,7 +203,6 @@ const automateInfoDialog = () => {
       "checkbox",
       undefined,
       undefined,
-      { name: "createOutlineCheckBox" },
     );
     createOutlineCheckBox.helpTip = "NANO text convert to shape";
     createOutlineCheckBox.text = "Text Outline";
@@ -252,27 +210,21 @@ const automateInfoDialog = () => {
 
     // WRAPTEXTGRP
     // ===========
-    const wrapTextGrp = textManipulateGrp.add("group", undefined, {
-      name: "wrapTextGrp",
-    });
+    const wrapTextGrp = textManipulateGrp.add("group", undefined);
     wrapTextGrp.enabled = false;
     wrapTextGrp.orientation = "row";
     wrapTextGrp.alignChildren = ["left", "center"];
     wrapTextGrp.spacing = 10;
     wrapTextGrp.margins = 0;
 
-    const wrapTextCheckBox = wrapTextGrp.add("checkbox", undefined, undefined, {
-      name: "wrapTextCheckBox",
-    });
+    const wrapTextCheckBox = wrapTextGrp.add("checkbox", undefined, undefined);
     wrapTextCheckBox.enabled = false;
     wrapTextCheckBox.helpTip = "handle properly transform opacity mask item";
     wrapTextCheckBox.text = "Curve Text";
 
     // ENGINEMANIPULATE
     // ================
-    const engineManipulate = requiredPanel.add("group", undefined, {
-      name: "engineManipulate",
-    });
+    const engineManipulate = requiredPanel.add("group", undefined);
     engineManipulate.orientation = "row";
     engineManipulate.alignChildren = ["left", "center"];
     engineManipulate.spacing = 10;
@@ -280,9 +232,7 @@ const automateInfoDialog = () => {
 
     // ACTIONENGINETHREADGRP
     // =====================
-    const actionEngineThreadGrp = engineManipulate.add("group", undefined, {
-      name: "actionEngineThreadGrp",
-    });
+    const actionEngineThreadGrp = engineManipulate.add("group", undefined);
     actionEngineThreadGrp.orientation = "row";
     actionEngineThreadGrp.alignChildren = ["left", "center"];
     actionEngineThreadGrp.spacing = 10;
@@ -292,7 +242,6 @@ const automateInfoDialog = () => {
       "checkbox",
       undefined,
       undefined,
-      { name: "actionEngineThreadCheckBox" },
     );
     actionEngineThreadCheckBox.helpTip =
       "when true script for transformation happend engine base";
@@ -301,17 +250,13 @@ const automateInfoDialog = () => {
 
     // RANGEGRP
     // ========
-    const rangeGrp = engineManipulate.add("group", undefined, {
-      name: "rangeGrp",
-    });
+    const rangeGrp = engineManipulate.add("group", undefined);
     rangeGrp.orientation = "row";
     rangeGrp.alignChildren = ["left", "center"];
     rangeGrp.spacing = 10;
     rangeGrp.margins = 0;
 
-    const rangeCheckBox = rangeGrp.add("checkbox", undefined, undefined, {
-      name: "rangeCheckBox",
-    });
+    const rangeCheckBox = rangeGrp.add("checkbox", undefined, undefined);
     rangeCheckBox.helpTip =
       "when true script for transformation happend engine base";
     rangeCheckBox.text = "Range";
@@ -319,9 +264,7 @@ const automateInfoDialog = () => {
 
     // ENTERBTNGRP
     // ===========
-    const enterBtnGrp = dialogRoot.add("group", undefined, {
-      name: "enterBtnGrp",
-    });
+    const enterBtnGrp = dialogRoot.add("group", undefined);
     enterBtnGrp.orientation = "row";
     enterBtnGrp.alignChildren = ["left", "center"];
     enterBtnGrp.spacing = 10;
@@ -330,6 +273,7 @@ const automateInfoDialog = () => {
     const enterActionBtn = enterBtnGrp.add("button", undefined, "Start", {
       name: "ok",
     });
+    enterActionBtn.active = true;
     enterActionBtn.helpTip = "Start Action";
 
     // ITEM REFERENCE LIST ( Info: http://jongware.mit.edu/Sui/index_1.html )
@@ -425,95 +369,13 @@ const automateInfoDialog = () => {
 
     // ====================================
 
-    // ====================================
-
-    /* Event callback functions start */
-
-    const digitValidateCb = (event) => {
-      const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
-
-      if (event.keyName === "Escape") {
-        dialogRoot.close();
-        return;
-      }
-
-      // Allow numbers, backspace, delete, and decimal point
-      // Also prevent multiple decimal points
-      if (!/[0-9]/.test(key) && key !== "Backspace" && key !== "Delete") {
-        event.preventDefault();
-      }
-
-      if (key === "Enter") {
-        enterActionBtn.notify();
-      }
-    };
-
-    function fixMultipleDots(str) {
-      const parts = str.split(".");
-      if (parts.length <= 2) {
-        return parseFloat(str); // Already a valid float
-      }
-
-      // Join only the first two parts to make a valid float
-      const fixedStr = parts[0] + "." + parts[1];
-      return parseFloat(fixedStr);
-    }
-
-    /* Event callback functions end */
-
-    // ====================================
-
     /* Attach event listener callback functions start */
 
-    perDocColsInput.addEventListener("keydown", digitValidateCb);
+    perDocColsInput.addEventListener("keydown", Utils.floatKeydown);
 
-    paperWidthInput.addEventListener("keydown", (event) => {
-      const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
+    paperWidthInput.addEventListener("keydown", Utils.floatKeydown);
 
-      if (event.keyName === "Escape") {
-        dialogRoot.close();
-        return;
-      }
-
-      // Allow numbers, backspace, delete, and decimal point
-      // Also prevent multiple decimal points
-      if (
-        !/[0-9]/.test(key) &&
-        key !== "Backspace" &&
-        key !== "Delete" &&
-        key !== "Decimal" &&
-        key !== "Period"
-      ) {
-        event.preventDefault();
-      }
-      if (key === "Enter") {
-        enterActionBtn.notify();
-      }
-    });
-
-    distributeItemsGapInput.addEventListener("keydown", (event) => {
-      const key = event.keyName; // Note: using 'key' instead of 'keyName' which is more standard
-
-      if (event.keyName === "Escape") {
-        dialogRoot.close();
-        return;
-      }
-
-      // Allow numbers, backspace, delete, and decimal point
-      // Also prevent multiple decimal points
-      if (
-        !/[0-9]/.test(key) &&
-        key !== "Backspace" &&
-        key !== "Delete" &&
-        key !== "Decimal" &&
-        key !== "Period"
-      ) {
-        event.preventDefault();
-      }
-      if (key === "Enter") {
-        enterActionBtn.notify();
-      }
-    });
+    distributeItemsGapInput.addEventListener("keydown", Utils.floatKeydown);
 
     enterActionBtn.onClick = () => {
       dialogRoot.close();
@@ -524,13 +386,9 @@ const automateInfoDialog = () => {
         ? parseInt(perDocColsInput.text)
         : 0;
 
-      const paperWidthVal = paperWidthInput.text
-        ? fixMultipleDots(paperWidthInput.text)
-        : 63.25;
+      const paperWidthVal = parseFloat(paperWidthInput.text);
 
-      const distItemGapVal = distributeItemsGapInput.text
-        ? fixMultipleDots(distributeItemsGapInput.text)
-        : 0;
+      const distItemGapVal = parseFloat(distributeItemsGapInput.text);
 
       const brandVal = sizeBrandListDropdown.selection.text;
 
@@ -571,6 +429,7 @@ const automateInfoDialog = () => {
       }
 
       jftProcessSeqWrapper(dataVal);
+      $.gc();
     }
   } catch (error) {
     alertDialogSA(error.message);

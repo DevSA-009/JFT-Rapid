@@ -49,7 +49,6 @@ function inputDialog(callback, options = {}) {
 
   // Input field (no tooltip, no auto-focus)
   const input = group.add("edittext", undefined, "", {
-    name: "inputField",
     justify: "center",
   });
   input.preferredSize.width = inputWidth;
@@ -78,5 +77,7 @@ function inputDialog(callback, options = {}) {
     } else {
       callback(value.split(","));
     }
+
+    $.gc();
   }
 }
