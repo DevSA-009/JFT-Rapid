@@ -28,7 +28,7 @@
 
 <div align="center">
 
-[![Download Latest Release](https://img.shields.io/badge/⬇%20Download%20Release-v1.0-blue?style=for-the-badge)](../../releases/latest)
+[![Download Latest Release](https://img.shields.io/badge/⬇%20Download%20Release-v1.0-blue?style=for-the-badge)](https://github.com/DevSA-009/JFT-Rapid/releases/download/v1.0/JFT-Rapid-1.0.zip)
 
 </div>
 
@@ -373,7 +373,7 @@ Made with ❤️ for Jersey Designers
 
 <div align="center">
 
-[![সর্বশেষ রিলিজ ডাউনলোড করুন](https://img.shields.io/badge/⬇%20রিলিজ%20ডাউনলোড-v1.0-blue?style=for-the-badge)](../../releases/latest)
+[![সর্বশেষ রিলিজ ডাউনলোড করুন](https://img.shields.io/badge/⬇%20রিলিজ%20ডাউনলোড-v1.0-blue?style=for-the-badge)](https://github.com/DevSA-009/JFT-Rapid/releases/download/v1.0/JFT-Rapid-1.0.zip)
 
 </div>
 
