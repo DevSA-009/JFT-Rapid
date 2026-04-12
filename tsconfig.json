@@ -1,21 +1,15 @@
 {
   "compilerOptions": {
     "target": "ES5",
-    "noLib": true,
     "removeComments": true,
+    "skipLibCheck": true,
     "outFile": "./HOST/jft_rapid.jsx",
     "strict": true,
-    "allowJs": true
+    "module": "none",
+    "allowJs": true,
+    "noLib": true,
+    "types": []
   },
-  "include": [
-    "src/adobe-types/**/*.ts",
-    "src/types/**/*.ts",
-    "src/enum/**/*.ts",
-    "src/polyfill/**/*.js",
-    "src/polyfill/**/*.ts",
-    "src/utils/**/*.ts",
-    "src/class/**/*.ts",
-    "src/scriptUI/**/*.js",
-    "src/index.ts"
-  ]
+  "include": ["src/**/*.js", "src/**/*.ts"],
+  "exclude": ["node_modules", "CLIENT", "CSXS", "HOST"]
 }

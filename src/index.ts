@@ -1,3 +1,43 @@
+/// <reference path="../adobe-types/Illustrator/2022/index.d.ts" />
+/**
+ * Illustrator 2022 type definitions.
+ * Provides typings for the ExtendScript Illustrator DOM, including
+ * documents, layers, page items, text frames, and application APIs.
+ */
+
+/// <reference path="../adobe-types/shared/global.d.ts" />
+/**
+ * Shared global type declarations used across the ExtendScript environment.
+ * Includes common utility types, global interfaces, and environment-level
+ * augmentations required by multiple Adobe host applications.
+ */
+
+/// <reference path="../adobe-types/shared/JavaScript.d.ts" />
+/**
+ * Extended JavaScript typings tailored for ExtendScript.
+ * Adds support for legacy ECMAScript features and Adobe-specific
+ * extensions not available in standard TypeScript lib definitions.
+ */
+
+/// <reference path="../adobe-types/shared/ScriptUI.d.ts" />
+/**
+ * ScriptUI type definitions.
+ * Enables typed access to Adobe ScriptUI components such as windows,
+ * dialogs, panels, buttons, and event handling APIs.
+ */
+
+/// <reference path="./class/JSONFileHandler.ts" />
+/**
+ * Ensures JSONFileHandler is included first in the compiled output bundle.
+ *
+ * @remarks
+ * ExtendScript builds using `outFile` concatenate files in order, and does
+ * not support ES module resolution or true import hoisting.
+ *
+ * Placing this reference at the top guarantees the class is defined before
+ * it is used elsewhere in the bundle, preventing runtime "undefined" errors.
+ */
+
 // ─────────────────────────────────────────────────────────────────────────────
 // index.ts — JFT-Rapid entry point
 //
