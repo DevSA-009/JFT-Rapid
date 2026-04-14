@@ -576,19 +576,13 @@ class GridLayoutGenerator {
       to: "pt",
     });
 
-    let dimension: DimensionObject = this.primaryDimension;
+    const dimension: DimensionObject = this.primaryDimension;
 
     if (pair) {
       if (this.secondaryDimension) {
-        dimension = {
-          width: dimension.width + this.secondaryDimension.width,
-          height: dimension.height + this.secondaryDimension.height,
-        };
+        dimension.height = dimension.height + this.secondaryDimension.height;
       } else {
-        dimension = {
-          width: dimension.width * 2,
-          height: dimension.height * 2,
-        };
+        dimension.height = dimension.height * 2;
       }
     }
 
@@ -1136,7 +1130,7 @@ class GridLayoutGenerator {
     item: PageItem,
     placementIndex: number,
   ): void {
-    item.rotate(placementIndex % 2 === 0 ? 180 : -180);
+    Utils.smartRotate(placementIndex % 2 === 0 ? 180 : -180, [item]);
   }
 
   /**
