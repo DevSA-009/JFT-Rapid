@@ -433,5 +433,7 @@ const automateInfoDialog = () => {
     }
   } catch (error) {
     alertDialogSA(error.message);
+  } finally {
+    resetNonUIInteractionConfigs();
   }
 };

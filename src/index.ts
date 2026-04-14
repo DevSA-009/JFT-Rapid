@@ -113,8 +113,6 @@ const CONFIG: JFTRapid_Config = {
   SIZES_DETAILS: JFT_CONF.sizes["JFT"] as unknown as SizesDetails,
   /** Active brand key read from jft.conf.config.brand. */
   BRAND: JFT_CONF.config.brand,
-  /** `true` when the job includes kids-size inventory. */
-  KIDSINV: false,
   /** Maximum items per generated document; 0 = no cap. */
   PER_DOC: 0,
   /** Transformation execution engine: "script" or "action". */
@@ -145,6 +143,14 @@ CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][
 ] as unknown as SizesDetails;
 
 // ─── Public pipeline wrapper ──────────────────────────────────────────────────
+
+/**
+ * Reset non-UI interaction configuration options.
+ */
+const resetNonUIInteractionConfigs = () => {
+  CONFIG.FILL_X_AXIS = false;
+  CONFIG.STATIC_MODE = false;
+}
 
 /**
  * Thin wrapper around {@link JFTProcessSequentially} exposed to ScriptUI

@@ -23,8 +23,6 @@ interface JFTRapid_Config {
   SIZES_DETAILS: SizesDetails;
   /** Minimum gap in inches between distributed items on the artboard. */
   DIST_ITEMS_GAP: number;
-  /** `true` when the job contains kids-size inventory. */
-  KIDSINV: boolean;
   /** Preferred stack orientation: `"auto"` | `"vertical"` | `"horizontal"`. */
   ORIENTATION: StackOrientation;
   /** Maximum items per generated document; `0` means no cap. */

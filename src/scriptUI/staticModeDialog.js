@@ -689,5 +689,7 @@ const staticModeDialog = () => {
     }
   } catch (error) {
     alertDialogSA(error.message);
+  } finally {
+    resetNonUIInteractionConfigs();
   }
 };
