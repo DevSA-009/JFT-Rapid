@@ -10,26 +10,33 @@
  * Especially useful when the standard ExtendScript transformation methods fail or behave
  * incorrectly on opacity masked items, clipping masks, compound paths or other complex artwork.
  *
+ * **Automatic Selection Preservation:**
+ * Each transformation method (move, rotate, resize) automatically:
+ * - Stores the active document's current selection before the transformation
+ * - Performs the transformation on the provided objects
+ * - Restores the previous selection after the transformation completes
+ *
  * When working with multiple objects (Selection with length > 1), the handler automatically:
  * - Groups objects before transformation
  * - Performs the transformation on the group
  * - Ungroups objects after transformation
+ * - Restores the previous document selection
  *
  * @example
  * ```typescript
  * const handler = new TransActionHandler();
  * const selectedObjects = app.activeDocument.selection;
  *
- * // Move objects 100pt right, 50pt down
+ * // Move objects 100pt right, 50pt down (selection is automatically preserved)
  * handler.move({ x: 100, y: 50, objects: selectedObjects });
  *
- * // Rotate 90 degrees
+ * // Rotate 90 degrees (selection is automatically preserved)
  * handler.rotate({ deg: 90, objects: selectedObjects });
  *
- * // Resize to 500x300 points (explicit dimensions)
+ * // Resize to 500x300 points (selection is automatically preserved)
  * handler.resize({ width: 500, height: 300, objects: selectedObjects });
  *
- * // Resize maintaining current dimensions
+ * // Resize maintaining current dimensions (selection is automatically preserved)
  * handler.resize({ objects: selectedObjects });
  *
  * // Clean up all loaded actions
@@ -39,6 +46,13 @@
 class TransActionHandler {
   /** Cache of currently loaded action set names */
   private currentSets: CurrentSets = {};
+
+  /**
+   * Stores the active document's selection before a transformation occurs.
+   * Used to restore selection after move, resize, or rotate operations complete.
+   * @private
+   */
+  private previousSelection: PageItem[] | null = null;
 
   /**
    * Predefined reference point templates used to change the transformation origin.
@@ -409,6 +423,27 @@ class TransActionHandler {
 
     return aiaFile;
   }
+  /**
+   * Handles the selection state of the active document.
+   * * @param set - If `false` (default), captures current selection. If `true`, restores it.
+   */
+  private previousSelectionHandle(set: boolean = false) {
+    Organizer.checkDocument();
+    if (!set) {
+      const selection = app.activeDocument.selection;
+
+      this.previousSelection = selection.length
+        ? Organizer.pageItemsToArray(selection)
+        : null;
+    } else {
+      if (this.previousSelection) {
+        Organizer.docSelectionHandler({
+          objects: this.previousSelection,
+          doc: app.activeDocument,
+        });
+      }
+    }
+  }
 
   /**
    * Temporarily selects or deselects objects before/after script execution.
@@ -467,6 +502,11 @@ class TransActionHandler {
    * @param params.useAbsolute - If true, x and y are treated as absolute coordinates; if false (default), they are relative deltas
    *
    * @remarks
+   * **Selection Preservation:**
+   * Before performing the move operation, this method automatically stores the active document's
+   * current selection. After the transformation is complete, the previous selection is restored
+   * (if it existed prior to the move).
+   *
    * When working with multiple objects (objects.length > 1):
    * - Automatically groups objects before transformation
    * - Performs the move operation on the group
@@ -482,14 +522,17 @@ class TransActionHandler {
    *
    * @example
    * ```typescript
-   * // Relative move: 100pt right, 50pt down
+   * // Relative move: 100pt right, 50pt down (with automatic selection preservation)
    * handler.move({ x: 100, y: 50, objects: selectedObjects });
    *
-   * // Absolute positioning
+   * // Absolute positioning (with automatic selection preservation)
    * handler.move({ x: 500, y: 300, objects: selectedObjects, useAbsolute: true });
    * ```
    */
   move({ x, y, objects, useAbsolute = false }: Move): void {
+    // Store the current selection from the active document before transformation
+    this.previousSelectionHandle();
+
     // Check if multiple objects need to be grouped
     const needsGrouping = objects.length > 1;
     let tempGroup: GroupItem | null = null;
@@ -581,6 +624,9 @@ class TransActionHandler {
     if (needsGrouping && tempGroup) {
       GroupManager.ungroup(tempGroup);
     }
+
+    // Restore the previous document selection if it existed
+    this.previousSelectionHandle(true);
   }
 
   /**
@@ -592,6 +638,11 @@ class TransActionHandler {
    * @param params.height - Target height in points (optional - uses current height if not specified)
    *
    * @remarks
+   * **Selection Preservation:**
+   * Before performing the resize operation, this method automatically stores the active document's
+   * current selection. After the transformation is complete, the previous selection is restored
+   * (if it existed prior to the resize).
+   *
    * When working with multiple objects (objects.length > 1):
    * - Automatically groups objects before getting dimensions and transformation
    * - If width/height not specified, uses the grouped object's current dimensions
@@ -607,13 +658,13 @@ class TransActionHandler {
    *
    * @example
    * ```typescript
-   * // Resize to 500pt × 300pt
+   * // Resize to 500pt × 300pt (with automatic selection preservation)
    * handler.resize({ width: 500, height: 300, objects: selectedObjects });
    *
-   * // Resize width only, maintain current height
+   * // Resize width only, maintain current height (with automatic selection preservation)
    * handler.resize({ width: 500, objects: selectedObjects });
    *
-   * // Resize height only, maintain current width
+   * // Resize height only, maintain current width (with automatic selection preservation)
    * handler.resize({ height: 300, objects: selectedObjects });
    *
    * // Maintain current dimensions (useful for refreshing/normalizing)
@@ -621,6 +672,9 @@ class TransActionHandler {
    * ```
    */
   resize({ objects, width, height }: Resize): void {
+    // Store the current selection from the active document before transformation
+    this.previousSelectionHandle();
+
     // Check if multiple objects need to be grouped
     const needsGrouping = objects.length > 1;
     let tempGroup: GroupItem | null = null;
@@ -701,6 +755,9 @@ class TransActionHandler {
     if (needsGrouping && tempGroup) {
       GroupManager.ungroup(tempGroup);
     }
+
+    // Restore the previous document selection if it existed
+    this.previousSelectionHandle(true);
   }
 
   /**
@@ -711,6 +768,11 @@ class TransActionHandler {
    * @param params.objects - The PageItems to rotate
    *
    * @remarks
+   * **Selection Preservation:**
+   * Before performing the rotate operation, this method automatically stores the active document's
+   * current selection. After the transformation is complete, the previous selection is restored
+   * (if it existed prior to the rotate).
+   *
    * When working with multiple objects (objects.length > 1):
    * - Automatically groups objects before transformation
    * - Performs the rotation on the group
@@ -721,14 +783,17 @@ class TransActionHandler {
    *
    * @example
    * ```typescript
-   * // Rotate 90 degrees counter-clockwise
+   * // Rotate 90 degrees counter-clockwise (with automatic selection preservation)
    * handler.rotate({ deg: 90, objects: selectedObjects });
    *
-   * // Rotate 45 degrees clockwise
+   * // Rotate 45 degrees clockwise (with automatic selection preservation)
    * handler.rotate({ deg: -45, objects: selectedObjects });
    * ```
    */
   rotate({ deg, objects }: Rotate): void {
+    // Store the current selection from the active document before transformation
+    this.previousSelectionHandle();
+
     // Check if multiple objects need to be grouped
     const needsGrouping = objects.length > 1;
     let tempGroup: GroupItem | null = null;
@@ -797,6 +862,9 @@ class TransActionHandler {
     if (needsGrouping && tempGroup) {
       GroupManager.ungroup(tempGroup);
     }
+
+    // Restore the previous document selection if it existed
+    this.previousSelectionHandle(true);
   }
 
   /**
