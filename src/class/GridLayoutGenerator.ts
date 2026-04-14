@@ -289,11 +289,14 @@ class GridLayoutGenerator {
     // Apply NECK / low-quantity special-case rules
     this.specialValidation();
 
+    // get the object is rectangle path item
+    const isFillRec = this.shouldUseFillRecPath();
+
     // ── fillXAxis / fullSlvTweak path ─────────────────────────────────────
     // When fillXAxis is active and the item is not dynamic, bypass the normal
     // stack calculation and fill the paper width with copies in CMD mode.
     // Dynamic items fall through to the normal path so text injection works.
-    if (this.fillXAxis && !this.jftItem.info.dync) {
+    if (this.fillXAxis && !this.jftItem.info.dync && !isFillRec) {
       // Long-sleeve with FULL_SLV_TWEAK: apply the rotated-pair composition
       // before the fill-X layout so the output shows angled full-sleeve units.
       if (
@@ -325,7 +328,7 @@ class GridLayoutGenerator {
     // ── Normal path ───────────────────────────────────────────────────────
 
     // Fill-rectangle items use a simpler strip-document path
-    if (this.shouldUseFillRecPath()) {
+    if (isFillRec) {
       this.runFillRecPath();
       this.closeInitiateTempDoc();
       return;

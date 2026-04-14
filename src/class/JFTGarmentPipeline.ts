@@ -562,6 +562,7 @@ class JFTGarmentPipeline {
    * they carry fixed labels that must not be overwritten.
    */
   private collarFlowHandle() {
+    CONFIG.FILL_X_AXIS = true;
     const sizeRanges: SizeRanges = [{ from: "XS", to: "16" }];
 
     if (this.data.basic.type === JerseyType.POLO) {
@@ -590,6 +591,7 @@ class JFTGarmentPipeline {
         sizeRanges,
       });
     }
+    CONFIG.FILL_X_AXIS = false;
   }
 
   /**
@@ -600,6 +602,7 @@ class JFTGarmentPipeline {
    * Size-token manipulation is disabled for rib items — they carry fixed labels.
    */
   private ribFlowHandler() {
+    CONFIG.FILL_X_AXIS = true;
     const ribInfo = this.data.basic.rib;
     const sizeRanges: SizeRanges = [{ from: "XS", to: "16" }];
 
@@ -643,6 +646,7 @@ class JFTGarmentPipeline {
         });
       }
     }
+    CONFIG.FILL_X_AXIS = false;
   }
 
   /**
