@@ -803,7 +803,10 @@ class Organizer {
 
       const fileNameWithoutExt = actDoc.fullName.name.replace(/\.[^.]+$/, "");
       const fileName = `${fileNameWithoutExt} Fixed`;
-      const newDocHandler = new IllustratorDocument(fileName);
+      const newDocHandler = new IllustratorDocument({
+        title: fileName,
+        threadEngine: "action",
+      });
       const fixedDoc = newDocHandler.create(actDoc.activeLayer.pageItems);
       this.smallArtboard(fixedDoc);
       newDocHandler.save({
@@ -976,7 +979,10 @@ class Organizer {
         const folderPath = doc.path.fsName;
 
         // Create helper object that will manage our short-lived temporary document
-        const tempDocument = new IllustratorDocument(tempBaseName);
+        const tempDocument = new IllustratorDocument({
+          title: tempBaseName,
+          threadEngine: "script",
+        });
 
         // Build brand new document containing **only** the current selected object
         tempDocument.create([originalItem]);

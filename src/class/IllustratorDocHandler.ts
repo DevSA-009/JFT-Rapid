@@ -1,37 +1,42 @@
 /**
  * Manages creation, population, saving, and cleanup of Adobe Illustrator documents.
  *
- * @remarks
- * This class is designed to simplify common document workflows in Illustrator ExtendScript:
- * - creating consistently sized documents
- * - optionally copying existing artwork into the new document
- * - saving in EPS, TIFF, or AI formats with predefined settings
- * - safe document cleanup
+ * Simplifies common ExtendScript workflows:
+ * - Fixed 207×207 inch CMYK document creation
+ * - Optional artwork duplication with configurable alignment
+ * - Saving to EPS, TIFF, or AI with optimized preset settings
+ * - Safe document closing
  */
 class IllustratorDocument {
   private doc: Document | null = null;
   private title: string;
+  private threadEngine: ThreadEngine;
+  private itemsPastePosition: AlignPosition | "NONE";
 
   /**
-   * Creates a new document manager instance.
+   * Creates a new IllustratorDocument instance.
    *
-   * @param title - Name to assign to newly created documents (default: "JFT-Rapid")
+   * @param params - Configuration parameters for document creation and alignment behavior
    */
-  constructor(title: string = "JFT-Rapid") {
+  constructor(params: IllustratorDocumentParams) {
+    const { pastePosition = "C", title = "JFT-Rapid" } = params;
+
     this.title = title;
+    this.threadEngine = params.threadEngine;
+    this.itemsPastePosition = pastePosition;
   }
 
   /**
-   * Creates a new Illustrator document using a fixed 207×207 inch CMYK artboard.
+   * Creates a new 207×207 inch CMYK Illustrator document.
    *
    * @remarks
    * - Uses the first available startup preset as base
    * - Always creates document in Inches / CMYK color space
-   * - Optionally copies provided page items and centers them on the artboard
+   * - Optionally duplicates and aligns provided page items
    *
-   * @param objects - Optional array of `PageItem`s to duplicate into the center of the new document.
-   * @param focus - Optional boolean to determine whether to activate the new document.
-   * @returns The newly created `Document` object.
+   * @param objects - Optional array of `PageItem`s to duplicate into the new document
+   * @param focus - Whether to activate the new document (default: `true`)
+   * @returns The newly created `Document` object
    */
   create(objects: PageItem[] | null = null, focus: boolean = true): Document {
     const doc = app.activeDocument;
@@ -50,6 +55,7 @@ class IllustratorDocument {
     presetSettings.title = this.title;
     presetSettings.units = RulerUnits.Inches;
     presetSettings.colorMode = DocumentColorSpace.CMYK;
+
     const docObj = (this.doc = app.documents.addDocument(
       startPreset,
       presetSettings,
@@ -60,7 +66,7 @@ class IllustratorDocument {
     }
 
     if (objects && objects.length > 0) {
-      this.copyItemsToCenter(objects);
+      this.copyItemsTo(objects);
     }
 
     Organizer.docAllObjectsSelectionHandler({ doc: this.doc, type: false });
@@ -69,21 +75,22 @@ class IllustratorDocument {
   }
 
   /**
-   * Saves the current document in the requested format.
+   * Saves the document in the requested format.
    *
    * @remarks
    * Supported formats: EPS, TIFF, AI
    * If no `fileName` is provided, uses the document's current name (without extension).
    *
    * @param options - Saving configuration
-   * @param options.filePath - Folder path where the file should be saved
-   * @param options.fileName - Optional custom filename (without extension)
-   * @param options.format - Output format (`"EPS" | "TIFF" | "AI"`) — defaults to `"EPS"`
    * @throws {Error} When an unsupported format is requested
    *
    * @example
    * ```ts
-   * docHandler.save({ filePath: "/Volumes/Output", fileName: "final-poster", format: "TIFF" });
+   * docHandler.save({
+   *   filePath: "/Volumes/Output",
+   *   fileName: "final-poster",
+   *   format: "TIFF"
+   * });
    * ```
    */
   save(options: DocumentSaveOptions): void {
@@ -93,14 +100,10 @@ class IllustratorDocument {
 
     const { filePath, fileName, format = "EPS" } = options;
 
-    // Determine the file name to use
     const finalFileName = fileName || this.doc.name.replace(/\.\w+$/, "");
-
-    // Construct the full save path
     const file = new File(filePath);
     const savePath = file.fsName + "/" + finalFileName;
 
-    // Save based on the specified format
     switch (format) {
       case "EPS":
         this.saveAsEPS(savePath);
@@ -117,9 +120,7 @@ class IllustratorDocument {
   }
 
   /**
-   * Saves document in EPS format with Illustrator 2024 compatibility and embedded fonts.
-   *
-   * @param savePath - Full filesystem path including filename and `.eps` extension
+   * Saves the document as EPS with Illustrator 2024 compatibility and embedded fonts.
    * @private
    */
   private saveAsEPS(savePath: string): void {
@@ -135,9 +136,7 @@ class IllustratorDocument {
   }
 
   /**
-   * Exports document as 72 dpi CMYK TIFF with anti-aliasing.
-   *
-   * @param savePath - Full filesystem path including filename and `.tif` / `.tiff` extension
+   * Exports the document as 72 dpi CMYK TIFF.
    * @private
    */
   private saveAsTIFF(savePath: string): void {
@@ -147,13 +146,12 @@ class IllustratorDocument {
     tiffOptions.imageColorSpace = ImageColorSpace.CMYK;
     tiffOptions.lZWCompression = false;
     tiffOptions.resolution = 72;
+
     this.doc!.exportFile(new File(savePath), ExportType.TIFF, tiffOptions);
   }
 
   /**
-   * Saves document in native Adobe Illustrator (.ai) format with PDF compatibility.
-   *
-   * @param savePath - Full filesystem path including filename and `.ai` extension
+   * Saves the document in native .ai format with PDF compatibility.
    * @private
    */
   private saveAsAI(savePath: string): void {
@@ -169,7 +167,7 @@ class IllustratorDocument {
   }
 
   /**
-   * Closes the managed document without saving any changes and clears the internal reference.
+   * Closes the managed document without saving changes and clears the internal reference.
    */
   close(): void {
     if (this.doc) {
@@ -179,12 +177,10 @@ class IllustratorDocument {
   }
 
   /**
-   * Duplicates the provided page items into the current document and centers them on the artboard.
-   *
-   * @param objects - Array of page items to copy
+   * Duplicates provided page items into the document and aligns them using the configured thread engine and position.
    * @private
    */
-  private copyItemsToCenter(objects: PageItem[]): void {
+  private copyItemsTo(objects: PageItem[]): void {
     if (!this.doc) {
       return;
     }
@@ -194,29 +190,44 @@ class IllustratorDocument {
       duplicatedItems.unshift(objects[i - 1].duplicate(this.doc) as PageItem);
     }
 
-    if (Utils.isActionThreadEngine()) app.redraw();
-    AlignmentHandler.alignPageItemsToArtboard({
-      doc: this.doc,
-      objects: duplicatedItems,
-      engine: CONFIG.THREAD_ENGINE || "action",
-    });
-    if (Utils.isActionThreadEngine()) app.redraw();
+    if (this.threadEngine === "action") app.redraw();
+
+    if (this.itemsPastePosition !== "NONE") {
+      AlignmentHandler.alignPageItemsToArtboard({
+        doc: this.doc,
+        objects: duplicatedItems,
+        engine: this.threadEngine,
+        position: this.itemsPastePosition,
+      });
+    }
+
+    if (this.threadEngine === "action") app.redraw();
   }
 }
 
-/**
- * Supported file formats for saving/exporting Illustrator documents.
- */
+/** Supported output formats for the save() method */
 type SaveFormat = "EPS" | "TIFF" | "AI";
 
 /**
- * Configuration object for the `save()` method.
+ * Configuration parameters for `IllustratorDocument` constructor.
+ */
+interface IllustratorDocumentParams {
+  /** Name assigned to newly created documents */
+  title?: string;
+  /** Execution engine used for aligning items (`"action"` recommended for complex objects) */
+  threadEngine: ThreadEngine;
+  /** Alignment position for pasted items on the artboard */
+  pastePosition?: AlignPosition;
+}
+
+/**
+ * Options for the `save()` method.
  */
 interface DocumentSaveOptions {
-  /** Folder path where the file should be saved */
+  /** Folder path where the file will be saved */
   filePath: string;
-  /** Optional base filename (extension is added automatically) */
+  /** Optional filename without extension */
   fileName?: string;
-  /** Desired output format — defaults to `"EPS"` */
+  /** Output format — defaults to `"EPS"` */
   format?: SaveFormat;
 }

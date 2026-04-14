@@ -360,7 +360,11 @@ class GridLayoutGenerator {
 
   // ─── New: Temp Document Management ───────────────────────────────────
   private initiateTempDoc() {
-    const docHandler = new IllustratorDocument(`TEMP-${this.jftItem.order}`);
+    const docHandler = new IllustratorDocument({
+      title: `TEMP-${this.jftItem.order}`,
+      threadEngine: CONFIG.THREAD_ENGINE,
+      pastePosition: "T",
+    });
 
     // Create the document and copy dynamicItem into it as the seed
     const newDoc = docHandler.create(null);
@@ -616,7 +620,11 @@ class GridLayoutGenerator {
     const docTitle = `${this.padZero(this.outputFileIndex)}-${this.jftItem.order}${qtyName}`;
 
     // Create, populate, save and close the strip document
-    const docHandler = new IllustratorDocument(docTitle);
+    const docHandler = new IllustratorDocument({
+      title: docTitle,
+      threadEngine: CONFIG.THREAD_ENGINE,
+      pastePosition: "T",
+    });
     const newDoc = docHandler.create([sourceItem]);
     this.alignAllItemsCenter(newDoc);
     docHandler.save({ filePath: this.outputFolderPath, format: "EPS" });
@@ -1173,7 +1181,11 @@ class GridLayoutGenerator {
     for (let docNum = 1; docNum <= reqDocs.docsNeeded; docNum++) {
       // Build the filename for this document
       const docTitle = `${this.padZero(this.outputFileIndex)}-${this.buildDocName(direction)}`;
-      const docHandler = new IllustratorDocument(docTitle);
+      const docHandler = new IllustratorDocument({
+        title: docTitle,
+        threadEngine: CONFIG.THREAD_ENGINE,
+        pastePosition: "T",
+      });
 
       // Create the document and copy dynamicItem into it as the seed
       const newDoc = docHandler.create([dynamicItem]);
@@ -1220,7 +1232,11 @@ class GridLayoutGenerator {
   ): void {
     // Build filename with forceStatic=true so quantity is always included
     const docName = `${this.padZero(this.outputFileIndex)}-${this.buildDocName(direction, true)}`;
-    const docHandler = new IllustratorDocument(docName);
+    const docHandler = new IllustratorDocument({
+      title: docName,
+      threadEngine: CONFIG.THREAD_ENGINE,
+      pastePosition: "T",
+    });
 
     // Create the document and centre the item
     const staticDoc = docHandler.create([staticItem]);
@@ -1493,7 +1509,11 @@ class GridLayoutGenerator {
     };
 
     const docTitle = `${this.padZero(this.outputFileIndex)}-${this.buildDocName()}`;
-    const docHandler = new IllustratorDocument(docTitle);
+    const docHandler = new IllustratorDocument({
+      title: docTitle,
+      threadEngine: CONFIG.THREAD_ENGINE,
+      pastePosition: "T",
+    });
     const newDoc = docHandler.create([referenceItem]);
 
     // Retrieve the seed copy that was placed into the new document
