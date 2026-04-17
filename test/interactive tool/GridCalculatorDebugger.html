@@ -45,7 +45,6 @@
         letter-spacing: 2px;
         margin-top: 4px;
       }
-      /* Toolbar */
       .toolbar {
         display: flex;
         flex-wrap: wrap;
@@ -88,7 +87,6 @@
         letter-spacing: 1px;
         text-transform: uppercase;
       }
-      /* Layout */
       .layout {
         display: grid;
         grid-template-columns: 330px 1fr;
@@ -101,7 +99,6 @@
           grid-template-columns: 1fr;
         }
       }
-      /* Section */
       .section {
         margin-bottom: 12px;
         border-radius: 8px;
@@ -131,7 +128,6 @@
       .sec-body.hidden {
         display: none;
       }
-      /* Inputs */
       .ig {
         display: grid;
         gap: 10px;
@@ -167,7 +163,6 @@
       textarea:focus {
         border-color: var(--accent);
       }
-      /* KV */
       .kv {
         display: flex;
         justify-content: space-between;
@@ -185,7 +180,6 @@
         font-weight: 600;
         color: var(--text);
       }
-      /* Badge */
       .bdg {
         border-radius: 4px;
         padding: 1px 8px;
@@ -193,7 +187,6 @@
         font-weight: 700;
         letter-spacing: 1px;
       }
-      /* Grids */
       .sg {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
@@ -241,7 +234,6 @@
         font-weight: 700;
         margin-bottom: 4px;
       }
-      /* Table */
       .tw {
         overflow-x: auto;
       }
@@ -272,7 +264,6 @@
         max-height: 240px;
         overflow-y: auto;
       }
-      /* Result */
       .rg {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -283,7 +274,6 @@
         border-radius: 8px;
         padding: 12px;
       }
-      /* Total pill */
       .tot-pill {
         display: inline-flex;
         align-items: center;
@@ -295,7 +285,6 @@
         padding: 3px 8px;
         font-size: 11px;
       }
-      /* Editor btn */
       .edbtn {
         display: flex;
         align-items: center;
@@ -316,7 +305,6 @@
         border-color: var(--accent);
         color: var(--accent);
       }
-      /* Modal */
       .mov {
         display: none;
         position: fixed;
@@ -463,13 +451,13 @@
   <body>
     <div class="header">
       <h1>GridCalculator</h1>
-      <p id="hSub">ইন্টারেক্টিভ ডিবাগার · সব মেথডের আউটপুট</p>
+      <p id="hSub">Interactive Debugger · All Method Outputs</p>
     </div>
 
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="tog-wrap">
-        <span class="tog-lbl" id="lblUnit">ইউনিট</span>
+        <span class="tog-lbl" id="lblUnit">UNIT</span>
         <div class="tog-group">
           <button class="tog-btn active" id="btnMM" onclick="setUnit('mm')">
             MM
@@ -480,18 +468,18 @@
         </div>
       </div>
       <div class="tog-wrap">
-        <span class="tog-lbl" id="lblLang">ভাষা</span>
+        <span class="tog-lbl" id="lblLang">LANG</span>
         <div class="tog-group">
-          <button class="tog-btn active" id="btnBN" onclick="setLang('bn')">
+          <button class="tog-btn" id="btnBN" onclick="setLang('bn')">
             বাংলা
           </button>
-          <button class="tog-btn" id="btnEN" onclick="setLang('en')">
+          <button class="tog-btn active" id="btnEN" onclick="setLang('en')">
             ENG
           </button>
         </div>
       </div>
       <button class="edbtn" onclick="openEditor()">
-        ⌨ <span id="edBtnLbl">Class Code বদলান</span>
+        ⌨ <span id="edBtnLbl">Edit Class Code</span>
       </button>
     </div>
 
@@ -512,11 +500,15 @@
           <textarea id="edTa" spellcheck="false"></textarea>
         </div>
         <div class="mft">
-          <button class="btn bd" id="btnReset" onclick="resetCode()">↺</button>
-          <button class="btn bo" id="btnCancel" onclick="closeEditor()">
-            ✕
+          <button class="btn bd" id="btnReset" onclick="resetCode()">
+            ↺ Reset
           </button>
-          <button class="btn bp" id="btnApply" onclick="applyCode()">▶</button>
+          <button class="btn bo" id="btnCancel" onclick="closeEditor()">
+            ✕ Cancel
+          </button>
+          <button class="btn bp" id="btnApply" onclick="applyCode()">
+            ▶ Apply
+          </button>
         </div>
       </div>
     </div>
@@ -528,15 +520,15 @@
         <div class="section" style="border-color: #00e5a033">
           <div class="section-head" style="background: #00e5a018">
             <span class="sec-title" style="color: var(--accent)" id="stParams"
-              >📐 ইনপুট প্যারামিটার</span
+              >📐 Input Parameters</span
             >
           </div>
           <div class="sec-body">
             <div class="ig">
               <div class="two">
                 <div class="ir">
-                  <label id="lW">Width (mm)</label
-                  ><input
+                  <label id="lW">Width (mm)</label>
+                  <input
                     type="number"
                     id="inW"
                     value="100"
@@ -546,8 +538,8 @@
                   />
                 </div>
                 <div class="ir">
-                  <label id="lH">Height (mm)</label
-                  ><input
+                  <label id="lH">Height (mm)</label>
+                  <input
                     type="number"
                     id="inH"
                     value="60"
@@ -558,8 +550,8 @@
                 </div>
               </div>
               <div class="ir">
-                <label id="lQty">Quantity</label
-                ><input
+                <label id="lQty">Quantity</label>
+                <input
                   type="number"
                   id="inQty"
                   value="10"
@@ -569,8 +561,8 @@
               </div>
               <div class="two">
                 <div class="ir">
-                  <label id="lGap">Gap (mm)</label
-                  ><input
+                  <label id="lGap">Gap (mm)</label>
+                  <input
                     type="number"
                     id="inGap"
                     value="5"
@@ -580,8 +572,8 @@
                   />
                 </div>
                 <div class="ir">
-                  <label id="lPGap">Pair Gap (mm)</label
-                  ><input
+                  <label id="lPGap">Pair Gap (mm)</label>
+                  <input
                     type="number"
                     id="inPGap"
                     value="3"
@@ -592,8 +584,8 @@
                 </div>
               </div>
               <div class="ir">
-                <label id="lMC">Max Cols In Doc (0=auto)</label
-                ><input
+                <label id="lMC">Max Cols In Doc (0=auto)</label>
+                <input
                   type="number"
                   id="inMC"
                   value="0"
@@ -602,22 +594,22 @@
                 />
               </div>
               <div class="ir">
-                <label id="lPair">Pair</label
-                ><select id="inPair" onchange="recalc()">
+                <label id="lPair">Pair</label>
+                <select id="inPair" onchange="recalc()">
                   <option value="true">true</option>
                   <option value="false">false</option>
                 </select>
               </div>
               <div class="ir">
-                <label id="lHP">Height Preference</label
-                ><select id="inHP" onchange="recalc()">
+                <label id="lHP">Height Preference</label>
+                <select id="inHP" onchange="recalc()">
                   <option>Less</option>
                   <option>More</option>
                 </select>
               </div>
               <div class="ir">
-                <label id="lOri">Stack Orientation</label
-                ><select id="inOri" onchange="recalc()">
+                <label id="lOri">Stack Orientation</label>
+                <select id="inOri" onchange="recalc()">
                   <option>auto</option>
                   <option>vertical</option>
                   <option>horizontal</option>
@@ -630,15 +622,15 @@
         <div class="section" style="border-color: #4ecdc433">
           <div class="section-head" style="background: #4ecdc418">
             <span class="sec-title" style="color: #4ecdc4" id="stPaper"
-              >📄 পেপার কনফিগ</span
+              >📄 Paper Config</span
             >
           </div>
           <div class="sec-body">
             <div class="ig">
               <div class="two">
                 <div class="ir">
-                  <label id="lPMW">Paper Max Width (mm)</label
-                  ><input
+                  <label id="lPMW">Paper Max Width (mm)</label>
+                  <input
                     type="number"
                     id="inPMW"
                     value="297"
@@ -648,8 +640,8 @@
                   />
                 </div>
                 <div class="ir">
-                  <label id="lCMH">Canvas Max Height (mm)</label
-                  ><input
+                  <label id="lCMH">Canvas Max Height (mm)</label>
+                  <input
                     type="number"
                     id="inCMH"
                     value="210"
@@ -711,8 +703,9 @@
           s3: "③ getColsByStack() → কলাম ও রিমেইন্ডার",
           s4: "④ getHeightByCols() → উচ্চতা হিসাব",
           s5: "⑤ getLayoutInfo() → সম্পূর্ণ লেআউট",
-          s6: "⑥ getRecommendedStacks() → সেরা কনফিগ",
-          s7: "⑦ সব Combinations",
+          s5b: "⑥ getBestRemainderStack() → সেরা রিমেইন্ডার স্ট্যাক",
+          s6: "⑦ getRecommendedStacks() → সেরা কনফিগ",
+          s7: "⑧ সব Combinations",
           perRow: "per row",
           rec: "recommended",
           mainSt: "MAIN STACK",
@@ -723,6 +716,8 @@
           cols: "cols",
           rem: "rem",
           combos: (n) => `মোট ${n}টি কম্বিনেশন · ★ = সেরা`,
+          noRem: "No remainder — all items fit cleanly.",
+          bestRemNull: "null — no clean remainder stack found.",
         },
         en: {
           hSub: "Interactive Debugger · All Method Outputs",
@@ -759,8 +754,9 @@
           s3: "③ getColsByStack() → Cols & Remainder",
           s4: "④ getHeightByCols() → Height Calculation",
           s5: "⑤ getLayoutInfo() → Full Layout Info",
-          s6: "⑥ getRecommendedStacks() → Best Configuration",
-          s7: "⑦ All Combinations",
+          s5b: "⑥ getBestRemainderStack() → Best Remainder Stack",
+          s6: "⑦ getRecommendedStacks() → Best Configuration",
+          s7: "⑧ All Combinations",
           perRow: "per row",
           rec: "recommended",
           mainSt: "MAIN STACK",
@@ -771,11 +767,13 @@
           cols: "cols",
           rem: "rem",
           combos: (n) => `Total ${n} combination(s) · ★ = best`,
+          noRem: "No remainder — all items fit cleanly.",
+          bestRemNull: "null — no clean remainder stack found.",
         },
       };
 
-      let lang = "bn",
-        L = T.bn;
+      let lang = "en",
+        L = T.en;
 
       function setLang(l) {
         if (l === lang) return;
@@ -783,6 +781,7 @@
         L = T[l];
         document.getElementById("btnBN").classList.toggle("active", l === "bn");
         document.getElementById("btnEN").classList.toggle("active", l === "en");
+        persist("lang", l);
         applyLang();
         recalc();
       }
@@ -791,6 +790,7 @@
         const e = document.getElementById(id);
         if (e) e.innerHTML = v;
       }
+
       function applyLang() {
         const u = currentUnit === "mm" ? "mm" : "inch";
         s("hSub", L.hSub);
@@ -819,6 +819,98 @@
       }
 
       // ══════════════════════════════════════════
+      // PERSISTENCE (localStorage)
+      // ══════════════════════════════════════════
+      const STORE_KEY = "gc_debugger_v1";
+
+      function persist(key, value) {
+        try {
+          const data = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+          data[key] = value;
+          localStorage.setItem(STORE_KEY, JSON.stringify(data));
+        } catch (_) {}
+      }
+
+      function persisted(key, fallback) {
+        try {
+          const data = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+          return key in data ? data[key] : fallback;
+        } catch (_) {
+          return fallback;
+        }
+      }
+
+      function persistAll() {
+        const fields = [
+          "inW",
+          "inH",
+          "inQty",
+          "inGap",
+          "inPGap",
+          "inMC",
+          "inPair",
+          "inHP",
+          "inOri",
+          "inPMW",
+          "inCMH",
+        ];
+        const data = {};
+        fields.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) data[id] = el.value;
+        });
+        data["unit"] = currentUnit;
+        data["lang"] = lang;
+        try {
+          localStorage.setItem(STORE_KEY, JSON.stringify(data));
+        } catch (_) {}
+      }
+
+      function restoreAll() {
+        try {
+          const data = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+          const fields = [
+            "inW",
+            "inH",
+            "inQty",
+            "inGap",
+            "inPGap",
+            "inMC",
+            "inPair",
+            "inHP",
+            "inOri",
+            "inPMW",
+            "inCMH",
+          ];
+          fields.forEach((id) => {
+            if (id in data) {
+              const el = document.getElementById(id);
+              if (el) el.value = data[id];
+            }
+          });
+          if (data["unit"] && data["unit"] !== currentUnit) {
+            currentUnit = data["unit"];
+            document
+              .getElementById("btnMM")
+              .classList.toggle("active", currentUnit === "mm");
+            document
+              .getElementById("btnIN")
+              .classList.toggle("active", currentUnit === "inch");
+          }
+          if (data["lang"] && data["lang"] !== lang) {
+            lang = data["lang"];
+            L = T[lang];
+            document
+              .getElementById("btnBN")
+              .classList.toggle("active", lang === "bn");
+            document
+              .getElementById("btnEN")
+              .classList.toggle("active", lang === "en");
+          }
+        } catch (_) {}
+      }
+
+      // ══════════════════════════════════════════
       // UNIT
       // ══════════════════════════════════════════
       let currentUnit = "mm";
@@ -833,7 +925,6 @@
 
       function setUnit(u) {
         if (u === currentUnit) return;
-        // convert all dimension fields including paper config
         ["inW", "inH", "inGap", "inPGap", "inPMW", "inCMH"].forEach((id) => {
           const e = document.getElementById(id),
             cv = parseFloat(e.value) || 0;
@@ -845,6 +936,7 @@
         document
           .getElementById("btnIN")
           .classList.toggle("active", u === "inch");
+        persistAll();
         applyLang();
         recalc();
       }
@@ -867,18 +959,20 @@
         `<span class="bdg" style="background:${SC[t]}22;color:${SC[t]};border:1px solid ${SC[t]}44">${t}</span>`;
       const kv = (l, v, c = "") =>
         `<div class="kv"><span class="kl">${l}</span><span class="kv2" style="${c ? "color:" + c : ""}">${v}</span></div>`;
+
       function sec(title, color, body, col = false, open = true) {
         const id = "x" + Math.random().toString(36).slice(2);
         const tog = col
           ? `<span id="t${id}" style="color:${color};font-size:14px">${open ? "▲" : "▼"}</span>`
           : "";
         return `<div class="section" style="border-color:${color}33">
-    <div class="section-head${col ? " col" : ""}" style="background:${color}18" ${col ? `onclick="ts('${id}')"` : ""}">
-      <span class="sec-title" style="color:${color}">${title}</span>${tog}
-    </div>
-    <div class="sec-body${open ? "" : " hidden"}" id="b${id}">${body}</div>
-  </div>`;
+  <div class="section-head${col ? " col" : ""}" style="background:${color}18" ${col ? `onclick="ts('${id}')"` : ""}>
+    <span class="sec-title" style="color:${color}">${title}</span>${tog}
+  </div>
+  <div class="sec-body${open ? "" : " hidden"}" id="b${id}">${body}</div>
+</div>`;
       }
+
       function ts(id) {
         const b = document.getElementById("b" + id),
           t = document.getElementById("t" + id);
@@ -886,7 +980,7 @@
       }
 
       // ══════════════════════════════════════════
-      // DEFAULT SOURCE BUILDER
+      // DEFAULT SOURCE BUILDER  (x.js logic)
       // ══════════════════════════════════════════
       function buildSrc(pmw, cmh) {
         return `// ─── Config & Utils (keep these) ────────────────────
@@ -900,95 +994,155 @@ const stackTypesTuple = ["VRH","HH","RHH","VV","RVV"];
 
 // ─── GridCalculator ──────────────────────────────────
 class GridCalculator {
-  static getStackSizes({ size, pair = true, gap = 0 }) {
-    const hm = pair ? 2 : 1;
-    const { width: iW, height: iH } = size;
-    const { width: rW, height: rH } = Utils.swapDimensions(size);
-    const vw = iW + gap + iH;
+  static getStackSizes({ size, pair = true, gap = 0, secDim }) {
+    const sec = secDim ?? size;
+    const { width: itemW, height: itemH } = size;
+    const { width: rotatedW, height: rotatedH } = Utils.swapDimensions(size);
+    const { width: secW, height: secH } = sec;
+    const { width: secRotW, height: secRotH } = Utils.swapDimensions(sec);
+    const widthOfVRH = itemW + gap + itemH;
     const stacks = {
-      VRH: { width: vw, height: vw },
-      HH:  { width: iW * hm + (pair ? gap : 0), height: iH },
-      RHH: { width: rW * hm + (pair ? gap : 0), height: rH },
-      VV:  { width: iW, height: iH * 2 + (pair ? gap : 0) },
-      RVV: { width: rW, height: rH * 2 + (pair ? gap : 0) },
+      VRH: { width: widthOfVRH, height: widthOfVRH },
+      HH:  { width: pair ? itemW + gap + secW : itemW, height: pair ? Math.max(itemH, secH) : itemH },
+      RHH: { width: pair ? rotatedW + gap + secRotW : rotatedW, height: pair ? Math.max(rotatedH, secRotH) : rotatedH },
+      VV:  { width: pair ? Math.max(itemW, secW) : itemW, height: pair ? itemH + gap + secH : itemH },
+      RVV: { width: pair ? Math.max(rotatedW, secRotW) : rotatedW, height: pair ? rotatedH + gap + secRotH : rotatedH },
     };
-    let rec = { type: "HH", width: stacks.HH.width };
-    for (const [t, d] of Object.entries(stacks))
-      if (d.width > rec.width) rec = { type: t, width: d.width };
-    return { ...stacks, recommended: rec.type };
+    let recommended = { type: "HH", width: stacks.HH.width };
+    for (const [type, dims] of Object.entries(stacks))
+      if (dims.width > recommended.width) recommended = { type, width: dims.width };
+    return { ...stacks, recommended: recommended.type };
   }
+
   static getRowFitCount({ stackWidth, gap = 0 }) {
-    return this._maxFit(stackWidth, gap, CONFIG.PAPER_MAX_SIZE);
+    return this.calculateMaxFit(stackWidth, gap, CONFIG.PAPER_MAX_SIZE);
   }
-  static _maxFit(iW, gap, maxW) {
-    if (iW <= 0) return 0;
-    for (let c = Math.floor(maxW / iW); c > 0; c--)
-      if (Utils.calculateTotalWithGap({ count: c, value: iW, gap }) <= maxW) return c;
+
+  static calculateMaxFit(itemWidth, gap, maxWidth) {
+    if (itemWidth <= 0) return 0;
+    let maxCount = Math.floor(maxWidth / itemWidth);
+    for (let count = maxCount; count > 0; count--) {
+      const totalWidth = Utils.calculateTotalWithGap({ count, value: itemWidth, gap });
+      if (totalWidth <= maxWidth) return count;
+    }
     return 0;
   }
+
   static getColsByStack({ fitRow, quantity = 1 }) {
     if (fitRow === 0) return { cols: 0, remainder: quantity };
-    return { cols: Math.floor(quantity / fitRow), remainder: quantity % fitRow };
+    if (quantity <= fitRow) return { cols: 1, remainder: 0 };
+    const remainder = quantity % fitRow;
+    const cols = Math.floor(quantity / fitRow);
+    return { cols: Math.max(1, cols), remainder };
   }
+
   static getHeightByCols({ count, height, gap }) {
     return {
       mainStack: count > 0 ? Utils.calculateTotalWithGap({ value: height, count, gap }) : 0,
       remainderStack: height,
     };
   }
-  static _requiredDocs({ dimension, neededCols, gap, maxColsInDoc }) {
-    const CMH = CANVAS_MAX_HEIGHT_CFG;
-    let cMax = Math.min(Math.floor(CMH / (dimension.height + gap)), neededCols);
-    let cpd = Math.max(1, cMax);
-    let dn = Math.ceil(neededCols / cpd);
-    if (maxColsInDoc) { cpd = maxColsInDoc > cpd ? cpd : maxColsInDoc; dn = Math.ceil(neededCols / cpd); }
-    return { docsNeeded: dn, colsPerDoc: cpd };
-  }
-  static getLayoutInfo({ gap, size, quantity, pairGap = 0, pair, maxColsInDoc }) {
-    const ss = this.getStackSizes({ size, pair, gap: pairGap });
-    const info = {};
-    for (const type of stackTypesTuple) {
-      const sz = ss[type];
-      const fitRow = this.getRowFitCount({ stackWidth: sz.width, gap });
-      let adjQ = quantity, actR = 0;
-      if (type === "VRH") {
-        const ipv = pair ? 2 : 4;
-        if (quantity < ipv) { info[type]={ fitRow:0, neededCols:{cols:0,remainder:quantity}, heightByCols:{mainStack:0,remainderStack:sz.height}, stackSize:sz, requiredDocs:{docsNeeded:0,colsPerDoc:0} }; continue; }
-        adjQ = Math.floor(quantity / ipv); actR = quantity % ipv;
-      }
-      const nc = this.getColsByStack({ fitRow, quantity: adjQ });
-      if (type !== "VRH") actR = nc.remainder;
-      const hbc = this.getHeightByCols({ count: nc.cols, height: sz.height, gap });
-      const rd = this._requiredDocs({ dimension:{width:sz.width,height:sz.height}, gap, maxColsInDoc, neededCols:nc.cols });
-      info[type] = { fitRow, neededCols:{cols:nc.cols,remainder:actR}, heightByCols:hbc, stackSize:sz, requiredDocs:rd };
+
+  static requiredDocs({ dimension, neededCols, gap, maxColsInDoc }) {
+    const CANVAS_MAX_HEIGHT = ${cmh};
+    let calculatedMaxColsInDoc = Math.floor(CANVAS_MAX_HEIGHT / (dimension.height + gap));
+    calculatedMaxColsInDoc = Math.min(calculatedMaxColsInDoc, neededCols);
+    let colsPerDoc = Math.max(1, calculatedMaxColsInDoc);
+    let docsNeeded = Math.ceil(neededCols / colsPerDoc);
+    if (maxColsInDoc) {
+      colsPerDoc = maxColsInDoc > colsPerDoc ? colsPerDoc : maxColsInDoc;
+      docsNeeded = Math.ceil(neededCols / colsPerDoc);
     }
-    return info;
+    return { docsNeeded: Math.max(1, docsNeeded), colsPerDoc };
   }
-  static getRecommendedStacks({ gap, size, quantity, pairGap=0, pair, heightPreference="Less", stackOrientation, maxColsInDoc }) {
-    const all = this.getLayoutInfo({ gap, size, quantity, pairGap, pair, maxColsInDoc });
-    let types = stackTypesTuple;
-    if (stackOrientation==="vertical") types=["HH","VV"];
-    else if (stackOrientation==="horizontal") types=["RHH","RVV"];
-    const vc=[];
-    for (const mt of types) {
-      const mi=all[mt]; if(mi.fitRow===0)continue;
-      if (mi.neededCols.remainder===0) {
-        const ipms=mt==="VRH"?(pair?2:4):mi.fitRow;
-        vc.push({ mainStack:mt,remainderStack:mt,totalHeight:mi.heightByCols.mainStack,hasRemainder:false,score:mi.heightByCols.mainStack,mainCols:mi.neededCols.cols,mainQuantityOccupied:mi.neededCols.cols*ipms,remainderItems:0,remainderQuantityOccupied:0,mainHeight:mi.heightByCols.mainStack,remainderHeight:0,mainFitRow:mi.fitRow,remainderFitRow:mi.fitRow,remainderCols:0,requiredDocs:mi.requiredDocs,remainderRequiredDocs:{docsNeeded:0,colsPerDoc:0} });
+
+  static getLayoutInfo({ gap, size, quantity, pairGap = 0, pair, secDim = null, maxColsInDoc }) {
+    const stackTypes = stackTypesTuple;
+    const stacksInfo = {};
+    const stackSizes = this.getStackSizes({ size, pair, gap: pairGap, secDim });
+    for (const type of stackTypes) {
+      const stackSize = stackSizes[type];
+      const fitRow = this.getRowFitCount({ stackWidth: stackSize.width, gap });
+      let adjustedQuantity = quantity;
+      let actualRemainder = 0;
+      if (type === "VRH") {
+        const itemsPerVRH = 4;
+        if (quantity < (pair ? 2 : 4)) {
+          stacksInfo[type] = {
+            fitRow: 0,
+            neededCols: { cols: 0, remainder: quantity },
+            heightByCols: { mainStack: 0, remainderStack: stackSize.height },
+            stackSize: stackSize,
+            requiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
+          };
+          continue;
+        }
+        if (fitRow === 1) {
+          adjustedQuantity = Math.max(1,Math.floor(quantity / itemsPerVRH));
+        } else {
+          adjustedQuantity =
+            quantity % 4
+              ? Math.ceil(quantity / itemsPerVRH)
+              : Math.floor(quantity / itemsPerVRH);
+        }
+        actualRemainder = Math.max(
+          0,
+          quantity - adjustedQuantity * itemsPerVRH,
+        );
+        if (pair) {
+            adjustedQuantity *= quantity > 3 ? 2 : adjustedQuantity;
+            if(fitRow === 1 && quantity === 3) {
+              actualRemainder = 1
+          }
+        }
+      }
+      const neededCols = this.getColsByStack({ fitRow, quantity: adjustedQuantity });
+      if (type !== "VRH") actualRemainder = neededCols.remainder;
+      const heightByCols = this.getHeightByCols({ count: neededCols.cols, height: stackSize.height, gap });
+      const requiredDocs = this.requiredDocs({ dimension: { width: stackSize.width, height: stackSize.height }, gap, maxColsInDoc, neededCols: neededCols.cols });
+      stacksInfo[type] = { fitRow, neededCols: { cols: neededCols.cols, remainder: actualRemainder }, heightByCols, stackSize, requiredDocs };
+    }
+    return stacksInfo;
+  }
+
+  static getBestRemainderStack({ gap, size, remainderQuantity, pairGap = 0, pair, secDim = null, maxColsInDoc, stackTypes, heightPreference = "Less" }) {
+    const allStacksInfo = this.getLayoutInfo({ gap, size, quantity: remainderQuantity, pairGap, pair, secDim, maxColsInDoc });
+    const candidates = [];
+    for (const type of stackTypes) {
+      const info = allStacksInfo[type];
+      if (info.fitRow === 0) continue;
+      if (info.neededCols.remainder !== 0) continue;
+      candidates.push({ stackName: type, fitRow: info.fitRow, neededCols: { cols: info.neededCols.cols, remainder: 0 }, heightByCols: { mainStack: info.heightByCols.mainStack, remainderStack: 0 }, stackSize: info.stackSize, requiredDocs: info.requiredDocs });
+    }
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => heightPreference === "Less" ? a.heightByCols.mainStack - b.heightByCols.mainStack : b.heightByCols.mainStack - a.heightByCols.mainStack);
+    return candidates[0];
+  }
+
+  static getRecommendedStacks({ gap, size, quantity, pairGap = 0, pair, secDim, heightPreference = "Less", stackOrientation, maxColsInDoc }) {
+    let stackTypes = stackTypesTuple;
+    if (stackOrientation === "vertical") stackTypes = ["HH", "VV"];
+    else if (stackOrientation === "horizontal") stackTypes = ["RHH", "RVV"];
+    const allStacksInfo = this.getLayoutInfo({ gap, size, quantity, pairGap, pair, secDim, maxColsInDoc });
+    const validCombinations = [];
+    for (const mainType of stackTypes) {
+      const mainInfo = allStacksInfo[mainType];
+      if (mainInfo.fitRow === 0) continue;
+      if (mainInfo.neededCols.remainder === 0) {
+        validCombinations.push({ mainStack: mainType, remainderStack: mainType, totalHeight: mainInfo.heightByCols.mainStack, hasRemainder: false, score: mainInfo.heightByCols.mainStack, mainCols: mainInfo.neededCols.cols, mainQuantityOccupied: quantity, remainderItems: 0, remainderQuantityOccupied: 0, mainHeight: mainInfo.heightByCols.mainStack, remainderHeight: 0, mainFitRow: mainInfo.fitRow, remainderFitRow: mainInfo.fitRow, remainderCols: 0, requiredDocs: mainInfo.requiredDocs, remainderRequiredDocs: { docsNeeded: 0, colsPerDoc: 0 } });
         continue;
       }
-      for (const rt of types) {
-        const ri=all[rt]; if(ri.fitRow<mi.neededCols.remainder)continue;
-        const mH=mi.heightByCols.mainStack, rH=ri.heightByCols.remainderStack;
-        const totH=mH+(mH>0?gap:0)+rH;
-        const ipms=mt==="VRH"?(pair?2:4):mi.fitRow;
-        const rrd=this._requiredDocs({dimension:{width:ri.stackSize.width,height:ri.stackSize.height},gap,maxColsInDoc,neededCols:1});
-        vc.push({ mainStack:mt,remainderStack:rt,totalHeight:totH,hasRemainder:true,score:totH,mainCols:mi.neededCols.cols,mainQuantityOccupied:mi.neededCols.cols*ipms,remainderItems:mi.neededCols.remainder,remainderQuantityOccupied:mi.neededCols.remainder,mainHeight:mH,remainderHeight:rH,mainFitRow:mi.fitRow,remainderFitRow:ri.fitRow,remainderCols:mi.neededCols.remainder>0?1:0,requiredDocs:mi.requiredDocs,remainderRequiredDocs:rrd });
-      }
+      const remainderQuantity = mainInfo.neededCols.remainder;
+      const bestRem = this.getBestRemainderStack({ gap, size, remainderQuantity, pairGap, pair, secDim, maxColsInDoc, stackTypes, heightPreference });
+      if (!bestRem) continue;
+      const mainHeight = mainInfo.heightByCols.mainStack;
+      const remainderHeight = bestRem.heightByCols.mainStack;
+      const totalHeight = mainHeight + (mainHeight > 0 ? gap : 0) + remainderHeight;
+      validCombinations.push({ mainStack: mainType, remainderStack: bestRem.stackName, totalHeight, hasRemainder: true, score: totalHeight, mainCols: mainInfo.neededCols.cols, mainQuantityOccupied: quantity - remainderQuantity, remainderItems: remainderQuantity, remainderQuantityOccupied: remainderQuantity, mainHeight, remainderHeight, mainFitRow: mainInfo.fitRow, remainderFitRow: bestRem.fitRow, remainderCols: bestRem.neededCols.cols, requiredDocs: mainInfo.requiredDocs, remainderRequiredDocs: bestRem.requiredDocs });
     }
-    vc.sort((a,b)=>heightPreference==="Less"?a.score-b.score:b.score-a.score);
-    const best=vc[0]||{mainStack:"HH",remainderStack:"HH",totalHeight:0,hasRemainder:false,mainCols:0,mainQuantityOccupied:0,remainderItems:0,remainderQuantityOccupied:0,mainFitRow:0,remainderFitRow:0,remainderCols:0,requiredDocs:{docsNeeded:0,colsPerDoc:0},remainderRequiredDocs:{docsNeeded:0,colsPerDoc:0}};
-    return {...best,allCombinations:vc};
+    validCombinations.sort((a, b) => heightPreference === "Less" ? a.score - b.score : b.score - a.score);
+    const best = validCombinations[0] ?? { mainStack: "HH", remainderStack: "HH", totalHeight: 0, hasRemainder: false, score: 0, mainCols: 0, mainQuantityOccupied: 0, remainderItems: 0, remainderQuantityOccupied: 0, mainHeight: 0, remainderHeight: 0, mainFitRow: 0, remainderFitRow: 0, remainderCols: 0, requiredDocs: { docsNeeded: 0, colsPerDoc: 0 }, remainderRequiredDocs: { docsNeeded: 0, colsPerDoc: 0 } };
+    return { ...best, allCombinations: validCombinations };
   }
 }`;
       }
@@ -1050,7 +1204,6 @@ class GridCalculator {
         document.getElementById("edMov").classList.remove("open");
       }
 
-      // paper config change → rebuild default source
       let _pmwPrev = 297,
         _cmhPrev = 210,
         _paperTimer = null;
@@ -1066,6 +1219,7 @@ class GridCalculator {
           if (pmw !== _pmwPrev || cmh !== _cmhPrev) {
             _pmwPrev = pmw;
             _cmhPrev = cmh;
+            persistAll();
             loadDefault(true);
           }
         }, 400);
@@ -1076,6 +1230,8 @@ class GridCalculator {
       // ══════════════════════════════════════════
       function recalc() {
         if (!GC) return;
+        persistAll();
+
         const wIn = parseFloat(document.getElementById("inW").value) || 0;
         const hIn = parseFloat(document.getElementById("inH").value) || 0;
         const gIn = parseFloat(document.getElementById("inGap").value) || 0;
@@ -1096,6 +1252,11 @@ class GridCalculator {
         const mc = parseInt(document.getElementById("inMC").value) || 0;
         const types = GC_types;
 
+        // Determine active stack types based on orientation (mirrors getRecommendedStacks logic)
+        let activeTypes = types;
+        if (ori === "vertical") activeTypes = ["HH", "VV"];
+        else if (ori === "horizontal") activeTypes = ["RHH", "RVV"];
+
         // Method calls
         const ss = GC.getStackSizes({ size, pair, gap: pairGap });
         const rfc = {},
@@ -1110,6 +1271,7 @@ class GridCalculator {
             gap,
           });
         });
+
         const li = GC.getLayoutInfo({
           gap,
           size,
@@ -1129,7 +1291,7 @@ class GridCalculator {
           maxColsInDoc: mc,
         });
 
-        // Paper info — show in current unit
+        // Paper info
         const u = currentUnit === "mm" ? "mm" : "inch";
         document.getElementById("paperInfo").innerHTML =
           kv(`${L.kPMW} (${u})`, fmtN(pmw), "var(--accent)") +
@@ -1146,22 +1308,23 @@ class GridCalculator {
           const d = ss[t],
             isR = ss.recommended === t;
           sg += `<div class="sc" style="background:${SC[t]}0a;border:1px solid ${SC[t]}${isR ? "cc" : "44"};${isR ? "box-shadow:0 0 12px " + SC[t] + "44" : ""}">
-      ${isR ? `<div class="rc" style="color:${SC[t]}">★REC</div>` : ""}
-      <div class="tl" style="color:${SC[t]}">${t}</div>
-      <div class="dm">W: ${fmtN(d.width)}</div>
-      <div class="dm">H: ${fmtN(d.height)}</div>
-    </div>`;
+  ${isR ? `<div class="rc" style="color:${SC[t]}">★REC</div>` : ""}
+  <div class="tl" style="color:${SC[t]}">${t}</div>
+  <div class="dm">W: ${fmtN(d.width)}</div>
+  <div class="dm">H: ${fmtN(d.height)}</div>
+</div>`;
         });
-        sg +=
-          '</div><div style="margin-top:8px">' +
-          kv(L.rec, bdg(ss.recommended)) +
-          "</div>";
+        sg += `</div><div style="margin-top:8px">${kv(L.rec, bdg(ss.recommended))}</div>`;
         html += sec(L.s1, "#4ecdc4", sg);
 
         // ② Row fit
         let fg = '<div class="fg">';
         types.forEach((t) => {
-          fg += `<div class="fc" style="background:${SC[t]}12;border:1px solid ${SC[t]}33"><div style="color:${SC[t]};font-size:11px;font-weight:700">${t}</div><div class="fn">${rfc[t]}</div><div style="color:var(--muted);font-size:10px">${L.perRow}</div></div>`;
+          fg += `<div class="fc" style="background:${SC[t]}12;border:1px solid ${SC[t]}33">
+  <div style="color:${SC[t]};font-size:11px;font-weight:700">${t}</div>
+  <div class="fn">${rfc[t]}</div>
+  <div style="color:var(--muted);font-size:10px">${L.perRow}</div>
+</div>`;
         });
         fg += "</div>";
         html += sec(L.s2, "#45b7d1", fg);
@@ -1171,15 +1334,15 @@ class GridCalculator {
         types.forEach((t) => {
           const c = cbs[t];
           cg += `<div class="cc" style="background:${SC[t]}12;border:1px solid ${SC[t]}33">
-      <div class="tlbl" style="color:${SC[t]}">${t}</div>
-      <div style="font-size:11px">${L.cols}: <b style="color:var(--accent)">${c.cols}</b></div>
-      <div style="font-size:11px">${L.rem}: <b style="color:${c.remainder > 0 ? "#f7dc6f" : "var(--muted)"}">${c.remainder}</b></div>
-    </div>`;
+  <div class="tlbl" style="color:${SC[t]}">${t}</div>
+  <div style="font-size:11px">${L.cols}: <b style="color:var(--accent)">${c.cols}</b></div>
+  <div style="font-size:11px">${L.rem}: <b style="color:${c.remainder > 0 ? "#f7dc6f" : "var(--muted)"}">${c.remainder}</b></div>
+</div>`;
         });
         cg += "</div>";
         html += sec(L.s3, "#f7dc6f", cg);
 
-        // ④ Height — with combined total when remainder > 0
+        // ④ Height
         let hg = '<div class="cg">';
         types.forEach((t) => {
           const h = hbcM[t],
@@ -1189,71 +1352,133 @@ class GridCalculator {
               ? h.mainStack + (h.mainStack > 0 ? gap : 0) + h.remainderStack
               : null;
           hg += `<div class="cc" style="background:${SC[t]}12;border:1px solid ${SC[t]}33">
-      <div class="tlbl" style="color:${SC[t]}">${t}</div>
-      <div style="font-size:10px;color:var(--muted)">${L.mainLbl}</div>
-      <div style="color:var(--accent);font-weight:700;font-size:13px">${fmtN(h.mainStack)}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px">${L.remLbl}</div>
-      <div style="color:#bb8fce;font-weight:700;font-size:13px">${fmtN(h.remainderStack)}</div>
-      ${combined !== null ? `<div class="tot-pill"><span style="color:var(--muted);font-size:10px">${L.totLbl}</span><span style="color:#f7dc6f;font-weight:900;font-size:12px;margin-left:4px">${fmtN(combined)}</span></div>` : ""}
-    </div>`;
+  <div class="tlbl" style="color:${SC[t]}">${t}</div>
+  <div style="font-size:10px;color:var(--muted)">${L.mainLbl}</div>
+  <div style="color:var(--accent);font-weight:700;font-size:13px">${fmtN(h.mainStack)}</div>
+  <div style="font-size:10px;color:var(--muted);margin-top:3px">${L.remLbl}</div>
+  <div style="color:#bb8fce;font-weight:700;font-size:13px">${fmtN(h.remainderStack)}</div>
+  ${combined !== null ? `<div class="tot-pill"><span style="color:var(--muted);font-size:10px">${L.totLbl}</span><span style="color:#f7dc6f;font-weight:900;font-size:12px;margin-left:4px">${fmtN(combined)}</span></div>` : ""}
+</div>`;
         });
         hg += "</div>";
         html += sec(L.s4, "#bb8fce", hg);
 
         // ⑤ Layout table
         let tbl = `<div class="tw"><table><thead><tr>
-    <th>Type</th><th>W×H</th><th>fitRow</th><th>cols</th><th>rem</th>
-    <th>mainH</th><th>remH</th><th>docs</th><th>cpd</th>
-  </tr></thead><tbody>`;
+  <th>Type</th><th>W×H</th><th>fitRow</th><th>cols</th><th>rem</th>
+  <th>mainH</th><th>remH</th><th>docs</th><th>cpd</th>
+</tr></thead><tbody>`;
         types.forEach((t) => {
           const i = li[t];
-          tbl += `<tr><td>${bdg(t)}</td><td>${fmtN(i.stackSize.width)}×${fmtN(i.stackSize.height)}</td>
-      <td style="color:var(--accent)">${i.fitRow}</td><td>${i.neededCols.cols}</td>
-      <td style="color:${i.neededCols.remainder > 0 ? "#f7dc6f" : "var(--muted)"}">${i.neededCols.remainder}</td>
-      <td>${fmtN(i.heightByCols.mainStack)}</td><td>${fmtN(i.heightByCols.remainderStack)}</td>
-      <td>${i.requiredDocs.docsNeeded}</td><td>${i.requiredDocs.colsPerDoc}</td>
-    </tr>`;
+          tbl += `<tr>
+  <td>${bdg(t)}</td><td>${fmtN(i.stackSize.width)}×${fmtN(i.stackSize.height)}</td>
+  <td style="color:var(--accent)">${i.fitRow}</td><td>${i.neededCols.cols}</td>
+  <td style="color:${i.neededCols.remainder > 0 ? "#f7dc6f" : "var(--muted)"}">${i.neededCols.remainder}</td>
+  <td>${fmtN(i.heightByCols.mainStack)}</td><td>${fmtN(i.heightByCols.remainderStack)}</td>
+  <td>${i.requiredDocs.docsNeeded}</td><td>${i.requiredDocs.colsPerDoc}</td>
+</tr>`;
         });
         tbl += "</tbody></table></div>";
         html += sec(L.s5, "#ff6b6b", tbl);
 
-        // ⑥ Recommended
+        // ⑥ getBestRemainderStack — call for each active main stack's remainder
+        let brHTML = "";
+        activeTypes.forEach((mainType) => {
+          const mainInfo = li[mainType];
+          if (!mainInfo || mainInfo.fitRow === 0) return;
+          const remQty = mainInfo.neededCols.remainder;
+
+          let cardBody = "";
+          if (remQty === 0) {
+            cardBody = `<div style="color:var(--muted);font-size:11px;padding:6px 0">${L.noRem}</div>`;
+          } else {
+            let bestRem = null;
+            try {
+              bestRem = GC.getBestRemainderStack({
+                gap,
+                size,
+                remainderQuantity: remQty,
+                pairGap,
+                pair,
+                maxColsInDoc: mc,
+                stackTypes: activeTypes,
+                heightPreference: hp,
+              });
+            } catch (_) {
+              bestRem = null;
+            }
+
+            if (!bestRem) {
+              cardBody = `<div style="color:#ff6b6b;font-size:11px;padding:6px 0">${L.bestRemNull}</div>`;
+            } else {
+              const bc = SC[bestRem.stackName] || "var(--accent)";
+              cardBody =
+                kv("stackName", bdg(bestRem.stackName)) +
+                kv("fitRow", bestRem.fitRow, "var(--accent)") +
+                kv("cols", bestRem.neededCols.cols) +
+                kv(
+                  "mainStack height",
+                  fmtN(bestRem.heightByCols.mainStack),
+                  "var(--accent)",
+                ) +
+                kv(
+                  "stackSize W×H",
+                  `${fmtN(bestRem.stackSize.width)}×${fmtN(bestRem.stackSize.height)}`,
+                ) +
+                kv("docsNeeded", bestRem.requiredDocs.docsNeeded, "#ff6b6b") +
+                kv("colsPerDoc", bestRem.requiredDocs.colsPerDoc);
+            }
+          }
+
+          const mc2 = SC[mainType] || "var(--accent)";
+          brHTML += `<div style="background:${mc2}0a;border:1px solid ${mc2}33;border-radius:8px;padding:10px;margin-bottom:8px">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="color:var(--muted);font-size:10px">mainType →</span>
+    ${bdg(mainType)}
+    <span style="color:var(--muted);font-size:10px;margin-left:8px">remainder: <b style="color:#f7dc6f">${remQty}</b></span>
+  </div>
+  ${cardBody}
+</div>`;
+        });
+        html += sec(L.s5b, "#f7a35c", brHTML);
+
+        // ⑦ Recommended
         const mc2 = SC[res.mainStack],
           rc2 = SC[res.remainderStack];
         let rs = `<div class="rg">
-    <div class="rc2" style="background:${mc2}15;border:1px solid ${mc2}44">
-      <div style="color:var(--muted);font-size:10px;margin-bottom:4px">${L.mainSt}</div>${bdg(res.mainStack)}
-      ${kv("mainCols", res.mainCols, "var(--accent)")}${kv("mainFitRow", res.mainFitRow)}
-      ${kv("mainQtyOccupied", res.mainQuantityOccupied, "var(--accent)")}${kv("mainHeight", fmtN(res.mainHeight || 0))}
-      ${kv("docs needed", res.requiredDocs.docsNeeded, "#ff6b6b")}${kv("colsPerDoc", res.requiredDocs.colsPerDoc)}
-    </div>
-    <div class="rc2" style="background:${rc2}15;border:1px solid ${rc2}44">
-      <div style="color:var(--muted);font-size:10px;margin-bottom:4px">${L.remSt}</div>${bdg(res.remainderStack)}
-      ${kv("hasRemainder", String(res.hasRemainder))}
-      ${kv("remainderItems", res.remainderItems, res.remainderItems > 0 ? "#f7dc6f" : "var(--muted)")}
-      ${kv("remQtyOccupied", res.remainderQuantityOccupied)}${kv("remainderCols", res.remainderCols)}
-      ${kv("remainderFitRow", res.remainderFitRow)}${kv("rem docs needed", res.remainderRequiredDocs.docsNeeded, "#ff6b6b")}
-    </div>
-  </div>${kv("totalHeight", fmtN(res.totalHeight), "var(--accent)")}`;
+  <div class="rc2" style="background:${mc2}15;border:1px solid ${mc2}44">
+    <div style="color:var(--muted);font-size:10px;margin-bottom:4px">${L.mainSt}</div>${bdg(res.mainStack)}
+    ${kv("mainCols", res.mainCols, "var(--accent)")}${kv("mainFitRow", res.mainFitRow)}
+    ${kv("mainQtyOccupied", res.mainQuantityOccupied, "var(--accent)")}${kv("mainHeight", fmtN(res.mainHeight || 0))}
+    ${kv("docs needed", res.requiredDocs.docsNeeded, "#ff6b6b")}${kv("colsPerDoc", res.requiredDocs.colsPerDoc)}
+  </div>
+  <div class="rc2" style="background:${rc2}15;border:1px solid ${rc2}44">
+    <div style="color:var(--muted);font-size:10px;margin-bottom:4px">${L.remSt}</div>${bdg(res.remainderStack)}
+    ${kv("hasRemainder", String(res.hasRemainder))}
+    ${kv("remainderItems", res.remainderItems, res.remainderItems > 0 ? "#f7dc6f" : "var(--muted)")}
+    ${kv("remQtyOccupied", res.remainderQuantityOccupied)}${kv("remainderCols", res.remainderCols)}
+    ${kv("remainderFitRow", res.remainderFitRow)}${kv("rem docs needed", res.remainderRequiredDocs.docsNeeded, "#ff6b6b")}
+  </div>
+</div>${kv("totalHeight", fmtN(res.totalHeight), "var(--accent)")}`;
         html += sec(L.s6, "#00e5a0", rs);
 
-        // ⑦ Combinations
+        // ⑧ Combinations
         const cbs2 = res.allCombinations || [];
         let ct = `<div style="color:var(--muted);font-size:11px;margin-bottom:8px">${L.combos(cbs2.length)}</div>
-  <div class="cw"><table><thead><tr>
-    <th>#</th><th>Main</th><th>Rem</th><th>totalH</th><th>hasRem</th>
-    <th>mCols</th><th>mQty</th><th>rItems</th><th>rQty</th><th>mDocs</th><th>rDocs</th>
-  </tr></thead><tbody>`;
+<div class="cw"><table><thead><tr>
+  <th>#</th><th>Main</th><th>Rem</th><th>totalH</th><th>hasRem</th>
+  <th>mCols</th><th>mQty</th><th>rItems</th><th>rQty</th><th>mDocs</th><th>rDocs</th>
+</tr></thead><tbody>`;
         cbs2.forEach((c, i) => {
           ct += `<tr style="${i === 0 ? "background:#00e5a010" : ""}">
-      <td style="color:${i === 0 ? "var(--accent)" : "var(--muted)"}">${i === 0 ? "★" : i + 1}</td>
-      <td>${bdg(c.mainStack)}</td><td>${bdg(c.remainderStack)}</td>
-      <td style="color:var(--accent)">${fmtN(c.totalHeight)}</td>
-      <td>${c.hasRemainder ? "✓" : "—"}</td>
-      <td>${c.mainCols}</td><td>${c.mainQuantityOccupied}</td>
-      <td>${c.remainderItems}</td><td>${c.remainderQuantityOccupied}</td>
-      <td>${c.requiredDocs.docsNeeded}</td><td>${c.remainderRequiredDocs.docsNeeded}</td>
-    </tr>`;
+  <td style="color:${i === 0 ? "var(--accent)" : "var(--muted)"}">${i === 0 ? "★" : i + 1}</td>
+  <td>${bdg(c.mainStack)}</td><td>${bdg(c.remainderStack)}</td>
+  <td style="color:var(--accent)">${fmtN(c.totalHeight)}</td>
+  <td>${c.hasRemainder ? "✓" : "—"}</td>
+  <td>${c.mainCols}</td><td>${c.mainQuantityOccupied}</td>
+  <td>${c.remainderItems}</td><td>${c.remainderQuantityOccupied}</td>
+  <td>${c.requiredDocs.docsNeeded}</td><td>${c.remainderRequiredDocs.docsNeeded}</td>
+</tr>`;
         });
         ct += "</tbody></table></div>";
         html += sec(L.s7, "#3a8fd1", ct, true, false);
@@ -1262,8 +1487,9 @@ class GridCalculator {
       }
 
       // ══════════════════════════════════════════
-      // INIT
+      // INIT — restore persisted state, then boot
       // ══════════════════════════════════════════
+      restoreAll();
       applyLang();
       loadDefault(true);
     </script>

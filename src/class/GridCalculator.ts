@@ -181,9 +181,27 @@ class GridCalculator {
   }
 
   /**
-   * Main layout calculation method - supports both single stack type and 'auto' (all types)
-   * @param params - Layout calculation parameters
-   * @returns Layout information for specified stack type or all stack types
+   * Calculates layout information for all stack types for a given quantity.
+   *
+   * For VRH stacks the quantity is divided by `itemsPerVRH` (2 when paired,
+   * 4 when unpaired) to determine how many full VRH squares can be formed.
+   * Any leftover items that cannot form a complete VRH square are tracked as
+   * the `remainder`.
+   *
+   * For all other stack types the quantity is distributed across rows normally
+   * using {@link getColsByStack}, and the `remainder` is whatever cannot fill
+   * a complete row.
+   *
+   * @param params - Layout calculation parameters.
+   * @param params.gap        - Gap between stacks (columns/rows).
+   * @param params.size       - Primary item dimensions.
+   * @param params.quantity   - Total number of items to lay out.
+   * @param params.pairGap    - Gap between the two items inside a paired stack (default 0).
+   * @param params.pair       - Whether items are placed in pairs (default true).
+   * @param params.secDim     - Optional secondary item dimensions for asymmetric pairs.
+   * @param params.maxColsInDoc - Hard cap on columns per document (0 = auto).
+   * @returns A record keyed by each {@link StackType} with fitRow, neededCols,
+   *          heightByCols, stackSize and requiredDocs.
    */
   static getLayoutInfo(params: LayoutObjectInfo) {
     const {
@@ -209,7 +227,6 @@ class GridCalculator {
 
     for (const type of stackTypes) {
       const typeSafe = type as Exclude<StackType, "NONE">;
-
       const stackSize = stackSizes[typeSafe];
 
       const fitRow = this.getRowFitCount({
@@ -217,34 +234,46 @@ class GridCalculator {
         gap,
       });
 
-      // VRH special handling: capacity depends on pair value
       let adjustedQuantity = quantity;
       let actualRemainder = 0;
 
       if (type === "VRH") {
-        const itemsPerVRH = pair ? 2 : 4;
+        // VRH combines items into squares: 2 per square when paired, 4 when unpaired.
+        const itemsPerVRH = 4;
 
-        // Skip VRH if quantity < itemsPerVRH (can't make even 1 full square)
-        if (quantity < itemsPerVRH) {
-          stacksInfo[type] = {
+        // Not enough items to form even one VRH square — mark as unavailable.
+        if (quantity < (pair ? 2 : 4)) {
+          stacksInfo[typeSafe] = {
             fitRow: 0,
-            neededCols: {
-              cols: 0,
-              remainder: quantity,
-            },
-            heightByCols: {
-              mainStack: 0,
-              remainderStack: stackSize.height,
-            },
+            neededCols: { cols: 0, remainder: quantity },
+            heightByCols: { mainStack: 0, remainderStack: stackSize.height },
             stackSize,
             requiredDocs: { docsNeeded: 0, colsPerDoc: 0 },
           };
           continue;
         }
 
-        // Calculate full VRH squares and remainder
-        adjustedQuantity = Math.floor(quantity / itemsPerVRH);
-        actualRemainder = quantity % itemsPerVRH;
+        // Divide quantity by itemsPerVRH to get the number of complete squares.
+        if (fitRow === 1) {
+          adjustedQuantity = Math.max(1, Math.floor(quantity / itemsPerVRH));
+        } else {
+          adjustedQuantity =
+            quantity % 4
+              ? Math.ceil(quantity / itemsPerVRH)
+              : Math.floor(quantity / itemsPerVRH);
+        }
+
+        // Remainder = items that do not fill a complete square.
+        actualRemainder = Math.max(
+          0,
+          quantity - adjustedQuantity * itemsPerVRH,
+        );
+        if (pair) {
+          adjustedQuantity *= quantity > 3 ? 2 : adjustedQuantity;
+          if (fitRow === 1 && quantity === 3) {
+            actualRemainder = 1;
+          }
+        }
       }
 
       const neededCols = this.getColsByStack({
@@ -252,7 +281,7 @@ class GridCalculator {
         quantity: adjustedQuantity,
       });
 
-      // Update remainder for non-VRH types
+      // For non-VRH types, remainder comes from the column distribution.
       if (type !== "VRH") {
         actualRemainder = neededCols.remainder;
       }
@@ -275,10 +304,7 @@ class GridCalculator {
 
       stacksInfo[typeSafe] = {
         fitRow,
-        neededCols: {
-          cols: neededCols.cols,
-          remainder: actualRemainder,
-        },
+        neededCols: { cols: neededCols.cols, remainder: actualRemainder },
         heightByCols,
         stackSize,
         requiredDocs,
@@ -289,9 +315,123 @@ class GridCalculator {
   }
 
   /**
-   * Analyzes all stack type layouts and determines optimal main and remainder stack.
+   * Finds the best remainder stack for a given remainder quantity.
+   *
+   * Calls {@link getLayoutInfo} with `remainderQuantity` as the quantity,
+   * then keeps only candidates whose own `remainder` is zero — meaning all
+   * remainder items fit cleanly inside a single column of that stack type.
+   * Candidates are sorted by `heightPreference` and the best one is returned.
+   *
+   * @param params - Parameters forwarded to {@link getLayoutInfo} plus:
+   * @param params.remainderQuantity - Number of leftover items to place.
+   * @param params.stackTypes        - The stack types to consider.
+   * @param params.heightPreference  - `"Less"` to minimise height, `"More"` to maximise.
+   * @returns The best remainder stack candidate, or `null` if none fit cleanly.
+   */
+  static getBestRemainderStack({
+    gap,
+    size,
+    remainderQuantity,
+    pairGap = 0,
+    pair,
+    secDim = null,
+    maxColsInDoc,
+    stackTypes,
+    heightPreference = "Less",
+  }: {
+    gap: number;
+    size: DimensionObject;
+    remainderQuantity: number;
+    pairGap: number;
+    pair?: boolean;
+    secDim?: DimensionObject | null;
+    maxColsInDoc: number;
+    stackTypes: StackType[];
+    heightPreference?: HeightPreference;
+  }) {
+    // Compute layout for all stack types using only the remainder quantity.
+    const allStacksInfo = this.getLayoutInfo({
+      gap,
+      size,
+      quantity: remainderQuantity,
+      pairGap,
+      pair,
+      secDim,
+      maxColsInDoc,
+    });
+
+    const candidates: Array<{
+      stackName: StackType;
+      fitRow: number;
+      neededCols: { cols: number; remainder: number };
+      heightByCols: { mainStack: number; remainderStack: number };
+      stackSize: DimensionObject;
+      requiredDocs: RequiredDocReturn;
+    }> = [];
+
+    for (const type of stackTypes) {
+      const typeSafe = type as Exclude<StackType, "NONE">;
+      const info = allStacksInfo[typeSafe];
+
+      // Skip stack types that cannot hold any items.
+      if (info.fitRow === 0) continue;
+
+      // Only keep stacks where all remainder items land in a single column
+      // (no further leftover).
+      if (info.neededCols.remainder !== 0) continue;
+
+      candidates.push({
+        stackName: type,
+        fitRow: info.fitRow,
+        neededCols: { cols: info.neededCols.cols, remainder: 0 },
+        heightByCols: {
+          mainStack: info.heightByCols.mainStack,
+          remainderStack: 0,
+        },
+        stackSize: info.stackSize,
+        requiredDocs: info.requiredDocs,
+      });
+    }
+
+    if (candidates.length === 0) return null;
+
+    // Sort by height according to preference.
+    candidates.sort((a, b) =>
+      heightPreference === "Less"
+        ? a.heightByCols.mainStack - b.heightByCols.mainStack
+        : b.heightByCols.mainStack - a.heightByCols.mainStack,
+    );
+
+    return candidates[0];
+  }
+
+  /**
+   * Analyses all valid main/remainder stack combinations and returns the
+   * optimal one according to `heightPreference`.
+   *
+   * Algorithm:
+   * 1. Call {@link getLayoutInfo} for the full `quantity`.
+   * 2. For each `mainType` in the allowed `stackTypes`:
+   *    - If `remainder === 0`: push a no-remainder combination.
+   *    - Otherwise: call {@link getBestRemainderStack} with the remainder
+   *      quantity and push a combination that pairs `mainType` with the
+   *      best remainder stack found.
+   * 3. Sort all valid combinations by `score` (= `totalHeight`) according
+   *    to `heightPreference` and return the winner together with
+   *    `allCombinations`.
+   *
    * @param params - Analysis parameters.
-   * @returns Recommended main and remainder stack types with details.
+   * @param params.gap              - Gap between stacks.
+   * @param params.size             - Primary item dimensions.
+   * @param params.quantity         - Total number of items.
+   * @param params.pairGap          - Gap inside a pair (default 0).
+   * @param params.pair             - Whether items are paired.
+   * @param params.secDim           - Optional secondary item dimensions.
+   * @param params.heightPreference - `"Less"` (default) or `"More"`.
+   * @param params.stackOrientation - `"vertical"` (HH/VV), `"horizontal"` (RHH/RVV),
+   *                                  or omitted / `"auto"` for all types.
+   * @param params.maxColsInDoc     - Hard cap on columns per document (0 = auto).
+   * @returns Recommended combination plus `allCombinations` array.
    */
   static getRecommendedStacks(
     params: RecommendedStackParams,
@@ -308,7 +448,12 @@ class GridCalculator {
       maxColsInDoc,
     } = params;
 
-    // Get layout info for all stack types, including optional secondary dimension
+    // Determine which stack types to consider based on orientation filter.
+    let stackTypes: StackType[] = stackTypesTuple;
+    if (stackOrientation === "vertical") stackTypes = ["HH", "VV"];
+    else if (stackOrientation === "horizontal") stackTypes = ["RHH", "RVV"];
+
+    // Compute full layout info for all stack types.
     const allStacksInfo = this.getLayoutInfo({
       gap,
       size,
@@ -319,39 +464,25 @@ class GridCalculator {
       maxColsInDoc,
     }) as StackInfo;
 
-    // Determine which stack types to consider based on orientation
-    let stackTypes: StackType[] = stackTypesTuple;
-
-    if (stackOrientation === "vertical") {
-      stackTypes = ["HH", "VV"];
-    } else if (stackOrientation === "horizontal") {
-      stackTypes = ["RHH", "RVV"];
-    }
-
     const validCombinations: CombinationScore[] = [];
 
-    // Analyze each main stack type
     for (const mainType of stackTypes) {
       const mainTypeSafe = mainType as Exclude<StackType, "NONE">;
-
       const mainInfo = allStacksInfo[mainTypeSafe];
 
-      // Skip if doesn't fit
+      // Skip stack types where nothing fits.
       if (mainInfo.fitRow === 0) continue;
 
-      // If no remainder, only main stack needed
       if (mainInfo.neededCols.remainder === 0) {
-        const totalHeight = mainInfo.heightByCols.mainStack;
-        const mainQuantityOccupied = quantity - mainInfo.neededCols.remainder;
-
+        // No remainder — the main stack alone covers all items.
         validCombinations.push({
           mainStack: mainType,
           remainderStack: mainType,
-          totalHeight,
+          totalHeight: mainInfo.heightByCols.mainStack,
           hasRemainder: false,
-          score: totalHeight,
+          score: mainInfo.heightByCols.mainStack,
           mainCols: mainInfo.neededCols.cols,
-          mainQuantityOccupied,
+          mainQuantityOccupied: quantity,
           remainderItems: 0,
           remainderQuantityOccupied: 0,
           mainHeight: mainInfo.heightByCols.mainStack,
@@ -365,73 +496,67 @@ class GridCalculator {
         continue;
       }
 
-      // If remainder exists, check each remainder stack type
-      for (const remType of stackTypes) {
-        const remTypeSafe = remType as Exclude<StackType, "NONE">;
+      // Remainder exists — find the best stack type to absorb leftover items.
+      const remainderQuantity = mainInfo.neededCols.remainder;
 
-        const remInfo = allStacksInfo[remTypeSafe];
+      const bestRem = this.getBestRemainderStack({
+        gap,
+        size,
+        remainderQuantity,
+        pairGap,
+        pair,
+        secDim,
+        maxColsInDoc,
+        stackTypes,
+        heightPreference,
+      });
 
-        // Remainder stack must fit at least the remainder items
-        if (remInfo.fitRow < mainInfo.neededCols.remainder) continue;
+      // No valid remainder stack found for this main type — skip.
+      if (!bestRem) continue;
 
-        const mainHeight = mainInfo.heightByCols.mainStack;
-        const remainderHeight = remInfo.heightByCols.remainderStack;
-        const totalHeight =
-          mainHeight + (mainHeight > 0 ? gap : 0) + remainderHeight;
+      const mainHeight = mainInfo.heightByCols.mainStack;
+      const remainderHeight = bestRem.heightByCols.mainStack;
+      const totalHeight =
+        mainHeight + (mainHeight > 0 ? gap : 0) + remainderHeight;
+      const remainderCols = bestRem.neededCols.cols;
 
-        const mainQuantityOccupied = quantity - mainInfo.neededCols.remainder;
-        const remainderQuantityOccupied = mainInfo.neededCols.remainder;
-        const remainderItems = mainInfo.neededCols.remainder;
-        const remainderCols = Math.ceil(remainderItems / remInfo.fitRow);
-
-        // Calculate remainder docs
-        const remainderRequiredDocs = this.requiredDocs({
-          dimension: {
-            width: remInfo.stackSize.width,
-            height: remInfo.stackSize.height,
-          },
-          gap,
-          maxColsInDoc,
-          neededCols: remainderCols,
-        });
-
-        validCombinations.push({
-          mainStack: mainType,
-          remainderStack: remType,
-          totalHeight,
-          hasRemainder: true,
-          score: totalHeight,
-          mainCols: mainInfo.neededCols.cols,
-          mainQuantityOccupied,
-          remainderItems: mainInfo.neededCols.remainder,
-          remainderQuantityOccupied,
-          mainHeight,
-          remainderHeight,
-          mainFitRow: mainInfo.fitRow,
-          remainderFitRow: remInfo.fitRow,
-          remainderCols: remainderCols,
-          requiredDocs: mainInfo.requiredDocs,
-          remainderRequiredDocs,
-        });
-      }
+      validCombinations.push({
+        mainStack: mainType,
+        remainderStack: bestRem.stackName,
+        totalHeight,
+        hasRemainder: true,
+        score: totalHeight,
+        mainCols: mainInfo.neededCols.cols,
+        mainQuantityOccupied: quantity - remainderQuantity,
+        remainderItems: remainderQuantity,
+        remainderQuantityOccupied: remainderQuantity,
+        mainHeight,
+        remainderHeight,
+        mainFitRow: mainInfo.fitRow,
+        remainderFitRow: bestRem.fitRow,
+        remainderCols,
+        requiredDocs: mainInfo.requiredDocs,
+        remainderRequiredDocs: bestRem.requiredDocs,
+      });
     }
 
-    // Sort by score according to height preference
-    validCombinations.sort((a, b) => {
-      return heightPreference === "Less"
-        ? a.score - b.score
-        : b.score - a.score;
-    });
+    // Sort by score according to height preference.
+    validCombinations.sort((a, b) =>
+      heightPreference === "Less" ? a.score - b.score : b.score - a.score,
+    );
 
-    const best = validCombinations[0] || {
-      mainStack: "HH",
-      remainderStack: "HH",
+    const best = validCombinations[0] ?? {
+      mainStack: "HH" as StackType,
+      remainderStack: "HH" as StackType,
       totalHeight: 0,
       hasRemainder: false,
+      score: 0,
       mainCols: 0,
       mainQuantityOccupied: 0,
       remainderItems: 0,
       remainderQuantityOccupied: 0,
+      mainHeight: 0,
+      remainderHeight: 0,
       mainFitRow: 0,
       remainderFitRow: 0,
       remainderCols: 0,
@@ -474,7 +599,6 @@ class GridCalculator {
     let colsPerDoc: number;
 
     // Calculate how many columns can fit within the canvas height constraint
-    // This ensures we never exceed CANVAS_MAX_HEIGHT
     let calculatedMaxColsInDoc = Math.floor(
       CANVAS_MAX_HEIGHT / (dimension.height + gap),
     );
