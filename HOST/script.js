@@ -1,4 +1,4 @@
-#target illustrator      // ← Ensures the script targets Illustrator
-#targetengine transient      // Optional but recommended in most cases
+//@target illustrator      // ← Ensures the script targets Illustrator
+//@targetengine "myEngine"      // Optional but recommended in most cases
 
-#include "jft_rapid.jsx"
+//@include "jft_rapid.jsx"
