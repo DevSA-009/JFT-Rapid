@@ -308,6 +308,14 @@ class JFTGarmentPipeline {
     lines.push(HR);
     lines.push("");
 
+    lines.push("  Brand  : " + CONFIG.BRAND);
+    lines.push("  Type   : " + basic.type);
+    lines.push(
+      "  Mode   : " + (CONFIG.STATIC_MODE ? "Static" : "Normal (NA/NO)"),
+    );
+    lines.push("");
+    lines.push(HR);
+
     // Missed items section
     if (missed.length > 0) {
       lines.push("  [!] MISSED ITEMS");
@@ -357,12 +365,6 @@ class JFTGarmentPipeline {
     }
 
     lines.push("");
-    lines.push("  Brand  : " + CONFIG.BRAND);
-    lines.push("  Type   : " + basic.type);
-    lines.push(
-      "  Mode   : " + (CONFIG.STATIC_MODE ? "Static" : "Normal (NA/NO)"),
-    );
-    lines.push(HR);
 
     return lines.join("\n");
   }
@@ -533,8 +535,8 @@ class JFTGarmentPipeline {
 
       // Delegate to GridLayoutGenerator for this size
       new GridLayoutGenerator({
-        primaryDimension,
-        secondaryDimension,
+        primaryDimension: Utils.deepCopy(primaryDimension),
+        secondaryDimension: Utils.deepCopy(secondaryDimension),
         data,
         distributeGap: CONFIG.DIST_ITEMS_GAP,
         sizeTkn,

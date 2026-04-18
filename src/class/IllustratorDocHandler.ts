@@ -217,7 +217,7 @@ interface IllustratorDocumentParams {
   /** Execution engine used for aligning items (`"action"` recommended for complex objects) */
   threadEngine: ThreadEngine;
   /** Alignment position for pasted items on the artboard */
-  pastePosition?: AlignPosition;
+  pastePosition?: AlignPosition | "NONE";
 }
 
 /**

@@ -292,23 +292,6 @@ class GridLayoutGenerator {
     // get the object is rectangle path item
     const isFillRec = this.shouldUseFillRecPath();
 
-    // ── fillXAxis / fullSlvTweak path ─────────────────────────────────────
-    // When fillXAxis is active and the item is not dynamic, bypass the normal
-    // stack calculation and fill the paper width with copies in CMD mode.
-    // Dynamic items fall through to the normal path so text injection works.
-    if (this.fillXAxis && !this.jftItem.info.dync && !isFillRec) {
-      // Long-sleeve with FULL_SLV_TWEAK: apply the rotated-pair composition
-      // before the fill-X layout so the output shows angled full-sleeve units.
-      if (
-        CONFIG.LONG_SLV_TWEAK &&
-        this.jftItem.order === PairObjectMarkers.LONG_SLEEVE
-      ) {
-        this.runFullSlvTweakPath();
-        return;
-      }
-      this.runFillXAxisPath();
-      return;
-    }
     if (this.skipStack) {
       // Build a forced recommendation (fitRow=1, cols=qty, no remainder)
       this.stackRecommendation = this.buildSkipStackRecommendation();
@@ -366,7 +349,7 @@ class GridLayoutGenerator {
     const docHandler = new IllustratorDocument({
       title: `TEMP-${this.jftItem.order}`,
       threadEngine: CONFIG.THREAD_ENGINE,
-      pastePosition: "T",
+      pastePosition: "NONE",
     });
 
     // Create the document and copy dynamicItem into it as the seed
@@ -603,10 +586,10 @@ class GridLayoutGenerator {
     const qty = this.quantity;
 
     // Number of stacked rows needed for the full quantity
-    const cols = Math.ceil(qty / fitRow);
+    const cols = Math.floor(qty / fitRow);
 
     // Total raw height in inches for all rows combined
-    const height = dimension.height * cols;
+    const height = dimension.height * cols + FILL_REC_STRIP_HEIGHT_INCH;
 
     // Find the most printable height factorisation within FILL_REC_STRIP_HEIGHT_INCH
     const { baseHeight, divider } = Utils.getBestDividerAndHeight(height);
@@ -675,9 +658,6 @@ class GridLayoutGenerator {
       });
       current = next;
     }
-
-    // Remove the original seed item — only the copies remain
-    item.remove();
   }
 
   // ─── Private: Initialisation helpers ─────────────────────────────────
@@ -1182,8 +1162,17 @@ class GridLayoutGenerator {
     const isDynamic = this.isDocumentDynamic();
 
     for (let docNum = 1; docNum <= reqDocs.docsNeeded; docNum++) {
+      // when fillXAxis true store original rows
+      const mainRows = this.layoutPassTracker.rows;
+
+      // when fillXAxis true force assign rows = 1
+      if (this.fillXAxis && !isDynamic) {
+        this.layoutPassTracker.rows = 1;
+      }
+
       // Build the filename for this document
       const docTitle = `${this.padZero(this.outputFileIndex)}-${this.buildDocName(direction)}`;
+
       const docHandler = new IllustratorDocument({
         title: docTitle,
         threadEngine: CONFIG.THREAD_ENGINE,
@@ -1193,8 +1182,20 @@ class GridLayoutGenerator {
       // Create the document and copy dynamicItem into it as the seed
       const newDoc = docHandler.create([dynamicItem]);
 
+      // fix layout pass tracker rows
+      this.layoutPassTracker.rows = mainRows;
+
       // Retrieve the seed item that was copied into the new document
       const seedItem = newDoc.activeLayer.pageItems[0] as PageItem;
+
+      if (this.fillXAxis && !isDynamic) {
+        // Fill the row: duplicate seed (count-1) more times to the right
+        this.fillWideArea({
+          doc: newDoc,
+          item: seedItem,
+          fitRow: this.layoutPassTracker.rows,
+        });
+      }
 
       if (isDynamic) {
         // Fill the document with a full grid; remove the seed after grid is built
@@ -1233,8 +1234,17 @@ class GridLayoutGenerator {
     staticItem: PageItem,
     direction: DirectionMarkers,
   ): void {
+    // when fillXAxis true store original rows
+    const mainRows = this.layoutPassTracker.rows;
+
+    // when fillXAxis true force assign rows = 1
+    if (this.fillXAxis && this.jftItem.info.mixed) {
+      this.layoutPassTracker.rows = 1;
+    }
+
     // Build filename with forceStatic=true so quantity is always included
     const docName = `${this.padZero(this.outputFileIndex)}-${this.buildDocName(direction, true)}`;
+
     const docHandler = new IllustratorDocument({
       title: docName,
       threadEngine: CONFIG.THREAD_ENGINE,
@@ -1243,6 +1253,21 @@ class GridLayoutGenerator {
 
     // Create the document and centre the item
     const staticDoc = docHandler.create([staticItem]);
+
+    // fix layout pass tracker rows
+    this.layoutPassTracker.rows = mainRows;
+
+    if (this.fillXAxis && this.jftItem.info.mixed) {
+      // Retrieve the seed copy that was placed into the new document
+      const seedItem = staticDoc.activeLayer.pageItems[0] as PageItem;
+      // Fill the row: duplicate seed (count-1) more times to the right
+      this.fillWideArea({
+        doc: staticDoc,
+        item: seedItem,
+        fitRow: this.layoutPassTracker.rows,
+      });
+    }
+
     this.alignAllItemsCenter(staticDoc);
 
     docHandler.save({ filePath: this.outputFolderPath, format: "EPS" });
@@ -1411,250 +1436,7 @@ class GridLayoutGenerator {
     this.processDocumentAndLayout(passParams);
   }
 
-  // ─── Private: Fill-X-axis CMD path ───────────────────────────────────
-
-  /**
-   * Lays out non-dynamic items in CMD mode: fills the full paper width with
-   * copies in a single row per document.
-   *
-   * ### Algorithm
-   * 1. Calculate `fitRow` — how many composed stacks fit across the paper.
-   * 2. Main pass: create `floor(qty / fitRow)` documents, each holding
-   *    `fitRow` copies placed side-by-side.  Doc name uses `ceil(qty/fitRow) CMD`
-   *    via the existing `buildDocName` strip-layout branch (`rows=1, cols>1`).
-   * 3. Remainder pass: if `qty % fitRow > 0`, create one more document with
-   *    the leftover copies using the remainder's own `fitRow`.
-   *
-   * Works for single-item (`isSingleItem = true`) and paired items alike.
-   *
-   * @private
-   */
-  private runFillXAxisPath(): void {
-    // Build a NONE-stacked reference group (no rotation/repositioning)
-    this.composedReferenceItem = this.buildComposedReference("NONE");
-
-    // How many composed units fit side-by-side across the full paper width
-    const fitRow = GridCalculator.getRowFitCount({
-      stackWidth: this.primaryDimension.width,
-      gap: this.distributeGap,
-    });
-
-    // Nothing fits — fall back to a single-item doc to avoid infinite loop
-    const safeFitRow = fitRow > 0 ? fitRow : 1;
-
-    const mainQty = Math.floor(this.quantity / safeFitRow) * safeFitRow;
-    const remainder = this.quantity - mainQty;
-
-    // Total docs needed drives the CMD number in every main-pass filename
-    const totalDocs = Math.ceil(this.quantity / safeFitRow);
-
-    let placed = 0;
-
-    // ── Main pass — full rows ─────────────────────────────────────────────
-    for (
-      let docNum = 0;
-      docNum < totalDocs - (remainder > 0 ? 1 : 0);
-      docNum++
-    ) {
-      // How many items go into this specific document
-      const batchQty = Math.min(safeFitRow, mainQty - placed);
-      if (batchQty <= 0) break;
-
-      this.saveFillXAxisDoc(this.composedReferenceItem!, batchQty, totalDocs);
-
-      placed += batchQty;
-    }
-
-    // ── Remainder pass ────────────────────────────────────────────────────
-    if (remainder > 0) {
-      // Remainder fitRow is the actual number of leftover items — fills one row
-      const remFitRow = remainder;
-      this.saveFillXAxisDoc(
-        this.composedReferenceItem!,
-        remFitRow,
-        // Remainder doc names use its own ceil: ceil(rem/remFitRow) = 1
-        // but we pass remFitRow so buildDocName sees cols=remFitRow, rows=1 → CMD
-        remFitRow,
-      );
-    }
-
-    // Clean up the reference group
-    this.composedReferenceItem!.remove();
-    this.composedReferenceItem = null;
-  }
-
-  /**
-   * Creates one CMD-mode EPS document containing `count` side-by-side copies
-   * of `referenceItem`.
-   *
-   * The doc filename is determined by `buildDocName` — because `rows=1` and
-   * `cols=count` the existing strip-layout branch writes `count CMD` automatically.
-   *
-   * @param referenceItem - Composed reference group to duplicate.
-   * @param count         - Number of copies to place in this document.
-   * @param totalDocs     - Total document count for the full quantity
-   *                        (written into the filename via the tracker).
-   * @private
-   */
-  private saveFillXAxisDoc(
-    referenceItem: PageItem,
-    count: number,
-    totalDocs: number,
-  ): void {
-    // Temporarily set the tracker so buildDocName sees rows=1, cols=count
-    this.layoutPassTracker = {
-      type: "main",
-      placedQty: count,
-      targetQty: this.quantity,
-      stack: "NONE",
-      rows: 1, // single row — triggers CMD branch in buildDocName
-      cols: totalDocs, // totalDocs drives the number shown before "CMD"
-    };
-
-    const docTitle = `${this.padZero(this.outputFileIndex)}-${this.buildDocName()}`;
-    const docHandler = new IllustratorDocument({
-      title: docTitle,
-      threadEngine: CONFIG.THREAD_ENGINE,
-      pastePosition: "T",
-    });
-    const newDoc = docHandler.create([referenceItem]);
-
-    // Retrieve the seed copy that was placed into the new document
-    const seedItem = newDoc.activeLayer.pageItems[0] as PageItem;
-
-    // Fill the row: duplicate seed (count-1) more times to the right
-    this.fillWideArea({ doc: newDoc, item: seedItem, fitRow: count });
-
-    // Centre all items on the artboard and save
-    this.alignAllItemsCenter(newDoc);
-    docHandler.save({ filePath: this.outputFolderPath, format: "EPS" });
-    docHandler.close();
-
-    // Release memory after each document is written and closed
-    if (typeof $ !== "undefined") $.gc();
-
-    this.outputFileIndex++;
-  }
-
   // ─── Private: Full-sleeve tweak path ─────────────────────────────────
-
-  /**
-   * Full-sleeve tweak layout for long-sleeve items (`CONFIG.FULL_SLV_TWEAK`).
-   *
-   * Replicates the `Organizer.fSlv2SetInit` composition logic inside the
-   * pipeline:
-   * 1. Duplicate both source items.
-   * 2. Centre item2 on item1, then move item2 to the right of item1.
-   * 3. Rotate item2 180°; rotate both items −7.5° together; re-align vertically.
-   * 4. Group the pair into one "full sleeve unit".
-   * 5. Apply the fill-X-axis CMD layout to the composed unit.
-   * 6. If any item is dynamic, also run text injection via `TextFrameProcessor`.
-   *
-   * `skipStack` is implicitly `true` here — the arrangement is manual.
-   *
-   * @private
-   */
-  private runFullSlvTweakPath(): void {
-    const transAct = new TransActionHandler();
-
-    // Duplicate both source items for manipulation
-    const obj1 = this.jftItem.items[0].object.duplicate();
-    const obj2 = this.isSingleItem
-      ? obj1.duplicate()
-      : this.jftItem.items[1].object.duplicate();
-
-    // Align obj2 centre-on-centre with obj1
-    AlignmentHandler.alignObject({
-      base: obj1,
-      moving: obj2,
-      engine: "action",
-      position: "C",
-    });
-
-    // Place obj2 to the right of obj1
-    AlignmentHandler.moveObjectAfter({
-      base: obj1,
-      moving: obj2,
-      position: "R",
-      engine: "action",
-    });
-
-    // Rotate obj2 180° to mirror the back piece
-    transAct.rotate({ objects: [obj2], deg: 180 });
-
-    // Nudge obj2 left by 2.2 inches (matching fSlv2SetInit offset)
-    transAct.move({
-      objects: [obj2],
-      x: Utils.convertLength({ value: -2.2, from: "inch", to: "pt" }),
-      y: 0,
-    });
-
-    // Tilt both pieces −7.5° for the full-sleeve visual angle
-    transAct.rotate({
-      deg: -7.5 as unknown as RotateDegrees,
-      objects: [obj1, obj2],
-    });
-
-    // Re-align vertically after rotation
-    AlignmentHandler.alignObject({
-      base: obj1,
-      moving: obj2,
-      engine: "action",
-      position: "CY",
-    });
-
-    // Fine-tune horizontal gap (0.4 inch left offset)
-    transAct.move({
-      objects: [obj2],
-      x: Utils.convertLength({ value: -0.4, from: "inch", to: "pt" }),
-      y: 0,
-    });
-
-    // Group both pieces into one composed "full sleeve unit"
-    const sleeveUnit = GroupManager.group([obj1, obj2]);
-
-    // Measure the composed unit so we know how many fit across the paper
-    const unitDim = Utils.getDimension(Utils.getObjectBounds(sleeveUnit));
-
-    // How many sleeve units fit side-by-side across the full paper width
-    const fitRow = GridCalculator.getRowFitCount({
-      stackWidth: Utils.convertLength({ value: unitDim.width }),
-      gap: this.distributeGap,
-    });
-    const safeFitRow = fitRow > 0 ? fitRow : 1;
-    const totalDocs = Math.ceil(this.quantity / safeFitRow);
-
-    const remainder = this.quantity % safeFitRow;
-    const fullRows = Math.floor(this.quantity / safeFitRow);
-
-    // Rebuild textProcessor if any items are dynamic
-    const isDynamic = this.jftItem.info.dync;
-    if (isDynamic) {
-      this.textProcessor = new TextFrameProcessor({
-        stack: "NONE",
-        isPaired: this.isPaired,
-        isMixed: this.jftItem.info.mixed,
-        data: this.data,
-      });
-    }
-
-    // ── Main pass — full rows ─────────────────────────────────────────────
-    for (let d = 0; d < fullRows; d++) {
-      this.saveFillXAxisDoc(sleeveUnit, safeFitRow, totalDocs);
-    }
-
-    // ── Remainder pass ────────────────────────────────────────────────────
-    if (remainder > 0) {
-      this.saveFillXAxisDoc(sleeveUnit, remainder, remainder);
-    }
-
-    // Remove the composed unit and clean up actions
-    sleeveUnit.remove();
-    transAct.removeAll();
-
-    // Release memory after the full-sleeve tweak pass completes
-    if (typeof $ !== "undefined") $.gc();
-  }
 
   /**
    * Centres all items in `items` (or all active-layer items when omitted) on

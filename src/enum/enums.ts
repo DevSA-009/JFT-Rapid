@@ -188,7 +188,7 @@ enum RIBType {
  * `"NONE"` is intentionally excluded — it is a pass-through grouping used
  * by {@link ItemsInitiater}, not a measurable layout stack.
  */
-const stackTypesTuple: StackType[] = ["HH", "VV", "RHH", "RVV", "VRH"];
+const stackTypesTuple: StackType[] = [ "VRH", "HH", "RHH", "VV", "RVV"] as const;
 
 /**
  * Quantity-label type used in output EPS filenames.

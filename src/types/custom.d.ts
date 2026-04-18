@@ -180,14 +180,14 @@ interface PersistConfig {
  *
  * | Value  | Meaning                                                       |
  * |--------|---------------------------------------------------------------|
- * | `HH`   | Side-by-side, no rotation                                     |
- * | `VV`   | Stacked vertically, no rotation                               |
- * | `RHH`  | Both items rotated 90°, then placed side-by-side              |
- * | `RVV`  | Both items rotated 90°, then stacked vertically               |
  * | `VRH`  | Square layout — primary item only, width equals height        |
+ * | `HH`   | Side-by-side, no rotation                                     |
+ * | `RHH`  | Both items rotated 90°, then placed side-by-side              |
+ * | `VV`   | Stacked vertically, no rotation                               |
+ * | `RVV`  | Both items rotated 90°, then stacked vertically               |
  * | `NONE` | Pass-through grouping — items grouped as-is, no rearrangement |
  */
-type StackType = "HH" | "VV" | "RHH" | "RVV" | "VRH" | "NONE";
+type StackType = "VRH" | "HH" | "RHH" | "VV" | "RVV" | "NONE";
 
 /**
  * Dimensions keyed by every real layout stack type.
