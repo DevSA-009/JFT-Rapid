@@ -591,8 +591,13 @@ class GridLayoutGenerator {
     // Total raw height in inches for all rows combined
     const height = dimension.height * cols + FILL_REC_STRIP_HEIGHT_INCH;
 
+    // For extra height use
+    const bestDividerForExtHeight = Utils.getBestDividerAndHeight(height);
+
     // Find the most printable height factorisation within FILL_REC_STRIP_HEIGHT_INCH
-    const { baseHeight, divider } = Utils.getBestDividerAndHeight(height);
+    const { baseHeight, divider } = Utils.getBestDividerAndHeight(
+      height + bestDividerForExtHeight.baseHeight,
+    );
 
     // Resize the source item to full paper width × calculated strip height
     Utils.resizeObject(

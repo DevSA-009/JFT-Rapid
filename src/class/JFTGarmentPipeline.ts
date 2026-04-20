@@ -582,7 +582,11 @@ class JFTGarmentPipeline {
       // Collar — fixed label, no size-token update
       this._tknManip = false;
       this._forceSizeRanges = true;
-      this.generateLayoutDoc({ itemType: "COLLAR", sizeRanges });
+      this.generateLayoutDoc({
+        itemType: "COLLAR",
+        sizeRanges,
+        orientation: "vertical",
+      });
     } else {
       // T-shirt uses a single neck piece in vertical orientation
       // Neck — fixed label, no size-token update
@@ -686,6 +690,7 @@ class JFTGarmentPipeline {
       this.generateLayoutDoc({
         itemType: "SHORT_SLEEVE",
         sizeRanges: slvRange,
+        orientation: CONFIG.ORIENTATION,
       });
 
       // For long sleeve: if FULL_SLV_TWEAK is on, enable FILL_X_AXIS so
@@ -706,7 +711,11 @@ class JFTGarmentPipeline {
       if (CONFIG.LONG_SLV_TWEAK && isLong) {
         CONFIG.FILL_X_AXIS = true;
       }
-      this.generateLayoutDoc({ itemType: enumKey, sizeRanges: slvRange });
+      this.generateLayoutDoc({
+        itemType: enumKey,
+        sizeRanges: slvRange,
+        orientation: CONFIG.ORIENTATION,
+      });
       CONFIG.FILL_X_AXIS = prevFillXAxis;
     }
   }
@@ -716,7 +725,10 @@ class JFTGarmentPipeline {
    * Always processed; no special routing required.
    */
   private bodyFlowHandle() {
-    this.generateLayoutDoc({ itemType: "BODY" });
+    this.generateLayoutDoc({
+      itemType: "BODY",
+      orientation: CONFIG.ORIENTATION,
+    });
   }
 
   /**

@@ -403,6 +403,7 @@ const automateInfoDialog = () => {
       CONFIG.DIST_ITEMS_GAP = distItemGapVal;
       CONFIG.PAPER_MAX_SIZE = paperWidthVal;
       CONFIG.BRAND = brandVal;
+      CONFIG.SIZES_DETAILS = CONFIG.JFT_CONF["sizes"][CONFIG.BRAND];
       CONFIG.PER_DOC = perDocColsVal;
       CONFIG.ORIENTATION = orientationVal;
       CONFIG.OUTLINE_TEXT = createOutlineval;
