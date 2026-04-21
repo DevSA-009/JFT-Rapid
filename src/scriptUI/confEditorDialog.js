@@ -32,7 +32,7 @@ const confEditorDialog = () => {
     // ── 1. Load config ────────────────────────────────────────────────────────
 
     /** Raw conf read from disk — never mutated */
-    const originalConf = JFT_CONF;
+    const originalConf = CONFIG.JFT_CONF;
     if (!originalConf) {
       alertDialogSA("Could not read jft.conf.");
       return;
@@ -415,14 +415,26 @@ const confEditorDialog = () => {
      * Brand changed — save current size dimensions then reload the size list
      * for the newly selected brand.
      */
+    /**
+     * Brand changed — save current size dimensions then reload the size list
+     * for the newly selected brand.
+     */
     brandDrop.onChange = function () {
-      // Save dimensions of the previously visible size before switching brand
-      if (sizeList._lastSelected) {
-        const prevBrand = sizeList._lastBrand || currentBrand();
-        savePartDimensions(prevBrand, sizeList._lastSelected);
+      const currentBrandNow = currentBrand();
+      const lastBrandStored = sizeList._lastBrand;
+      const lastSizeStored = sizeList._lastSelected;
+
+      // Save the previously selected size to its ORIGINAL brand before switching
+      if (lastBrandStored && lastSizeStored && lastBrandStored !== currentBrandNow) {
+        savePartDimensions(lastBrandStored, lastSizeStored);
       }
-      sizeList._lastBrand = currentBrand();
-      refreshSizes(currentBrand(), null);
+
+      // Update tracking to the newly selected brand
+      sizeList._lastBrand = currentBrandNow;
+      sizeList._lastSelected = null; // Reset size selection
+
+      // Refresh sizes for the newly selected brand
+      refreshSizes(currentBrandNow, null);
     };
 
     paperInput.addEventListener("keydown", Utils.floatKeydown);
@@ -433,15 +445,17 @@ const confEditorDialog = () => {
      */
     sizeList.onChange = function () {
       const brand = currentBrand();
+      const newSize = currentSize();
+      const oldSize = sizeList._lastSelected;
 
-      // Save the previously selected size before switching
-      if (sizeList._lastSelected && sizeList._lastSelected !== currentSize()) {
-        savePartDimensions(brand, sizeList._lastSelected);
+      // Only save if we're staying in the SAME brand and size actually changed
+      if (brand && oldSize && oldSize !== newSize) {
+        savePartDimensions(brand, oldSize);
       }
 
-      // Update tracking then load new dimensions
-      sizeList._lastSelected = currentSize();
-      loadPartDimensions(brand, currentSize());
+      // Update tracking and load new dimensions
+      sizeList._lastSelected = newSize;
+      loadPartDimensions(brand, newSize);
     };
 
     /**
@@ -476,29 +490,66 @@ const confEditorDialog = () => {
      * Delete the currently selected brand.
      * The active brand (workingConf.config.brand) cannot be deleted.
      */
+    /**
+     * Delete the currently selected brand.
+     * The active brand (workingConf.config.brand) cannot be deleted.
+     */
     delBrandBtn.onClick = function () {
       const brand = currentBrand();
       if (!brand) {
         alertDialogSA("Please select a brand first.");
         return;
       }
-
       if (brand === workingConf.config.brand) {
         alertDialogSA(
           "Cannot delete the active brand.\nSet a different brand as active first.",
         );
         return;
       }
-
       const brands = getBrands();
       if (brands.length <= 1) {
         alertDialogSA("At least one brand must remain.");
         return;
       }
 
+      // Ask for confirmation BEFORE deleting
+      if (!confirm("Delete brand '" + brand + "' and all its sizes? This cannot be undone.")) {
+        return;
+      }
+
+      // Delete from working config
       delete workingConf.sizes[brand];
+
+      // Clear any tracking related to deleted brand
+      sizeList._lastBrand = null;
+      sizeList._lastSelected = null;
+
+      // Refresh UI to show remaining brands
       refreshBrands(null);
       refreshSizes(currentBrand(), null);
+
+      // AUTO-SAVE immediately so deletion persists to disk
+      const pw = parseFloat(paperInput.text);
+      workingConf.config.paperMaxWidth = pw;
+      const success = JFTPersistConfigFetch.write(workingConf);
+
+      if (!success) {
+        alertDialogSA("Failed to delete brand '" + brand + "'. Please try again.");
+        // Restore the brand if save failed
+        return;
+      }
+
+      // Reload into memory to sync with disk
+      const reloaded = JFTPersistConfigFetch.read();
+      if (reloaded) {
+        CONFIG.JFT_CONF = reloaded;
+        CONFIG.CONFIG = reloaded.config;
+        CONFIG.BRAND = reloaded.config.brand;
+        CONFIG.PAPER_MAX_SIZE = reloaded.config.paperMaxWidth || CONFIG.PAPER_MAX_SIZE;
+        CONFIG.SIZES_DETAILS = reloaded.sizes[CONFIG.BRAND];
+      }
+
+      alertDialogSA("Brand '" + brand + "' deleted successfully.");
     };
 
     /**
@@ -642,8 +693,8 @@ const confEditorDialog = () => {
       workingConf.config.brand = brand;
       alertDialogSA(
         "Active brand set to: " +
-          brand +
-          "\nChanges will apply after 'Save All'.",
+        brand +
+        "\nChanges will apply after 'Save All'.",
       );
     };
 

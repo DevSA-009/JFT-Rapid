@@ -107,7 +107,7 @@ const staticModeDialog = () => {
 
     const paperWidthInput = paperWidthCell.add('edittext {justify: "center"}');
     paperWidthInput.helpTip = "Maximum paper width in inches (e.g. 63.3)";
-    paperWidthInput.text = CONFIG.PAPER_MAX_SIZE.toString();
+    paperWidthInput.text = CONFIG.PAPER_MAX_SIZE.toString() || "63.3";
     paperWidthInput.preferredSize.width = 68;
 
     // Orientation cell
@@ -160,7 +160,7 @@ const staticModeDialog = () => {
       "Size chart brand - determines garment dimensions loaded from JFT_CONF";
 
     // Populate brand list from JFT_CONF.sizes keys
-    const brandKeys = Object.keys(JFT_CONF.sizes);
+    const brandKeys = Object.keys(CONFIG.JFT_CONF.sizes);
     brandKeys.forEach(function (key) {
       brandDropdown.add("item", key);
     });

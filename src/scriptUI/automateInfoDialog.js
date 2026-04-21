@@ -56,7 +56,7 @@ const automateInfoDialog = () => {
     paperWidthLabel.justify = "center";
 
     const paperWidthInput = paperWidthGrp.add('edittext {justify: "center"}');
-    paperWidthInput.text = "63.3";
+    paperWidthInput.text = CONFIG.PAPER_MAX_SIZE.toString() || "63.3";
     paperWidthInput.preferredSize.width = 70;
 
     // ORIENTATIONGRP
@@ -358,7 +358,7 @@ const automateInfoDialog = () => {
     });
     orientationDropdown.selection = 0;
 
-    const brandList_array = Object.keys(JFT_CONF.sizes);
+    const brandList_array = Object.keys(CONFIG.JFT_CONF.sizes);
     brandList_array.forEach((e) => {
       sizeBrandListDropdown.add("item", e);
     });
