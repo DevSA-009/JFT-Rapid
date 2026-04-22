@@ -346,3 +346,47 @@ if (!String.prototype.trim) {
     return this.replace(/^\s+|\s+$/g, "");
   };
 }
+
+// String.prototype.padStart polyfill (ES3 compatible)
+if (!String.prototype.padStart) {
+  String.prototype.padStart = function (targetLength, padString) {
+    'use strict';
+
+    // Convert this to string
+    var str = String(this);
+
+    // targetLength must be a number
+    targetLength = targetLength >> 0;   // safe conversion to integer
+
+    // If targetLength is less than or equal to current length, return original string
+    if (targetLength <= str.length) {
+      return str;
+    }
+
+    // Default padString is space
+    if (padString === undefined || padString === null) {
+      padString = ' ';
+    } else {
+      padString = String(padString);
+    }
+
+    // If padString is empty, return original string (per spec)
+    if (padString.length === 0) {
+      return str;
+    }
+
+    // Calculate how many characters we need to pad
+    var padLen = targetLength - str.length;
+
+    // Build the padding string efficiently
+    var padding = '';
+    while (padding.length < padLen) {
+      padding += padString;
+    }
+
+    // Cut padding to exact required length
+    padding = padding.slice(0, padLen);
+
+    return padding + str;
+  };
+}

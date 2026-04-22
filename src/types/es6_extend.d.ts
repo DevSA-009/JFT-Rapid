@@ -243,4 +243,14 @@ interface String {
    * @returns A new string with leading and trailing white-space removed.
    */
   trim(): string;
+
+  /**
+   * Pads the current string from the start with another string
+   * until the resulting string reaches the given length.
+   *
+   * @param targetLength - The length of the resulting string once the padding is applied.
+   * @param padString    - The string to pad the current string with. Defaults to " ".
+   * @returns A new string of the specified length with the padding applied from the start.
+   */
+  padStart(targetLength: number, padString?: string): string;
 }

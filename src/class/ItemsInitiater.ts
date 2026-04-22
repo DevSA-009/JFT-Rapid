@@ -46,6 +46,12 @@ interface ItemsInitiaterParams {
    * @default false
    */
   readonly skipResize?: boolean;
+
+  /**
+   * When `false`, the alternating 180° rotation on RHH/RVV stacks is disabled.
+   * @default true
+   */
+  altRotate: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,6 +130,9 @@ class ItemsInitiater {
    */
   private readonly actionHandler: TransActionHandler | null;
 
+  /** When `false`, alternating 180° rotation on RHH/RVV stacks is disabled. */
+  private readonly altRotate: boolean;
+
   // ─── Constructor ─────────────────────────────────────────────────────────
 
   /**
@@ -148,6 +157,8 @@ class ItemsInitiater {
         to: "pt",
       }),
     };
+
+    this.altRotate = params.altRotate;
 
     this.gap = Utils.convertLength({
       value: params.gap,
@@ -513,7 +524,7 @@ class ItemsInitiater {
     this.rotate(-90, [this.item1]);
 
     if (!this.isSingleItem && this.item2) {
-      this.rotate(90, [this.item2]);
+      this.rotate(this.altRotate ? 90 : -90, [this.item2]);
     }
 
     // HH owns positioning AND grouping — no additional buildGroup() needed

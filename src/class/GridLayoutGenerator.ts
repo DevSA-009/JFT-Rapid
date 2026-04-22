@@ -84,8 +84,6 @@ type CreateGridParams = Omit<GridLayoutPassParams, "reqDocs"> & {
 
 /** Mutable state snapshot for the active layout pass. */
 interface LayoutPassTracker {
-  /** Whether this is the main pass or the remainder pass. */
-  type: "main" | "rem";
   /** Number of items placed so far in this pass. */
   placedQty: number;
   /** Total items this pass must place before stopping. */
@@ -184,7 +182,6 @@ class GridLayoutGenerator {
 
   /** Live state for the currently executing layout pass. */
   private layoutPassTracker: LayoutPassTracker = {
-    type: "main",
     placedQty: 0,
     targetQty: 0,
     stack: "HH",
@@ -199,7 +196,7 @@ class GridLayoutGenerator {
   private textProcessor: TextFrameProcessor | null = null;
 
   /** When `false`, alternating 180° rotation on RHH/RVV stacks is disabled. */
-  private readonly altRotate: boolean;
+  private altRotate: boolean;
 
   /** Forwarded to {@link ItemsInitiater} — controls SIZE_TKN replacement. */
   private readonly manipulateTkn: boolean;
@@ -299,8 +296,8 @@ class GridLayoutGenerator {
       // Build the reference group with stack "NONE" (no repositioning)
       this.composedReferenceItem = this.buildComposedReference("NONE");
 
-      this.layoutPassTracker = this.buildPassTracker("main");
-      this.begin("main");
+      this.layoutPassTracker = this.buildPassTracker();
+      this.begin();
 
       this.composedReferenceItem!.remove();
       this.composedReferenceItem = null;
@@ -318,18 +315,18 @@ class GridLayoutGenerator {
     }
 
     // Ask GridCalculator for the optimal stack type and column/row counts
-    this.stackRecommendation = this.calculateStackRecommendation();
+    this.stackRecommendation = this.calculateStackRecommendation(this.quantity);
+
+    // Initialise the pass tracker for the main pass
+    this.layoutPassTracker = this.buildPassTracker();
 
     // Build the composed reference group for the main stack type
     this.composedReferenceItem = this.buildComposedReference(
-      this.stackRecommendation.mainStack,
+      this.layoutPassTracker.stack,
     );
 
-    // Initialise the pass tracker for the main pass
-    this.layoutPassTracker = this.buildPassTracker("main");
-
     // Run the main layout pass — creates one or more EPS documents
-    this.begin("main");
+    this.begin();
 
     // The reference group is no longer needed after the main pass
     this.composedReferenceItem!.remove();
@@ -417,18 +414,20 @@ class GridLayoutGenerator {
     this.specialValidation();
 
     // Recalculate the stack recommendation with updated pairing state
-    this.stackRecommendation = this.calculateStackRecommendation();
-
-    // Build a new reference group for the remainder stack type
-    this.composedReferenceItem = this.buildComposedReference(
-      this.stackRecommendation.remainderStack,
+    this.stackRecommendation = this.calculateStackRecommendation(
+      this.stackRecommendation!.remainderQuantityOccupied,
     );
 
     // Initialise the pass tracker for the remainder pass
-    this.layoutPassTracker = this.buildPassTracker("rem");
+    this.layoutPassTracker = this.buildPassTracker();
+
+    // Build a new reference group for the remainder stack type
+    this.composedReferenceItem = this.buildComposedReference(
+      this.layoutPassTracker.stack,
+    );
 
     // Run the remainder layout pass
-    this.begin("rem");
+    this.begin();
 
     // Clean up the reference group after the remainder pass
     this.composedReferenceItem!.remove();
@@ -505,16 +504,18 @@ class GridLayoutGenerator {
       this.countType = CountType.PCS;
 
       // Recalculate layout for the dynamic item only
-      this.stackRecommendation = this.calculateStackRecommendation();
+      this.stackRecommendation = this.calculateStackRecommendation(
+        this.quantity,
+      );
       this.composedReferenceItem = this.buildComposedReference(
         this.stackRecommendation.mainStack,
       );
-      this.layoutPassTracker = this.buildPassTracker("main");
+      this.layoutPassTracker = this.buildPassTracker();
 
       // Temporarily narrow artworkItems to the dynamic item
       const savedArtwork = this.artworkItems;
       this.artworkItems = [dynamicItem];
-      this.begin("main");
+      this.begin();
       this.artworkItems = savedArtwork;
 
       this.composedReferenceItem!.remove();
@@ -653,6 +654,12 @@ class GridLayoutGenerator {
 
     // Duplicate and place each copy to the right of the previous
     for (let i = 1; i < fitRow; i++) {
+      if (
+        this.layoutPassTracker.targetQty <= fitRow &&
+        i >= this.layoutPassTracker.targetQty
+      ) {
+        break;
+      }
       const next = current.duplicate();
       AlignmentHandler.moveObjectAfter({
         base: current,
@@ -673,20 +680,16 @@ class GridLayoutGenerator {
    * @param passType - `"main"` or `"rem"` — selects the correct recommendation fields.
    * @returns Initialised tracker with `placedQty` starting at 0.
    */
-  private buildPassTracker(passType: "main" | "rem"): LayoutPassTracker {
+  private buildPassTracker(): LayoutPassTracker {
     const rec = this.stackRecommendation!;
-    const isMainPass = passType === "main";
 
     return {
-      type: passType,
       placedQty: 0,
       // Target quantity differs between main and remainder passes
-      targetQty: isMainPass
-        ? rec.mainQuantityOccupied
-        : rec.remainderQuantityOccupied,
-      stack: isMainPass ? rec.mainStack : rec.remainderStack,
-      rows: isMainPass ? rec.mainFitRow : rec.remainderFitRow,
-      cols: isMainPass ? rec.mainCols : rec.remainderCols,
+      targetQty: rec.mainQuantityOccupied,
+      stack: rec.mainStack,
+      rows: rec.mainFitRow,
+      cols: rec.mainCols,
     };
   }
 
@@ -694,11 +697,11 @@ class GridLayoutGenerator {
    * Calls {@link GridCalculator.getRecommendedStacks} with the current
    * instance state and returns the full recommendation result.
    */
-  private calculateStackRecommendation(): RecommendedStacksResult {
+  private calculateStackRecommendation(qty: number): RecommendedStacksResult {
     return GridCalculator.getRecommendedStacks({
       gap: this.distributeGap,
       maxColsInDoc: CONFIG.PER_DOC,
-      quantity: this.quantity,
+      quantity: qty,
       size: this.primaryDimension,
       pair: this.isPaired,
       pairGap: this.distributeGap,
@@ -756,11 +759,18 @@ class GridLayoutGenerator {
    * @param stackType - Stack pattern to apply when composing the group.
    */
   private buildComposedReference(stackType: StackType): GroupItem {
+    const altRotate =
+      (this.isPaired && this.layoutPassTracker.rows === 1) ||
+      (!this.isPaired && this.layoutPassTracker.rows === 2);
+
+    this.altRotate = altRotate;
+
     return new ItemsInitiater({
       dimension: this.primaryDimension,
       items: this.artworkItems,
       sizeChar: this.sizeTkn as ApparelSize,
       stack: stackType,
+      altRotate,
       gap: this.distributeGap,
       pairable: this.isPaired,
       manipulateTkn: this.manipulateTkn,
@@ -1413,7 +1423,7 @@ class GridLayoutGenerator {
    *
    * @param passType - `"main"` or `"rem"`.
    */
-  private begin(passType: "main" | "rem"): void {
+  private begin(): void {
     const rec = this.stackRecommendation!;
 
     // Rebuild the text processor — stack type and isPaired may have changed since last pass
@@ -1425,18 +1435,11 @@ class GridLayoutGenerator {
     });
 
     // Select pass parameters from the recommendation based on pass type
-    const passParams: GridLayoutPassParams =
-      passType === "main"
-        ? {
-            reqDocs: rec.requiredDocs,
-            rows: rec.mainFitRow,
-            cols: rec.mainCols,
-          }
-        : {
-            reqDocs: rec.remainderRequiredDocs,
-            rows: rec.remainderFitRow,
-            cols: rec.remainderCols,
-          };
+    const passParams: GridLayoutPassParams = {
+      reqDocs: rec.requiredDocs,
+      rows: rec.mainFitRow,
+      cols: rec.mainCols,
+    };
 
     this.processDocumentAndLayout(passParams);
   }
