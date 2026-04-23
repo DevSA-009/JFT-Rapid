@@ -27,8 +27,8 @@ JFT-Rapid is a **CEP (Common Extensibility Platform) extension** for Adobe Illus
 | CC 2021 (v25) | ✅             |
 | CC 2022 (v26) | ✅             |
 | CC 2023 (v27) | ✅             |
-| CC 2024 (v28) | ✅ Recommended |
-| CC 2025+      | ✅             |
+| CC 2024 (v28) | ✅             |
+| CC 2025+      | ✅ Recommended |
 
 > JFT-Rapid is tested primarily on **Windows**. macOS may work but is not officially supported.
 
@@ -36,7 +36,7 @@ JFT-Rapid is a **CEP (Common Extensibility Platform) extension** for Adobe Illus
 
 ## Step 1 — Download
 
-Download the latest release package from the [Releases page](../../releases).
+Download the latest release package from the [Releases page](https://github.com/DevSA-009/JFT-Rapid/releases).
 
 The downloaded file will be a `.zip` archive. Extract it — you will get a folder named:
 
@@ -178,8 +178,8 @@ JFT-Rapid একটি **CEP (Common Extensibility Platform) এক্সটে�
 | CC 2021 (v25) | ✅            |
 | CC 2022 (v26) | ✅            |
 | CC 2023 (v27) | ✅            |
-| CC 2024 (v28) | ✅ প্রস্তাবিত |
-| CC 2025+      | ✅            |
+| CC 2024 (v28) | ✅            |
+| CC 2025+      | ✅ প্রস্তাবিত     |
 
 > JFT-Rapid মূলত **Windows**-এ টেস্ট করা। macOS কাজ করতে পারে কিন্তু অফিশিয়ালি সাপোর্টেড নয়।
 
@@ -187,7 +187,7 @@ JFT-Rapid একটি **CEP (Common Extensibility Platform) এক্সটে�
 
 ## ধাপ ১ — ডাউনলোড
 
-[Releases পেজ](../../releases) থেকে সর্বশেষ রিলিজ ডাউনলোড করুন।
+[Releases পেজ](https://github.com/DevSA-009/JFT-Rapid/releases) থেকে সর্বশেষ রিলিজ ডাউনলোড করুন।
 
 ডাউনলোড হওয়া `.zip` ফাইলটি এক্সট্র্যাক্ট করুন। নিচের নামে একটি ফোল্ডার পাবেন:
 
