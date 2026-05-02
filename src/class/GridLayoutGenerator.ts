@@ -590,7 +590,7 @@ class GridLayoutGenerator {
     const cols = Math.floor(qty / fitRow);
 
     // Total raw height in inches for all rows combined
-    const height = dimension.height * cols + FILL_REC_STRIP_HEIGHT_INCH;
+    const height = dimension.height * cols;
 
     // For extra height use
     const bestDividerForExtHeight = Utils.getBestDividerAndHeight(height);
