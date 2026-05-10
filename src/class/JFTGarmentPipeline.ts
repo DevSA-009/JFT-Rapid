@@ -125,6 +125,9 @@ class JFTGarmentPipeline {
    */
   private _qtyItemType: keyof FlatSummary = "BODY";
 
+  /** Forwarded to {@link GridLayoutGenerator} for the current call. */
+  private _skipVRH = true;
+
   // ─── Constructor ──────────────────────────────────────────────────────
 
   /**
@@ -184,6 +187,7 @@ class JFTGarmentPipeline {
     this._trackRangeSizeChar = {} as TrackRangeSizeChar;
     this._apparelSizesChar = Object.keys(this.data.details) as ApparelSize[];
     this._tempData = Utils.deepCopy(this.data);
+    this._skipVRH = true;
   }
 
   // ─── Private: Pipeline entry ──────────────────────────────────────────
@@ -540,6 +544,7 @@ class JFTGarmentPipeline {
         data,
         distributeGap: CONFIG.DIST_ITEMS_GAP,
         sizeTkn,
+        skipVRH: this._skipVRH,
         jftItem,
         orientation,
         forcePair: this._forcePair,
@@ -725,6 +730,7 @@ class JFTGarmentPipeline {
    * Always processed; no special routing required.
    */
   private bodyFlowHandle() {
+    this._skipVRH = false;
     this.generateLayoutDoc({
       itemType: "BODY",
       orientation: CONFIG.ORIENTATION,

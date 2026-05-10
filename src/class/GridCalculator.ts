@@ -443,6 +443,7 @@ class GridCalculator {
       pairGap = 0,
       pair,
       secDim,
+      skipVRH = false,
       heightPreference = "Less",
       stackOrientation,
       maxColsInDoc,
@@ -464,7 +465,7 @@ class GridCalculator {
       maxColsInDoc,
     }) as StackInfo;
 
-    const validCombinations: CombinationScore[] = [];
+    let validCombinations: CombinationScore[] = [];
 
     for (const mainType of stackTypes) {
       const mainTypeSafe = mainType as Exclude<StackType, "NONE">;
@@ -539,6 +540,12 @@ class GridCalculator {
         remainderRequiredDocs: bestRem.requiredDocs,
       });
     }
+
+    validCombinations = skipVRH
+      ? validCombinations.filter(
+          (com) => com.mainStack !== "VRH" && com.remainderStack !== "VRH",
+        )
+      : validCombinations;
 
     // Sort by score according to height preference.
     validCombinations.sort((a, b) =>
@@ -690,6 +697,8 @@ interface RecommendedStackParams extends LayoutObjectInfo {
   heightPreference: HeightPreference;
   /** Stack orientation filter: `"auto"` (all), `"vertical"` (HH/VV), `"horizontal"` (RHH/RVV). */
   stackOrientation: StackOrientation;
+  /** stack VRH stack */
+  skipVRH?: boolean;
 }
 
 /** Combination score tracking */

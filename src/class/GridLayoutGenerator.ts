@@ -56,6 +56,10 @@ interface GridLayoutGeneratorParams {
    * @default false
    */
   skipResize?: boolean;
+  /**
+   * Forwarded to {@link GridCalculator} — skips VRH Stack.
+   */
+  skipVRH:boolean;
 }
 
 /** Parameters shared by layout pass entry points. */
@@ -208,6 +212,11 @@ class GridLayoutGenerator {
    */
   private readonly skipStack: boolean;
 
+  /**
+   * Forwarded to {@link GridCalculator} — skips VRH Stack.
+   */
+  private readonly skipVRH: boolean;
+
   /** Forwarded to {@link ItemsInitiater} — skips the resize step. */
   private readonly skipResize: boolean;
 
@@ -262,6 +271,8 @@ class GridLayoutGenerator {
     this.initiateTempDoc();
 
     this.artworkItems = this.duplicateSourceItemsIntoTemp();
+
+    this.skipVRH = params.skipVRH;
 
     // White-fill cleanup is skipped when skipStack is active
     if (!this.skipStack) {
@@ -701,6 +712,7 @@ class GridLayoutGenerator {
     return GridCalculator.getRecommendedStacks({
       gap: this.distributeGap,
       maxColsInDoc: CONFIG.PER_DOC,
+      skipVRH:this.skipVRH,
       quantity: qty,
       size: this.primaryDimension,
       pair: this.isPaired,
