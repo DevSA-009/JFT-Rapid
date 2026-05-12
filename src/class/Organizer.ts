@@ -968,7 +968,7 @@ class Organizer {
       }
 
       // Loop through every selected object using its index as identifier
-      for (const index in selection) {
+      for (let index = 0; index < selection.length; index++) {
         // Get reference to the current original vector object
         const originalItem = selection[index];
 
@@ -982,6 +982,7 @@ class Organizer {
         const tempDocument = new IllustratorDocument({
           title: tempBaseName,
           threadEngine: "script",
+          pastePosition: "NONE",
         });
 
         // Build brand new document containing **only** the current selected object
