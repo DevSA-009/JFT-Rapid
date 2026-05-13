@@ -166,7 +166,7 @@ const resetNonUIInteractionConfigs = () => {
 const jftProcessSeqWrapper = (data: AutomateData | string) => {
   new JFTProcessSequentially(data as unknown as AutomateData);
   JFTPersistConfigFetch.write({
-    ...JFT_CONF,
+    ...CONFIG.JFT_CONF,
     config: { brand: CONFIG.BRAND, paperMaxWidth: CONFIG.PAPER_MAX_SIZE },
   } as PersistConfig);
 };
