@@ -39,16 +39,31 @@ type TrackRangeSizeChar = Record<ApparelSize, ApparelSizeRange>;
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Orchestrates the five-stage garment layout pipeline for a single print job.
+ * Kids-only size keys used to split adult and kids passes.
+ * Sizes 2–16 are treated as kids sizes; all other ApparelSize values are adult.
+ * Size 16 is intentionally included here — it is processed in the kids pass.
+ */
+const KIDS_APPAREL_SIZES = Object.keys(KIDS_SIZES) as ApparelSize[];
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Orchestrates the garment layout pipeline for a single print job.
  *
  * @remarks
- * Each stage calls {@link generateLayoutDoc} for one garment-part type.
- * The pipeline order is fixed:
- * 1. Collar (NECK for T-shirts, PLACKET + COLLAR for POLO)
- * 2. Rib (SHORT_SLEEVE_RIB / LONG_SLEEVE_RIB when applicable)
- * 3. Sleeve (SHORT_SLEEVE / LONG_SLEEVE or both)
- * 4. Body
- * 5. Pant (currently disabled)
+ * Stages 1–2 (Collar, Rib) process adult and kids sizes together (no change).
+ * Stages 3–5 (Sleeve, Body, Pant) process adult sizes only.
+ * If any kids sizes are present in the job, stages 6–7 run a dedicated kids
+ * pass for Sleeve and Body with orientation forced to `"horizontal"`.
+ *
+ * Pipeline order:
+ * 1. Collar  — adult + kids (NECK or PLACKET + COLLAR)
+ * 2. Rib     — adult + kids (SHORT_SLEEVE_RIB / LONG_SLEEVE_RIB)
+ * 3. Sleeve  — adult only
+ * 4. Body    — adult only
+ * 5. Pant    — adult only
+ * 6. Sleeve  — kids only  (horizontal, if kids sizes present)
+ * 7. Body    — kids only  (horizontal, if kids sizes present)
  *
  * For each part, `generateLayoutDoc` resets the working size list, applies
  * optional size-range merges, then iterates over sorted sizes and delegates
@@ -131,7 +146,7 @@ class JFTGarmentPipeline {
   // ─── Constructor ──────────────────────────────────────────────────────
 
   /**
-   * Validates inputs and immediately runs the full five-stage pipeline.
+   * Validates inputs and immediately runs the full pipeline.
    *
    * @param params - Resolved item cache and automate data.
    * @throws {Error} When `data.details` is empty — no sizes to process.
@@ -190,27 +205,60 @@ class JFTGarmentPipeline {
     this._skipVRH = true;
   }
 
+  // ─── Private: Size partition helpers ─────────────────────────────────
+
+  /**
+   * Returns all active sizes that are NOT in `KIDS_APPAREL_SIZES`.
+   * Used to restrict Sleeve / Body / Pant stages to adult sizes only.
+   *
+   * @returns Filtered array containing only adult ApparelSize values.
+   */
+  private _adultSizesOnly(): ApparelSize[] {
+    return (Object.keys(this.data.details) as ApparelSize[]).filter(
+      (s) => KIDS_APPAREL_SIZES.indexOf(s) === -1,
+    );
+  }
+
+  /**
+   * Returns all active sizes that ARE in `KIDS_APPAREL_SIZES` (2–16).
+   * Used to determine whether a kids pass is needed and to scope it.
+   *
+   * @returns Filtered array containing only kids ApparelSize values.
+   */
+  private _kidsSizesOnly(): ApparelSize[] {
+    return (Object.keys(this.data.details) as ApparelSize[]).filter(
+      (s) => KIDS_APPAREL_SIZES.indexOf(s) !== -1,
+    );
+  }
+
   // ─── Private: Pipeline entry ──────────────────────────────────────────
 
   /**
-   * Runs all active pipeline stages in the required order.
-   * Each stage is responsible for one garment-part family.
+   * Runs all pipeline stages in the required order.
+   *
+   * Stages 1–2 receive both adult and kids sizes (unchanged behaviour).
+   * Stages 3–5 are scoped to adult sizes only.
+   * Stages 6–7 run a dedicated kids pass (Sleeve + Body) only when at least
+   * one kids size (2–16) is present in the job; orientation is forced
+   * `"horizontal"` for the entire kids pass.
+   *
    * Garbage collection is requested after all stages complete to reclaim
    * memory held by duplicated artwork and closed documents.
    */
   private run() {
     this.collarFlowHandle();
-
     this.ribFlowHandler();
 
-    this.sleeveFlowHandle();
+    this.sleeveFlowHandle(false);
+    this.bodyFlowHandle(false);
+    this.pantFlowHandle(false);
 
-    this.bodyFlowHandle();
+    if (this._kidsSizesOnly().length > 0) {
+      this.sleeveFlowHandle(true);
+      this.bodyFlowHandle(true);
+      this.pantFlowHandle(true);
+    }
 
-    this.pantFlowHandle();
-
-    // Request garbage collection after the full pipeline completes — releases
-    // memory from all duplicated artwork, temp groups, and closed documents
     if (typeof $ !== "undefined") {
       $.gc();
       $.gc();
@@ -564,12 +612,12 @@ class JFTGarmentPipeline {
   /**
    * Stage 1 — Collar.
    * Routes to PLACKET + COLLAR for POLO jerseys, or to NECK for T-shirts.
+   * Processes both adult and kids sizes (no partition applied).
    *
    * Size-token manipulation is disabled for all collar/neck/placket items —
    * they carry fixed labels that must not be overwritten.
    */
   private collarFlowHandle() {
-    CONFIG.FILL_X_AXIS = true;
     const sizeRanges: SizeRanges = [{ from: "XS", to: "16" }];
 
     if (this.data.basic.type === JerseyType.POLO) {
@@ -602,18 +650,17 @@ class JFTGarmentPipeline {
         sizeRanges,
       });
     }
-    CONFIG.FILL_X_AXIS = false;
   }
 
   /**
    * Stage 2 — Rib.
+   * Processes both adult and kids sizes (no partition applied).
    * Skipped when `rib.type === NO`. Handles one or both sleeve-rib types
    * depending on `rib.apply` length. CUFF type doubles the short-sleeve quantity.
    *
    * Size-token manipulation is disabled for rib items — they carry fixed labels.
    */
   private ribFlowHandler() {
-    CONFIG.FILL_X_AXIS = true;
     const ribInfo = this.data.basic.rib;
     const sizeRanges: SizeRanges = [{ from: "XS", to: "16" }];
 
@@ -657,28 +704,34 @@ class JFTGarmentPipeline {
         });
       }
     }
-    CONFIG.FILL_X_AXIS = false;
   }
 
   /**
-   * Stage 3 — Sleeve.
-   * Handles one or both sleeve types. Size ranges are always applied to
-   * group adjacent sizes for more efficient paper usage.
-   */
-  /**
-   * Stage 3 — Sleeve.
-   * Handles one or both sleeve types. Size ranges are always applied to
-   * group adjacent sizes for more efficient paper usage.
+   * Stage 3 (adult) / Stage 6 (kids) — Sleeve.
    *
-   * When `CONFIG.FULL_SLV_TWEAK` is active, `CONFIG.FILL_X_AXIS` is
-   * temporarily forced `true` for the long-sleeve call so
+   * When `kidsPass` is `false` (default): processes adult sizes only (XS–5XL).
+   * When `kidsPass` is `true`: processes kids sizes only (2–16) with orientation
+   * forced to `"horizontal"` regardless of `CONFIG.ORIENTATION`.
+   *
+   * Size ranges are always applied to group adjacent sizes for more efficient
+   * paper usage. When `CONFIG.LONG_SLV_TWEAK` is active, `CONFIG.FILL_X_AXIS`
+   * is temporarily forced `true` for the long-sleeve call so
    * `GridLayoutGenerator` dispatches to the full-sleeve tweak path.
    * It is restored after the call so other stages are not affected.
+   *
+   * @param kidsPass - `true` to scope this call to kids sizes only.
    */
-  private sleeveFlowHandle() {
+  private sleeveFlowHandle(kidsPass: boolean = false) {
     const slvInfo = this.data.basic.sleeve;
 
-    // Standard size groupings for sleeve dimensions
+    const resolvedOrientation: StackOrientation = kidsPass
+      ? "horizontal"
+      : CONFIG.ORIENTATION;
+
+    this._apparelSizesChar = kidsPass
+      ? this._kidsSizesOnly()
+      : this._adultSizesOnly();
+
     const slvRange: SizeRanges = [
       { from: "XS", to: "S" },
       { from: "M", to: "L" },
@@ -691,26 +744,32 @@ class JFTGarmentPipeline {
     ];
 
     if (slvInfo.length >= 2) {
-      // Both short and long sleeves are required
       this.generateLayoutDoc({
         itemType: "SHORT_SLEEVE",
         sizeRanges: slvRange,
-        orientation: CONFIG.ORIENTATION,
+        orientation: resolvedOrientation,
       });
 
-      // For long sleeve: if FULL_SLV_TWEAK is on, enable FILL_X_AXIS so
-      // GridLayoutGenerator enters the full-sleeve tweak path automatically.
-      // Save and restore so downstream stages are not affected.
       const prevFillXAxis = CONFIG.FILL_X_AXIS;
       if (CONFIG.LONG_SLV_TWEAK) {
         CONFIG.FILL_X_AXIS = true;
       }
-      this.generateLayoutDoc({ itemType: "LONG_SLEEVE", sizeRanges: slvRange });
+
+      // Re-apply partition — _resetState() inside generateLayoutDoc restores
+      // _apparelSizesChar to all sizes after the SHORT_SLEEVE call
+      this._apparelSizesChar = kidsPass
+        ? this._kidsSizesOnly()
+        : this._adultSizesOnly();
+
+      this.generateLayoutDoc({
+        itemType: "LONG_SLEEVE",
+        sizeRanges: slvRange,
+        orientation: resolvedOrientation,
+      });
       CONFIG.FILL_X_AXIS = prevFillXAxis;
     } else {
       const enumKey: keyof Workflow = `${slvInfo[0]}_SLEEVE`;
 
-      // Single sleeve type — apply full-sleeve tweak only when LONG_SLEEVE
       const isLong = slvInfo[0] === SleeveType.LONG;
       const prevFillXAxis = CONFIG.FILL_X_AXIS;
       if (CONFIG.LONG_SLV_TWEAK && isLong) {
@@ -719,29 +778,47 @@ class JFTGarmentPipeline {
       this.generateLayoutDoc({
         itemType: enumKey,
         sizeRanges: slvRange,
-        orientation: CONFIG.ORIENTATION,
+        orientation: resolvedOrientation,
       });
       CONFIG.FILL_X_AXIS = prevFillXAxis;
     }
   }
 
   /**
-   * Stage 4 — Body.
-   * Always processed; no special routing required.
+   * Stage 4 (adult) / Stage 7 (kids) — Body.
+   *
+   * When `kidsPass` is `false` (default): processes adult sizes only (XS–5XL).
+   * When `kidsPass` is `true`: processes kids sizes only (2–16) with orientation
+   * forced to `"horizontal"` regardless of `CONFIG.ORIENTATION`.
+   *
+   * @param kidsPass - `true` to scope this call to kids sizes only.
    */
-  private bodyFlowHandle() {
+  private bodyFlowHandle(kidsPass: boolean = false) {
+    const resolvedOrientation: StackOrientation = kidsPass
+      ? "horizontal"
+      : CONFIG.ORIENTATION;
+
+    this._apparelSizesChar = kidsPass
+      ? this._kidsSizesOnly()
+      : this._adultSizesOnly();
+
     this._skipVRH = false;
     this.generateLayoutDoc({
       itemType: "BODY",
-      orientation: CONFIG.ORIENTATION,
+      orientation: resolvedOrientation,
     });
   }
 
   /**
-   * Stage 5 — Pant.
-   * Reserved for future implementation.
+   * Stage 5 (adult) / Stage 8 (kids) — Pant.
+   *
+   * When `kidsPass` is `false` (default): processes adult sizes only (XS–5XL).
+   * When `kidsPass` is `true`: processes kids sizes only (2–16).
+   * Orientation is not overridden for either pass — pant has no orientation logic.
+   *
+   * @param kidsPass - `true` to scope this call to kids sizes only.
    */
-  private pantFlowHandle() {
+  private pantFlowHandle(kidsPass: boolean = false) {
     const pantInfo = this.data.basic.pant;
 
     const sizeRanges: SizeRanges = [
@@ -778,14 +855,24 @@ class JFTGarmentPipeline {
       height: lPantHeight,
     };
 
+    // Restrict to the correct size partition
+    this._apparelSizesChar = kidsPass
+      ? this._kidsSizesOnly()
+      : this._adultSizesOnly();
+
     if (pantInfo.length >= 2) {
-      // Both short and long pant are required
       this._forceSizeRanges = true;
       this._forcePair = true;
       this._skipResize = true;
       this._skipStack = true;
       this._overrideDim = sPantDimension;
       this.generateLayoutDoc({ itemType: "SHORT_PANT", sizeRanges });
+
+      // Re-apply partition after _resetState() restores _apparelSizesChar
+      this._apparelSizesChar = kidsPass
+        ? this._kidsSizesOnly()
+        : this._adultSizesOnly();
+
       this._forceSizeRanges = true;
       this._forcePair = true;
       this._skipResize = true;
@@ -798,7 +885,6 @@ class JFTGarmentPipeline {
       this._skipStack = true;
       this._forcePair = true;
       this._overrideDim = sPantDimension;
-      // Only one pant type — derive the key from the pant array
       const enumKey: keyof Workflow = `${pantInfo[0]}_PANT`;
       if (pantInfo[0] === SleeveType.LONG) {
         this._overrideDim = lPantDimension;

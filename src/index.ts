@@ -28,6 +28,7 @@
 
 /// <reference path="./polyfill/es6_extend.ts" />
 /// <reference path="./class/JSONFileHandler.ts" />
+/// <reference path="./enum/enums.ts" />
 /// <reference path="./class/MachineGuard.ts" />
 /**
  * Ensures JSONFileHandler,es6_extend.ts,MachineGuard are included first in the compiled output bundle.
