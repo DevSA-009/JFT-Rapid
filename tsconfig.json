@@ -3,6 +3,8 @@
     "target": "ES5",
     "removeComments": true,
     "skipLibCheck": true,
+    "ignoreDeprecations": "6.0",
+    "rootDir": "./src",
     "outFile": "./HOST/jft_rapid.jsx",
     "strict": true,
     "module": "none",
@@ -10,6 +12,7 @@
     "noLib": true,
     "types": []
   },
+
   "include": ["src/**/*.js", "src/**/*.ts"],
   "exclude": ["node_modules", "CLIENT", "CSXS", "HOST"]
 }

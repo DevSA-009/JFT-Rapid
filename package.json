@@ -6,6 +6,6 @@
     "install_zxp": "cmd /c \"tools\\install_extensions.cmd\""
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "6.0"
   }
 }
